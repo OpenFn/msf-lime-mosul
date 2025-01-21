@@ -1,73 +1,77 @@
 ---
 name: Feature request
-about: For requesting changes to jobs
+about: For new workflows & change requests
 title: ''
-labels: enhancement
+labels: feature request
 assignees: ''
 
 ---
-
 ## Background, context, and business value
 
-A clear and concise description of what the client wants and WHY.
+A clear and concise description of what the client wants and WHY. 
 
 For example: [Insert use case here]
 
 ## The specific request, in as few words as possible
+**Request Type:** New Workflow? Change Request?
 
 A clear and concise description of what you want to happen.  
 Things to include as needed:
-- The number of jobs needed to be created or updated 
-- The function of each job including specific resources and operations
+- The number of workflows needed to be created or updated 
+- The function of each workflow including specific resources and operations
 - Unique identifiers 
 - Links to mapping specifications, data flow diagrams, sample input/output data, and any API documentation
-
+- Links to the data model of target systems, if available
 
 ```md
-Create jobs 1 &2 in which OpenFn gets cases from Primero and gets the case and services, maps the Primero extract and upserts to Progres
+Create a workflow in which OpenFn will: 
+1. Get new rows from the PostgreSQL database every 1 hour
+2. Clean & transform the data according to the specified mapping rules, and then 
+3. Upsert cases in the Primero case management system via externalId `case_id`
+(Note: 1 DB row will = 1 case record.)
 
-1. Get referral data: GET /api/v2/cases -- where service_implementing_agency='UNHCR'
-   This should return: https://github.com/OpenFn/primero-progres/blob/master/sampleData/primero_sample_state.json
-2. Map Primero response to DTP/Progres interface. The field progres_primeroid will be the primary uid used by DTP.
-3. Upload referrals to DTP/Progres: POST https://antirrio.azure-api.net/primero-uat/ReceiveIncomingReferral
+See [links] below for the workflow diagrams, mapping specs, & Primero data model.
 ```
 
-### Expected data volumes
+## Data Volumes & Limits
 How many records do we think these jobs will need to process in each run? For example: 
 ```md
-When you GET data from Primero, this may return up to 1000 records. There are no known Primero API limits for # of records, but there is API paging to consider.
+When you GET data from the DB, this may return up to 1000 records. 
+There are no known Primero API limits for # of records, but there is API paging to consider.
 ```
 
-## state.json
+## Workflow Spec
 
-Either provide state directly, or link to a file. If sensitive information
-should be in state, redact it and provide instructions for where it can be
-found.
+For each new Workflow, describe the business process to be automated and its objectives. 
 
+- **Workflow Diagram**: {add link to diagram describing each step & logic}
+- **Mapping Specs**: {add link to field-level mapping specifications - in most cases you will have 1 spec per WF Step)
+- **API Docs:** {add links to relevant API & system documentation}
 
-```json
-{
-  "configuration": ["SEE LAST PASS: 'client cred'"],
-  "data": { LINK TO STATE },
-  "cursor": "2020-01-19 00:00:00"
-}
-```
+### Trigger
+What is the trigger type: cron, webhook, or kafka? Be sure to provide a sample input. 
 
+### Adaptors
+Which adaptor(s) do you expect to use? Any specific adaptor version considerations? 
 
-## expression.js
-
-For new jobs, describe the number of jobs needed and the high-level function of each job. Also include the trigger on platform and the adaptor needed for each job.
-For existing jobs, provide a link to the job itself in Github and the high-level changes needed to be made. _Provide the information below for _each_ job that is required._
+### Collections
+Do you plan to use `collections` feature in this workflow? If yes, please (1) specify how the collection should be used, and (2) make sure to either pre-configure the collection with sample data or spec how the collection data should be structured. 
 
 
-### job name
-### adaptor
-### trigger
-### operation
-### output
+## Input
 
-## Toggl 
+### Credentials
+Which credentials can be used to access the target system(s)? Do these target systems have test data? 
+(Do NOT share credential secrets on this issue -> rather point to where it can be found).
 
-Name of the Toggle project to log work
+### Sample Input Data
+Describe how the "input" for this workflow will be generated (e.g., webhook request, timer-based query to be sent). Either provide an example directly, link to a file, or describe how a query can be executed to extract data. 
+
+Be sure to redact any sensitive data and to not paste here. 
 
 
+## Testing Guidance
+Link to test suite and/or provide examples of scenarios with sample input/output data to help the dev validate the implementation. 
+
+## Toggl
+Name of Toggl project
