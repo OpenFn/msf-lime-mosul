@@ -60,6 +60,7 @@
   "history_retention_period": 90,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
+  "requires_mfa": false,
   "workflows": {
     "wf2-omrs-dhis2": {
       "id": "c886121c-0a91-45b5-ae30-7d0922b693be",
@@ -129,71 +130,71 @@
         "cron->Get-Patients": {
           "enabled": true,
           "id": "60f8f83d-7e0d-402f-90ee-8d8d85488097",
+          "target_job_id": "ecaf53cc-fbde-4703-827b-7b8a5126fb82",
           "source_trigger_id": "a38c8cfb-8fad-46b3-b69c-a7f6108a0d8c",
-          "condition_type": "always",
-          "target_job_id": "ecaf53cc-fbde-4703-827b-7b8a5126fb82"
+          "condition_type": "always"
         },
         "Upsert-TEIs->Get-Encounters": {
           "enabled": true,
           "id": "0075ae81-bef3-4fe9-969a-847f8bcde8fa",
+          "target_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976",
           "source_job_id": "5f3d2b64-435a-4df5-9d99-9fc37728d0b8",
-          "condition_expression": "state.patientUuids.length > 0 && !state.errors\n",
           "condition_type": "js_expression",
           "condition_label": "has-patient-uuids",
-          "target_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976"
+          "condition_expression": "state.patientUuids.length > 0 && !state.errors\n"
         },
         "Get-TEIs-and-Map-Answers->Create-Events": {
           "enabled": true,
           "id": "5384f7c8-7b38-44cd-8055-e3f6c46932e7",
+          "target_job_id": "a1176a6e-cdee-4ddc-9fe1-e49aa7b719cd",
           "source_job_id": "793f4fe1-d717-4caa-a617-2b5e2b19880d",
-          "condition_expression": "state.TEIs && !state.errors\n",
           "condition_type": "js_expression",
           "condition_label": "has-teis",
-          "target_job_id": "a1176a6e-cdee-4ddc-9fe1-e49aa7b719cd"
+          "condition_expression": "state.TEIs && !state.errors\n"
         },
         "Create-Events->Update-TEIs": {
           "enabled": true,
           "id": "63cd0a29-5d94-489e-9ba0-8a6690a555bc",
+          "target_job_id": "abe0d282-5209-47b5-9272-4cba048a5ba8",
           "source_job_id": "a1176a6e-cdee-4ddc-9fe1-e49aa7b719cd",
-          "condition_expression": "state?.genderUpdated?.length > 0 && !state.errors\n",
           "condition_type": "js_expression",
           "condition_label": "has-gender-updated",
-          "target_job_id": "abe0d282-5209-47b5-9272-4cba048a5ba8"
+          "condition_expression": "state?.genderUpdated?.length > 0 && !state.errors\n"
         },
         "Mappings->Upsert-TEIs": {
           "enabled": true,
           "id": "e45c7204-ae45-438f-ad71-4c663bc72850",
+          "target_job_id": "5f3d2b64-435a-4df5-9d99-9fc37728d0b8",
           "source_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516",
-          "condition_expression": "state.patients.length > 0 && !state.errors\n",
           "condition_type": "js_expression",
           "condition_label": "has-patients",
-          "target_job_id": "5f3d2b64-435a-4df5-9d99-9fc37728d0b8"
+          "condition_expression": "state.patients.length > 0 && !state.errors\n"
         },
         "Get-Patients->Mappings": {
           "enabled": true,
           "id": "ff6aff74-ffd9-48cc-8441-94a77f847418",
+          "target_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516",
           "source_job_id": "ecaf53cc-fbde-4703-827b-7b8a5126fb82",
-          "condition_expression": "state.patients.length > 0 && !state.errors\n",
           "condition_type": "on_job_success",
-          "target_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516"
+          "condition_expression": "state.patients.length > 0 && !state.errors\n"
         },
         "Get-Encounters->Get-TEIs-and-Map-Answers": {
           "enabled": true,
           "id": "2332a5e2-aa7b-4646-8193-958923e235f3",
+          "target_job_id": "793f4fe1-d717-4caa-a617-2b5e2b19880d",
           "source_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976",
-          "condition_expression": "!state.errors && state.encounters\n",
           "condition_type": "js_expression",
           "condition_label": "has-encounters",
-          "target_job_id": "793f4fe1-d717-4caa-a617-2b5e2b19880d"
+          "condition_expression": "!state.errors && state.encounters\n"
         },
         "Mappings->Get-Encounters": {
           "enabled": true,
           "id": "41e37c54-ae22-4363-8819-c8a7ea679ce9",
+          "target_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976",
           "source_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516",
-          "condition_expression": "!state.errors && state.patients.length === 0\n",
           "condition_type": "js_expression",
           "condition_label": "has-no-patients",
-          "target_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976"
+          "condition_expression": "!state.errors && state.patients.length === 0\n"
         }
       }
     },
@@ -244,36 +245,35 @@
         "cron->Fetch-Metadata": {
           "enabled": true,
           "id": "85b3b59f-90c1-434a-a9a6-1c09dd86ccff",
+          "target_job_id": "d7c373f4-a503-4fa6-bfdd-ab456860ae78",
           "source_trigger_id": "f982cc7a-6c9e-4778-9a08-6ddf8469509d",
-          "condition_type": "always",
-          "target_job_id": "d7c373f4-a503-4fa6-bfdd-ab456860ae78"
+          "condition_type": "always"
         },
         "Fetch-Metadata->Get-Teis-and-Locations": {
           "enabled": true,
           "id": "cfa7784e-6a3e-4f6f-8578-4dfb410f4a41",
+          "target_job_id": "d30561c9-1e9d-467c-b37b-985bcdf1a55c",
           "source_job_id": "d7c373f4-a503-4fa6-bfdd-ab456860ae78",
-          "condition_expression": "state.trackedEntityInstances.length > 0\n",
           "condition_type": "on_job_success",
-          "target_job_id": "d30561c9-1e9d-467c-b37b-985bcdf1a55c"
+          "condition_expression": "state.trackedEntityInstances.length > 0\n"
         },
         "Get-Teis-and-Locations->Create-Patients": {
           "enabled": true,
           "id": "c2122c54-8ddf-4ed1-9e6a-ff86adc4b7d8",
+          "target_job_id": "fe6cdd41-491d-44fd-80af-0ac8891dd766",
           "source_job_id": "d30561c9-1e9d-467c-b37b-985bcdf1a55c",
-          "condition_expression": "state.teis.length > 0 && !state.errors\n",
           "condition_type": "js_expression",
           "condition_label": "has-teis",
-          "target_job_id": "fe6cdd41-491d-44fd-80af-0ac8891dd766"
+          "condition_expression": "state.teis.length > 0 && !state.errors\n"
         },
         "Create-Patients->Update-Teis": {
           "enabled": true,
           "id": "22aa79eb-9f8d-404d-9880-09c866470085",
+          "target_job_id": "df3ec9f2-6913-4742-8898-44734deed649",
           "source_job_id": "fe6cdd41-491d-44fd-80af-0ac8891dd766",
-          "condition_type": "on_job_success",
-          "target_job_id": "df3ec9f2-6913-4742-8898-44734deed649"
+          "condition_type": "on_job_success"
         }
       }
     }
-  },
-  "requires_mfa": false
+  }
 }
