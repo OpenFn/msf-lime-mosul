@@ -16,7 +16,7 @@ cursor('now', {
 });
 
 // get(
-//   'https://raw.githubusercontent.com/OpenFn/openfn-lime-pilot/refs/heads/collections/metadata/collections.json',
+//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/main/metadata/mapping.json',
 //   { parseAs: 'json' },
 //   state => {
 //     const { cursor, lastRunDateTime, data } = state;
@@ -22251,8 +22251,8 @@ fn(state => {
         },
         optionSetMap: [
           // { DNOavthBRGL: 'ec42d68d-3e23-43de-b8c5-a03bb538e7c7' }, //sex
-          { qr9jBtm9uvm: '24d1fa23-9778-4a8e-9f7b-93f694fc25e2' }, 
-          { FTbwlOo7CpG: 'e0b6ed99-72c4-4847-a442-e9929eac4a0f' }, 
+          { qr9jBtm9uvm: '24d1fa23-9778-4a8e-9f7b-93f694fc25e2' },
+          { FTbwlOo7CpG: 'e0b6ed99-72c4-4847-a442-e9929eac4a0f' },
           { y38Qm3uiuuV: 'a9b2c642-097f-43f8-b96b-4d2f50ffd9b1' },
           { G69FtaNkBgp: '3884dc76-c271-4bcb-8df8-81c6fb897f53' },
           { RpW3aZrlHDi: 'dd1f7f0f-ccea-4228-9aa8-a8c3b0ea4c3e' },
@@ -22752,9 +22752,9 @@ fn(({ identifiers, optsMap, formMaps, formMetadata, ...state }) => {
     'omrs identifierType'
   ]; //MSF ID or OpenMRS Patient Number
 
-  state.openmrsAutoIdAttributeId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[
-    'dhis2 attribute id'
-  ]; //MSF ID or OpenMRS Patient Number
+  state.openmrsAutoIdAttributeId = identifiers.find(
+    i => i.type === 'OPENMRS_AUTO_ID'
+  )?.['dhis2 attribute id']; //MSF ID or OpenMRS Patient Number
 
   return state;
 });
