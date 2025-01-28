@@ -53,7 +53,7 @@ workflows:
 
       Create-Patients:
         name: Create Patients
-        adaptor: '@openfn/language-openmrs@4.1.3'
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024
         body:
           path: workflows/wf1/3-create-patients.js
@@ -100,7 +100,7 @@ workflows:
     jobs:
       Get-Patients:
         name: Get Patients
-        adaptor: '@openfn/language-openmrs@4.1.3'
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/1-get-patients.js
@@ -114,7 +114,7 @@ workflows:
 
       Get-Encounters:
         name: Get Encounters
-        adaptor: '@openfn/language-http@6.5.1'
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/3-get-encounters.js
