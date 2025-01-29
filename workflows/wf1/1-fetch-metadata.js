@@ -16,7 +16,7 @@ cursor('now', {
 });
 
 // get(
-//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/main/metadata/mapping.json',
+//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/collections/metadata/mapping.json',
 //   { parseAs: 'json' },
 //   state => {
 //     const { cursor, lastRunDateTime, data } = state;
