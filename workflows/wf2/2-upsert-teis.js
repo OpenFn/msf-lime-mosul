@@ -32,7 +32,7 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
     };
   });
 
-  const standardAttr =  [
+  const standardAttr = [
     {
       attribute: 'fa7uwpCKIwa',
       value: patient.person?.names[0]?.givenName,
@@ -44,10 +44,8 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
     {
       attribute: 'P4wdYGkldeG', //DHIS2 ID ==> "Patient Number"
       value:
-        findIdentifierByUuid(
-          patient.identifiers,
-          state.dhis2PatientNumber
-        ) || findIdentifierByUuid(patient.identifiers, state.openmrsAutoId), //map OMRS ID if no DHIS2 id
+        findIdentifierByUuid(patient.identifiers, state.dhis2PatientNumber) ||
+        findIdentifierByUuid(patient.identifiers, state.openmrsAutoId), //map OMRS ID if no DHIS2 id
     },
     {
       attribute: 'ZBoxuExmxcZ', //MSF ID ==> "OpenMRS Patient Number"
@@ -72,12 +70,12 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
     {
       attribute: 'rBtrjV1Mqkz', //Place of living
       value: placeOflivingMap[patient.person?.addresses[0]?.cityVillage],
-    }
+    },
   ];
 
   //filter out attributes that don't have a value from dhis2
-  const filteredAttr = standardAttr.filter(a => a.value)
-  const filteredStatusAttr = statusAttrMaps.filter(a => a.value)
+  const filteredAttr = standardAttr.filter(a => a.value);
+  const filteredStatusAttr = statusAttrMaps.filter(a => a.value);
   //console.log('standardAttr ::', JSON.stringify(standardAttr, null,2))
   //console.log('filteredAttr ::', JSON.stringify(filteredAttr, null,2))
 
@@ -91,10 +89,7 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
       program: state.program,
       orgUnit: state.orgUnit,
       trackedEntityType: 'cHlzCA2MuEF',
-      attributes: [
-        ...filteredAttr,
-        ...filteredStatusAttr,
-      ],
+      attributes: [...filteredAttr, ...filteredStatusAttr],
     },
   };
 
