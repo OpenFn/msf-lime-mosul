@@ -114,11 +114,10 @@ workflows:
 
       Get-Encounters:
         name: Get Encounters
-        adaptor: '@openfn/language-http@6.5.1'
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/3-get-encounters.js
-
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
         adaptor: '@openfn/language-dhis2@5.0.1'
