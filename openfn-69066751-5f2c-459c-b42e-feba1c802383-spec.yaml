@@ -100,7 +100,7 @@ workflows:
     jobs:
       Get-Patients:
         name: Get Patients
-        adaptor: '@openfn/language-openmrs@4.2.0'
+        adaptor: '@openfn/language-openmrs@4.3.0'
         credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/1-get-patients.js
@@ -114,10 +114,11 @@ workflows:
 
       Get-Encounters:
         name: Get Encounters
-        adaptor: '@openfn/language-openmrs@4.2.0'
+        adaptor: '@openfn/language-openmrs@4.3.0'
         credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/3-get-encounters.js
+
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
         adaptor: '@openfn/language-dhis2@5.0.1'

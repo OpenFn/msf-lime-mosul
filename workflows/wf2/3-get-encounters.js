@@ -1,6 +1,6 @@
 // Fetch all encounters
 http
-  .request('GET', '/ws/fhir2/R4/Encounter', {
+  .get('/ws/fhir2/R4/Encounter', {
     query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
   })
   .then(state => {
@@ -16,7 +16,7 @@ http
 
 fnIf(
   $.nextUrl,
-  http.request('GET', $.nextUrl).then(state => {
+  http.get($.nextUrl).then(state => {
     console.log(`Fetched ${state.data.entry.length} remaining encounters`);
     delete state.allResponse.link;
     state.allResponse.entry.push(...state.data.entry);
