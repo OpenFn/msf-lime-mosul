@@ -26,6 +26,33 @@ workflows:
         body:
           path: workflows/wf1/1-fetch-metadata.js
 
+      Get-Teis-and-Locations:
+        name: Get Teis and Locations
+        adaptor: '@openfn/language-dhis2@latest'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Create-Patients:
+        name: Create Patients
+        adaptor: '@openfn/language-openmrs@latest'
+        credential: null
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Update-Teis:
+        name: Update Teis
+        adaptor: '@openfn/language-dhis2@latest'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
     triggers:
       webhook:
         type: webhook
@@ -35,6 +62,21 @@ workflows:
         source_trigger: webhook
         target_job: Fetch-Metadata
         condition_type: always
+        enabled: true
+      Fetch-Metadata->Get-Teis-and-Locations:
+        source_job: Fetch-Metadata
+        target_job: Get-Teis-and-Locations
+        condition_type: on_job_success
+        enabled: true
+      Get-Teis-and-Locations->Create-Patients:
+        source_job: Get-Teis-and-Locations
+        target_job: Create-Patients
+        condition_type: on_job_success
+        enabled: true
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
+        condition_type: on_job_success
         enabled: true
   wf2-omrs-dhis2:
     name: wf2-omrs-dhis2
