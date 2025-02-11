@@ -1,7 +1,73 @@
 {
-    "id": "7ea6221c-4599-428e-9565-d4f0e05c7803",
-    "name": "msf-lime-mosul-staging",
-    "description": "OpenFn cloud project for workflow testing between MSF and OpenFn teams",
-    "scheduled_deletion": null,
-    "workflows": {}
+  "id": "7ea6221c-4599-428e-9565-d4f0e05c7803",
+  "name": "msf-lime-mosul-staging",
+  "description": "staging project for main MSF workflows",
+  "inserted_at": "2025-01-30T11:16:04Z",
+  "updated_at": "2025-02-11T07:16:01Z",
+  "project_credentials": {
+    "mtuchi@openfn.org-mtuchi-github-token": {
+      "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
+      "name": "mtuchi-github-token",
+      "owner": "mtuchi@openfn.org"
+    },
+    "mtuchi@openfn.org-OpenMRS-Demo": {
+      "id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08",
+      "name": "OpenMRS Demo",
+      "owner": "mtuchi@openfn.org"
+    },
+    "mtuchi@openfn.org-OpenFnSharepoint": {
+      "id": "49fdae45-c33e-498a-9441-e0c0b4a61568",
+      "name": "OpenFnSharepoint",
+      "owner": "mtuchi@openfn.org"
+    },
+    "mtuchi@openfn.org-OpenMRS-Demo-(HTTP)": {
+      "id": "cc383a27-65dc-4765-b10b-f913770e7ee7",
+      "name": "OpenMRS Demo (HTTP)",
+      "owner": "mtuchi@openfn.org"
+    },
+    "mtuchi@openfn.org-MSF-DHIS2-UAT": {
+      "id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f",
+      "name": "MSF DHIS2 UAT",
+      "owner": "mtuchi@openfn.org"
+    }
+  },
+  "scheduled_deletion": null,
+  "history_retention_period": 365,
+  "dataclip_retention_period": null,
+  "retention_policy": "retain_all",
+  "workflows": {
+    "wf1-dhis2-omrs-migration": {
+      "id": "37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0",
+      "name": "wf1-dhis2-omrs-migration",
+      "inserted_at": "2025-02-11T14:25:57.873520Z",
+      "lock_version": 1,
+      "triggers": {
+        "webhook": {
+          "enabled": false,
+          "id": "836df7a7-d15f-4fc6-8f3d-5bb85c823218",
+          "type": "webhook"
+        }
+      },
+      "jobs": {
+        "Fetch-Metadata": {
+          "id": "c4616bf4-6a28-4307-8798-d5710dcfc75f",
+          "name": "Fetch Metadata",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-http@6.5.1",
+          "project_credential_id": null
+        }
+      },
+      "edges": {
+        "webhook->Fetch-Metadata": {
+          "enabled": true,
+          "id": "4f025e3a-80af-47ff-8c25-8891eff0c486",
+          "target_job_id": "c4616bf4-6a28-4307-8798-d5710dcfc75f",
+          "source_trigger_id": "836df7a7-d15f-4fc6-8f3d-5bb85c823218",
+          "condition_type": "always"
+        }
+      }
+    }
+  },
+  "requires_mfa": false,
+  "collections": {}
 }
