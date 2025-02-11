@@ -7,7 +7,7 @@ const isValidUUID = id => {
 };
 
 // get(
-//   'https://raw.githubusercontent.com/OpenFn/openfn-lime-pilot/refs/heads/collections/metadata/collections.json',
+//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/collections/metadata/collections.json',
 //   { parseAs: 'json' },
 //   state => {
 //     const { cursor, lastRunDateTime, patients, data } = state;
