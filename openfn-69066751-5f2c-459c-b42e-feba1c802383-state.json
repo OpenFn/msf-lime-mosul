@@ -4,7 +4,6 @@
   "description": "OpenFn cloud project for workflow testing between MSF and OpenFn teams\n",
   "inserted_at": "2024-10-30T06:18:14Z",
   "updated_at": "2025-01-29T18:06:04Z",
-  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "55508835-a9c3-4283-813e-ae6f9c4958fd",
@@ -57,6 +56,7 @@
       "owner": "aleksa@openfn.org"
     }
   },
+  "scheduled_deletion": null,
   "history_retention_period": 90,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
