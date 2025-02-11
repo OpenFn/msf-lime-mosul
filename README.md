@@ -1,4 +1,4 @@
-# OpenFn Prototype for MSF LIME Project
+# OpenFn Workflows for MSF LIME Project
 
 Automating data exchange workflows between `DHIS2`, `OpenMRS`, and `Open Concept Lab (OCL)`. 
 

@@ -32,6 +32,53 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
     };
   });
 
+  const standardAttr = [
+    {
+      attribute: 'fa7uwpCKIwa',
+      value: patient.person?.names[0]?.givenName,
+    },
+    {
+      attribute: 'Jt9BhFZkvP2',
+      value: patient.person?.names[0]?.familyName,
+    },
+    {
+      attribute: 'P4wdYGkldeG', //DHIS2 ID ==> "Patient Number"
+      value:
+        findIdentifierByUuid(patient.identifiers, state.dhis2PatientNumber) ||
+        findIdentifierByUuid(patient.identifiers, state.openmrsAutoId), //map OMRS ID if no DHIS2 id
+    },
+    {
+      attribute: 'ZBoxuExmxcZ', //MSF ID ==> "OpenMRS Patient Number"
+      value: findIdentifierByUuid(patient.identifiers, state.openmrsAutoId),
+    },
+    {
+      attribute: 'AYbfTPYMNJH', //"OpenMRS Patient UID"
+      value: patient.uuid,
+    },
+    {
+      attribute: 'qptKDiv9uPl',
+      value: genderOptions[patient.person.gender],
+    },
+    {
+      attribute: 'T1iX2NuPyqS',
+      value: patient.person.age,
+    },
+    {
+      attribute: 'WDp4nVor9Z7',
+      value: patient.person.birthdate?.slice(0, 10),
+    },
+    {
+      attribute: 'rBtrjV1Mqkz', //Place of living
+      value: placeOflivingMap[patient.person?.addresses[0]?.cityVillage],
+    },
+  ];
+
+  //filter out attributes that don't have a value from dhis2
+  const filteredAttr = standardAttr.filter(a => a.value);
+  const filteredStatusAttr = statusAttrMaps.filter(a => a.value);
+  //console.log('standardAttr ::', JSON.stringify(standardAttr, null,2))
+  //console.log('filteredAttr ::', JSON.stringify(filteredAttr, null,2))
+
   const payload = {
     query: {
       ou: state.orgUnit,
@@ -42,49 +89,7 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
       program: state.program,
       orgUnit: state.orgUnit,
       trackedEntityType: 'cHlzCA2MuEF',
-      attributes: [
-        {
-          attribute: 'fa7uwpCKIwa',
-          value: patient.person?.names[0]?.givenName,
-        },
-        {
-          attribute: 'Jt9BhFZkvP2',
-          value: patient.person?.names[0]?.familyName,
-        },
-        {
-          attribute: 'P4wdYGkldeG', //DHIS2 ID ==> "Patient Number"
-          value:
-            findIdentifierByUuid(
-              patient.identifiers,
-              state.dhis2PatientNumber
-            ) || findIdentifierByUuid(patient.identifiers, state.openmrsAutoId), //map OMRS ID if no DHIS2 id
-        },
-        {
-          attribute: 'ZBoxuExmxcZ', //MSF ID ==> "OpenMRS Patient Number"
-          value: findIdentifierByUuid(patient.identifiers, state.openmrsAutoId),
-        },
-        {
-          attribute: 'AYbfTPYMNJH', //"OpenMRS Patient UID"
-          value: patient.uuid,
-        },
-        {
-          attribute: 'qptKDiv9uPl',
-          value: genderOptions[patient.person.gender],
-        },
-        {
-          attribute: 'T1iX2NuPyqS',
-          value: patient.person.age,
-        },
-        {
-          attribute: 'WDp4nVor9Z7',
-          value: patient.person.birthdate.slice(0, 10),
-        },
-        {
-          attribute: 'rBtrjV1Mqkz', //Place of living
-          value: placeOflivingMap[patient.person?.addresses[0]?.cityVillage],
-        },
-        ...statusAttrMaps,
-      ],
+      attributes: [...filteredAttr, ...filteredStatusAttr],
     },
   };
 

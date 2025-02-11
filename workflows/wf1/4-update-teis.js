@@ -18,23 +18,44 @@ each(
     {
       ou: $.orgUnit,
       program: $.program,
-      filter: [`${$.dhis2PatientNumber}:Eq:${$.data.patient_number}`],
+      filter: [`${$.dhis2PatientNumberAttributeId}:Eq:${$.data.patient_number}`],
     },
-    {
-      orgUnit: $.orgUnit,
-      program: $.program,
-      trackedEntityType: 'cHlzCA2MuEF',
-      attributes: [
-        {
-          attribute: `${$.dhis2PatientNumber}`,
-          value: `${$.data.patient_number}`,
-        }, //DHIS2 patient number to use as lookup key
-        { attribute: 'AYbfTPYMNJH', value: `${$.data.patient.uuid}` }, //OMRS patient uuid
-        {
-          attribute: `${$.openmrsAutoId}`,
-          value: `${$.data.patient.identifier[0].identifier}`,
-        }, //id generated in wf1-2 e.g., "IQ146-24-000-027"
-      ],
+    state => {
+      const payload = {
+        orgUnit: state.orgUnit,
+        program: state.program,
+        trackedEntityType: 'cHlzCA2MuEF',
+        attributes: [
+          {
+            attribute: `${state.dhis2PatientNumberAttributeId}`,
+            value: `${state.data.patient_number}`,
+          }, //DHIS2 patient number to use as lookup key
+          { attribute: 'AYbfTPYMNJH', value: `${state.data.uuid}` }, //OMRS patient uuid
+          {
+            attribute: `${state.openmrsAutoIdAttributeId}`,
+            value: `${state.data.omrs_patient_number.identifier}`,
+          }, //id generated in wf1-2 e.g., "IQ146-24-000-027"
+        ],
+      }
+
+      console.log('final payload to send to dhis2:', payload)
+      return payload; 
     }
   )
+    // {
+    //   orgUnit: $.orgUnit,
+    //   program: $.program,
+    //   trackedEntityType: 'cHlzCA2MuEF',
+    //   attributes: [
+    //     {
+    //       attribute: `${$.dhis2PatientNumberAttributeId}`,
+    //       value: `${state.data.patient_number}`,
+    //     }, //DHIS2 patient number to use as lookup key
+    //     { attribute: 'AYbfTPYMNJH', value: `${state.data.uuid}` }, //OMRS patient uuid
+    //     {
+    //       attribute: `${state.openmrsAutoIdAttributeId}`,
+    //       value: `${state.data.omrs_patient_number.identifier}`,
+    //     }, //id generated in wf1-2 e.g., "IQ146-24-000-027"
+    //   ],
+    // },
 );

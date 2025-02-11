@@ -1,5 +1,7 @@
-name: msf-lime-next-staging
-description: null
+name: msf-lime-mosul
+description: |
+  OpenFn cloud project for workflow testing between MSF and OpenFn teams
+
 credentials:
   aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024:
     name: MSF OMRS Demo Nov 2024
@@ -9,6 +11,9 @@ credentials:
     owner: aissatou@openfn.org
   aleksa@openfn.org-AK-Sharepoint:
     name: AK Sharepoint
+    owner: aleksa@openfn.org
+  aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl:
+    name: MSF OMRS Demo - Raw with baseUrl
     owner: aleksa@openfn.org
   aleksa@openfn.org-OpenMRS-Demo-Azure:
     name: OpenMRS Demo Azure
@@ -29,50 +34,6 @@ credentials:
     name: mtuchi-github-token
     owner: mtuchi@openfn.org
 workflows:
-  fetch-metadata-and-generate-opts-json:
-    name: fetch-metadata-and-generate-opts-json
-    jobs:
-      Get-metadata-file-from-Sharepoint:
-        name: Get metadata file from Sharepoint
-        adaptor: '@openfn/language-msgraph@latest'
-        credential: mtuchi@openfn.org-OpenFnSharepoint
-        body:
-          path: workflows/wf3/1-fetch-metadata.js
-
-      Map-metadata-file-to-option-set-Json-format:
-        name: Map metadata file to option-set Json format
-        adaptor: '@openfn/language-common@latest'
-        credential: null
-        body:
-          path: workflows/wf3/2-map-metadata.js
-
-      Save-option-set-json-to-github:
-        name: Save option-set json to github
-        adaptor: '@openfn/language-http@latest'
-        credential: mtuchi@openfn.org-mtuchi-github-token
-        body:
-          path: workflows/wf3/3-save-options.js
-
-    triggers:
-      webhook:
-        type: webhook
-        enabled: true
-    edges:
-      Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format:
-        source_job: Get-metadata-file-from-Sharepoint
-        target_job: Map-metadata-file-to-option-set-Json-format
-        condition_type: on_job_success
-        enabled: true
-      Map-metadata-file-to-option-set-Json-format->Save-option-set-json-to-github:
-        source_job: Map-metadata-file-to-option-set-Json-format
-        target_job: Save-option-set-json-to-github
-        condition_type: on_job_success
-        enabled: true
-      webhook->Get-metadata-file-from-Sharepoint:
-        source_trigger: webhook
-        target_job: Get-metadata-file-from-Sharepoint
-        condition_type: always
-        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
@@ -92,7 +53,7 @@ workflows:
 
       Create-Patients:
         name: Create Patients
-        adaptor: '@openfn/language-openmrs@4.1.3'
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024
         body:
           path: workflows/wf1/3-create-patients.js
@@ -120,11 +81,6 @@ workflows:
         target_job: Get-Teis-and-Locations
         condition_type: on_job_success
         enabled: true
-      Create-Patients->Update-Teis:
-        source_job: Create-Patients
-        target_job: Update-Teis
-        condition_type: on_job_success
-        enabled: true
       Get-Teis-and-Locations->Create-Patients:
         source_job: Get-Teis-and-Locations
         target_job: Create-Patients
@@ -134,13 +90,18 @@ workflows:
           state.teis.length > 0 && !state.errors
 
         enabled: true
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
+        condition_type: on_job_success
+        enabled: true
   wf2-omrs-dhis2:
     name: wf2-omrs-dhis2
     jobs:
       Get-Patients:
         name: Get Patients
-        adaptor: '@openfn/language-openmrs@4.1.3'
-        credential: aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024
+        adaptor: '@openfn/language-openmrs@4.3.0'
+        credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/1-get-patients.js
 
@@ -153,8 +114,8 @@ workflows:
 
       Get-Encounters:
         name: Get Encounters
-        adaptor: '@openfn/language-http@6.5.1'
-        credential: 'aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024-(raw)'
+        adaptor: '@openfn/language-openmrs@4.3.0'
+        credential: aleksa@openfn.org-MSF-OMRS-Demo---Raw-with-baseUrl
         body:
           path: workflows/wf2/3-get-encounters.js
 
@@ -206,20 +167,6 @@ workflows:
           state.patientUuids.length > 0 && !state.errors
 
         enabled: true
-      Mappings->Upsert-TEIs:
-        source_job: Mappings
-        target_job: Upsert-TEIs
-        condition_type: on_job_success
-        enabled: true
-      Get-Patients->Mappings:
-        source_job: Get-Patients
-        target_job: Mappings
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
       Get-TEIs-and-Map-Answers->Create-Events:
         source_job: Get-TEIs-and-Map-Answers
         target_job: Create-Events
@@ -238,8 +185,35 @@ workflows:
           state?.genderUpdated?.length > 0 && !state.errors
 
         enabled: true
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
+      Get-Patients->Mappings:
+        source_job: Get-Patients
+        target_job: Mappings
+        condition_type: on_job_success
+        enabled: true
       Get-Encounters->Get-TEIs-and-Map-Answers:
         source_job: Get-Encounters
         target_job: Get-TEIs-and-Map-Answers
-        condition_type: on_job_success
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state.encounters
+
+        enabled: true
+      Mappings->Get-Encounters:
+        source_job: Mappings
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
+
         enabled: true

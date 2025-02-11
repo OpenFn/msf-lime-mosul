@@ -22238,21 +22238,21 @@ fn(state => {
           Jt9BhFZkvP2: '38ef5485-e67f-4a10-bf36-08304fe63877',
           qptKDiv9uPl: 'ec42d68d-3e23-43de-b8c5-a03bb538e7c7',
           WDp4nVor9Z7: 'c020e465-d495-4f6b-97fa-6d4c0009fcd2',
-          mVbzW9TVo7r: '18075593-dd9b-48b1-a1a0-16e787b6e5ec',
-          Xvzc9e0JJmp: '3dc96ee4-daea-4460-b141-6b31f7b7ae93',
-          YUIQIA2ClN6: 'b3767edc-78f5-4d0f-a2d8-564ae58d00cf',
-          Qq6xQ2s6LO8: '9728c2ff-a489-4e97-94d0-07e02f403baa',
-          FpuGAOu6itZ: '544ef960-3b65-4add-8795-96b2b084faa3',
-          v7k4OcXrWR8: '\te35ca42c-031e-4dc2-83fe-a926b3de4d12',
-          SVoT2cVLd5O: 'b0ba8725-10d9-443e-8251-415c37fb9567',
+          mVbzW9TVo7r: 'bc851ec1-9fb7-49da-acd7-1a61168002fe', //Phone number
+          Xvzc9e0JJmp: '24d1fa23-9778-4a8e-9f7b-93f694fc25e2', //Nationality
+          YUIQIA2ClN6: 'e0b6ed99-72c4-4847-a442-e9929eac4a0f', //Current status
+          Qq6xQ2s6LO8: 'a9b2c642-097f-43f8-b96b-4d2f50ffd9b1', //Legal status
+          FpuGAOu6itZ: '3884dc76-c271-4bcb-8df8-81c6fb897f53', //Marital status
+          v7k4OcXrWR8: 'dd1f7f0f-ccea-4228-9aa8-a8c3b0ea4c3e', //Employment status
+          SVoT2cVLd5O: 'e363161a-9d5c-4331-8463-238938f018ed', //No. of Children (If Applicable)
         },
         optionSetMap: [
           { DNOavthBRGL: 'ec42d68d-3e23-43de-b8c5-a03bb538e7c7' },
-          { qr9jBtm9uvm: '3dc96ee4-daea-4460-b141-6b31f7b7ae93' },
-          { FTbwlOo7CpG: 'b3767edc-78f5-4d0f-a2d8-564ae58d00cf' },
-          { y38Qm3uiuuV: '9728c2ff-a489-4e97-94d0-07e02f403baa' },
-          { G69FtaNkBgp: '544ef960-3b65-4add-8795-96b2b084faa3' },
-          { RpW3aZrlHDi: '\te35ca42c-031e-4dc2-83fe-a926b3de4d12' },
+          { qr9jBtm9uvm: '24d1fa23-9778-4a8e-9f7b-93f694fc25e2' },
+          { FTbwlOo7CpG: 'e0b6ed99-72c4-4847-a442-e9929eac4a0f' },
+          { y38Qm3uiuuV: 'a9b2c642-097f-43f8-b96b-4d2f50ffd9b1' },
+          { G69FtaNkBgp: '3884dc76-c271-4bcb-8df8-81c6fb897f53' },
+          { RpW3aZrlHDi: 'dd1f7f0f-ccea-4228-9aa8-a8c3b0ea4c3e' },
         ],
       },
       '979a8c02-8475-3488-80ff-a0dcf73ece99': {

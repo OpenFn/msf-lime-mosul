@@ -38,7 +38,9 @@ fn(state => {
     return result ? result.value : undefined;
   };
 
+
   const calculateDOB = age => {
+    if (!age) return age
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const birthYear = currentYear - age;
@@ -53,7 +55,7 @@ fn(state => {
   };
 
   state.patients = teis.map((d, i) => {
-    const patientNumber = getValueForCode(d.attributes, 'patient_number'); // Add random number for testing + Math.random()
+    const patientNumber = getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()
 
     const lonlat = d.attributes.find(a => a.attribute === 'rBtrjV1Mqkz')?.value;
     const location = lonlat
@@ -74,21 +76,26 @@ fn(state => {
       .filter(a => a.attribute in state.patientAttributes)
       .map(a => {
         let value = a.value;
+
         if (a.displayName === 'Nationality') {
           value = nationalityMap[a.value];
         } else if (a.displayName.includes(' status')) {
           value = statusMap[a.value];
         }
-        return {
-          attributeType: state.patientAttributes[a.attribute],
-          value,
-        };
-      });
+
+        if (value) {
+          return {
+            attributeType: state.patientAttributes[a.attribute].trim(),
+            value,
+          };
+        }
+      }).filter(Boolean);
+
     return {
       patientNumber,
       person: {
         age: getValueForCode(d.attributes, 'age'),
-        gender: genderOptions[getValueForCode(d.attributes, 'sex')],
+        gender: genderOptions[getValueForCode(d.attributes, 'sex')] || 'U',
         birthdate:
           d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ??
           calculateDOB(getValueForCode(d.attributes, 'age')),
@@ -147,15 +154,17 @@ each(
     state => {
       const { patientNumber, ...patient } = state.data;
       console.log(
-        'Upserting patient record\n',
+        'Upserting patient record...',
         JSON.stringify(patient, null, 2)
       );
       return patient;
     },
     state => {
       state.newPatientUuid ??= [];
+     //console.log('state.references ::', state.references)
       state.newPatientUuid.push({
         patient_number: state.references.at(-1)?.patientNumber,
+        omrs_patient_number: state.references.at(-1)?.identifiers.find(i => i.identifierType=`${state.openmrsAutoId}`),
         uuid: state.data.uuid,
       });
       return state;
