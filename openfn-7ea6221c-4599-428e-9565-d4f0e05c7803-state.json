@@ -4,6 +4,7 @@
   "description": "staging project for main MSF workflows",
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-02-11T07:16:01Z",
+  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -26,7 +27,6 @@
       "owner": "mtuchi@openfn.org"
     }
   },
-  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
@@ -58,6 +58,37 @@
           "id": "4f025e3a-80af-47ff-8c25-8891eff0c486",
           "target_job_id": "c4616bf4-6a28-4307-8798-d5710dcfc75f",
           "source_trigger_id": "836df7a7-d15f-4fc6-8f3d-5bb85c823218",
+          "condition_type": "always"
+        }
+      }
+    },
+    "wf2-omrs-dhis2": {
+      "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
+      "name": "wf2-omrs-dhis2",
+      "inserted_at": "2025-02-11T14:53:34.672119Z",
+      "lock_version": 1,
+      "triggers": {
+        "webhook": {
+          "enabled": false,
+          "id": "a30ec52a-4ecc-4dbe-8b44-61c779f6f879",
+          "type": "webhook"
+        }
+      },
+      "jobs": {
+        "Get-Patients": {
+          "id": "d99463fe-d81f-4aea-8066-49a543874dee",
+          "name": "Get Patients",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-openmrs@4.3.0",
+          "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
+        }
+      },
+      "edges": {
+        "webhook->Get-Patients": {
+          "enabled": true,
+          "id": "57a8ef61-a75f-4af2-8152-371d871e21bb",
+          "target_job_id": "d99463fe-d81f-4aea-8066-49a543874dee",
+          "source_trigger_id": "a30ec52a-4ecc-4dbe-8b44-61c779f6f879",
           "condition_type": "always"
         }
       }
