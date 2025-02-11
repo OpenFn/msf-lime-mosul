@@ -1,6 +1,7 @@
 name: msf-lime-mosul-staging
 description: |
   staging project for main MSF workflows
+
 credentials:
   mtuchi@openfn.org-MSF-DHIS2-UAT:
     name: MSF DHIS2 UAT
@@ -45,6 +46,60 @@ workflows:
         body:
           path: workflows/wf2/1-get-patients.js
 
+      Mappings:
+        name: Mappings
+        adaptor: '@openfn/language-http@6.5.1'
+        credential: null
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Upsert-TEIs:
+        name: Upsert TEIs
+        adaptor: '@openfn/language-dhis2@latest'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Get-Encounters:
+        name: Get Encounters
+        adaptor: '@openfn/language-openmrs@latest'
+        credential: null
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Get-TEIs-and-Map-Answers:
+        name: Get TEIs and Map Answers
+        adaptor: '@openfn/language-dhis2@latest'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Create-Events:
+        name: Create Events
+        adaptor: '@openfn/language-dhis2@latest'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+      Update-TEIs:
+        name: Update TEIs
+        adaptor: '@openfn/language-dhis2@latest'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
     triggers:
       cron:
         type: cron
@@ -55,4 +110,39 @@ workflows:
         source_trigger: cron
         target_job: Get-Patients
         condition_type: always
+        enabled: true
+      Get-Patients->Mappings:
+        source_job: Get-Patients
+        target_job: Mappings
+        condition_type: on_job_success
+        enabled: true
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: on_job_success
+        enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: on_job_success
+        enabled: true
+      Mappings->Get-Encounters:
+        source_job: Mappings
+        target_job: Get-Encounters
+        condition_type: on_job_success
+        enabled: true
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
+        condition_type: on_job_success
+        enabled: true
+      Get-TEIs-and-Map-Answers->Create-Events:
+        source_job: Get-TEIs-and-Map-Answers
+        target_job: Create-Events
+        condition_type: on_job_success
+        enabled: true
+      Create-Events->Update-TEIs:
+        source_job: Create-Events
+        target_job: Update-TEIs
+        condition_type: on_job_success
         enabled: true

@@ -1,9 +1,10 @@
 {
   "id": "7ea6221c-4599-428e-9565-d4f0e05c7803",
   "name": "msf-lime-mosul-staging",
-  "description": "staging project for main MSF workflows",
+  "description": "staging project for main MSF workflows\n",
   "inserted_at": "2025-01-30T11:16:04Z",
-  "updated_at": "2025-02-11T07:16:01Z",
+  "updated_at": "2025-02-11T15:06:26Z",
+  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -26,7 +27,6 @@
       "owner": "mtuchi@openfn.org"
     }
   },
-  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
@@ -65,8 +65,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-02-11T15:01:21.014098Z",
-      "lock_version": 2,
+      "inserted_at": "2025-02-11T15:12:33.265524Z",
+      "lock_version": 3,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -82,6 +82,48 @@
           "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
           "adaptor": "@openfn/language-openmrs@4.3.0",
           "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
+        },
+        "Mappings": {
+          "id": "6f787076-7706-4104-834e-29340029c5ee",
+          "name": "Mappings",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-http@6.5.1",
+          "project_credential_id": null
+        },
+        "Upsert-TEIs": {
+          "id": "788df7f4-5ed3-46bd-8479-778e18c08235",
+          "name": "Upsert TEIs",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-dhis2@latest",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
+        },
+        "Get-Encounters": {
+          "id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
+          "name": "Get Encounters",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-openmrs@latest",
+          "project_credential_id": null
+        },
+        "Get-TEIs-and-Map-Answers": {
+          "id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",
+          "name": "Get TEIs and Map Answers",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-dhis2@latest",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
+        },
+        "Create-Events": {
+          "id": "6097052b-14ed-4ec9-88dd-3b5b7a156819",
+          "name": "Create Events",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-dhis2@latest",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
+        },
+        "Update-TEIs": {
+          "id": "2b12eded-b70a-4f94-8fd2-5fe07a533461",
+          "name": "Update TEIs",
+          "body": "\n// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n",
+          "adaptor": "@openfn/language-dhis2@latest",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
         }
       },
       "edges": {
@@ -91,6 +133,55 @@
           "target_job_id": "d99463fe-d81f-4aea-8066-49a543874dee",
           "source_trigger_id": "a30ec52a-4ecc-4dbe-8b44-61c779f6f879",
           "condition_type": "always"
+        },
+        "Get-Patients->Mappings": {
+          "enabled": true,
+          "id": "e2f4678d-270b-430c-82f6-b5553c641def",
+          "target_job_id": "6f787076-7706-4104-834e-29340029c5ee",
+          "source_job_id": "d99463fe-d81f-4aea-8066-49a543874dee",
+          "condition_type": "on_job_success"
+        },
+        "Mappings->Upsert-TEIs": {
+          "enabled": true,
+          "id": "cec97e34-8c98-473c-87f0-f68391d38f3b",
+          "target_job_id": "788df7f4-5ed3-46bd-8479-778e18c08235",
+          "source_job_id": "6f787076-7706-4104-834e-29340029c5ee",
+          "condition_type": "on_job_success"
+        },
+        "Upsert-TEIs->Get-Encounters": {
+          "enabled": true,
+          "id": "c051248f-741e-4eba-8880-bb6a4ddf8883",
+          "target_job_id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
+          "source_job_id": "788df7f4-5ed3-46bd-8479-778e18c08235",
+          "condition_type": "on_job_success"
+        },
+        "Mappings->Get-Encounters": {
+          "enabled": true,
+          "id": "e48fdb3b-7287-4572-8888-ea1b1206b23d",
+          "target_job_id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
+          "source_job_id": "6f787076-7706-4104-834e-29340029c5ee",
+          "condition_type": "on_job_success"
+        },
+        "Get-Encounters->Get-TEIs-and-Map-Answers": {
+          "enabled": true,
+          "id": "33cdeb8c-524d-4a9a-8530-647907096741",
+          "target_job_id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",
+          "source_job_id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
+          "condition_type": "on_job_success"
+        },
+        "Get-TEIs-and-Map-Answers->Create-Events": {
+          "enabled": true,
+          "id": "d167b7ac-80dd-4e48-808d-fa03f17d1847",
+          "target_job_id": "6097052b-14ed-4ec9-88dd-3b5b7a156819",
+          "source_job_id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",
+          "condition_type": "on_job_success"
+        },
+        "Create-Events->Update-TEIs": {
+          "enabled": true,
+          "id": "457fb90b-4b2d-4090-8a95-8539e781044c",
+          "target_job_id": "2b12eded-b70a-4f94-8fd2-5fe07a533461",
+          "source_job_id": "6097052b-14ed-4ec9-88dd-3b5b7a156819",
+          "condition_type": "on_job_success"
         }
       }
     }
