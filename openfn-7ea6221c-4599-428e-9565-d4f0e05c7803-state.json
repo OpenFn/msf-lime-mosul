@@ -1,0 +1,7 @@
+{
+    "id": "7ea6221c-4599-428e-9565-d4f0e05c7803",
+    "name": "msf-lime-mosul-staging",
+    "description": "OpenFn cloud project for workflow testing between MSF and OpenFn teams",
+    "scheduled_deletion": null,
+    "workflows": {}
+}
