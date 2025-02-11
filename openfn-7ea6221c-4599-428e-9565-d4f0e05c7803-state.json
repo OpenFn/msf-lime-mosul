@@ -109,8 +109,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-02-11T15:28:08.472478Z",
-      "lock_version": 5,
+      "inserted_at": "2025-02-11T15:35:24.486507Z",
+      "lock_version": 6,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -191,7 +191,7 @@
           "target_job_id": "788df7f4-5ed3-46bd-8479-778e18c08235",
           "source_job_id": "6f787076-7706-4104-834e-29340029c5ee",
           "condition_type": "js_expression",
-          "condition_label": "has-p",
+          "condition_label": "has-patients",
           "condition_expression": "state.patients.length > 0 && !state.errors\n"
         },
         "Upsert-TEIs->Get-Encounters": {

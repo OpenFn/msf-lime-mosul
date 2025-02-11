@@ -23708,7 +23708,7 @@ workflows:
         source_job: Mappings
         target_job: Upsert-TEIs
         condition_type: js_expression
-        condition_label: has-p
+        condition_label: has-patients
         condition_expression: |
           state.patients.length > 0 && !state.errors
 
