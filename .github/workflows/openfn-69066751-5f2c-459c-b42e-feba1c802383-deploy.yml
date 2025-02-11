@@ -17,6 +17,5 @@ jobs:
       - name: openfn deploy
         uses: openfn/cli-deploy-action@v1.0.0
         with:
-          secret_input:
-            ${{ secrets.OPENFN_69066751_5f2c_459c_b42e_feba1c802383_API_KEY }}
+          secret_input: ${{ secrets.OPENFN_69066751_5f2c_459c_b42e_feba1c802383_API_KEY }}
           config_path_input: 'openfn-69066751-5f2c-459c-b42e-feba1c802383-config.json'
