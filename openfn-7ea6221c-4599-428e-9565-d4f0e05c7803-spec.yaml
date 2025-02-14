@@ -6,7 +6,7 @@ collections:
   metadata-mappings:
     name: metadata-mappings
 credentials:
-  "mtuchi@openfn.org-Collections-Config[Mtuchi]":
+  'mtuchi@openfn.org-Collections-Config[Mtuchi]':
     name: 'Collections Config[Mtuchi]'
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-MSF-DHIS2-UAT:
@@ -104,7 +104,7 @@ workflows:
         adaptor: '@openfn/language-dhis2@latest'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2/7-update-teis.js
+          path: workflows/wf2/2-upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
