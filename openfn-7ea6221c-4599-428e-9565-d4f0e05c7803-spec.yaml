@@ -2,6 +2,9 @@ name: msf-lime-mosul-staging
 description: |
   staging project for main MSF workflows
 
+collections:
+  metadata-mappings:
+    name: metadata-mappings
 credentials:
   mtuchi@openfn.org-MSF-DHIS2-UAT:
     name: MSF DHIS2 UAT
@@ -57,6 +60,11 @@ workflows:
         target_job: Fetch-Metadata
         condition_type: always
         enabled: true
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
+        condition_type: on_job_success
+        enabled: true
       Fetch-Metadata->Get-Teis-and-Locations:
         source_job: Fetch-Metadata
         target_job: Get-Teis-and-Locations
@@ -69,11 +77,7 @@ workflows:
         condition_label: has-teis
         condition_expression: |
           state.teis.length > 0 && !state.errors
-        enabled: true
-      Create-Patients->Update-Teis:
-        source_job: Create-Patients
-        target_job: Update-Teis
-        condition_type: on_job_success
+
         enabled: true
   wf2-omrs-dhis2:
     name: wf2-omrs-dhis2
@@ -98,6 +102,7 @@ workflows:
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/7-update-teis.js
+
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@latest'
@@ -135,6 +140,15 @@ workflows:
         source_trigger: cron
         target_job: Get-Patients
         condition_type: always
+        enabled: true
+      Create-Events->Update-TEIs:
+        source_job: Create-Events
+        target_job: Update-TEIs
+        condition_type: js_expression
+        condition_label: has-gender-updated
+        condition_expression: |
+          state?.genderUpdated?.length > 0 && !state.errors
+
         enabled: true
       Get-Patients->Mappings:
         source_job: Get-Patients
@@ -184,14 +198,5 @@ workflows:
         condition_label: has-teis
         condition_expression: |
           state.TEIs && !state.errors
-
-        enabled: true
-      Create-Events->Update-TEIs:
-        source_job: Create-Events
-        target_job: Update-TEIs
-        condition_type: js_expression
-        condition_label: has-gender-updated
-        condition_expression: |
-          state?.genderUpdated?.length > 0 && !state.errors
 
         enabled: true
