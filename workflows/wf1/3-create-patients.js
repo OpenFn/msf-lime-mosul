@@ -38,8 +38,9 @@ fn(state => {
     return result ? result.value : undefined;
   };
 
+
   const calculateDOB = age => {
-    if (!age) return age;
+    if (!age) return age
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const birthYear = currentYear - age;
@@ -54,8 +55,7 @@ fn(state => {
   };
 
   state.patients = teis.map((d, i) => {
-    const patientNumber =
-      getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()
+    const patientNumber = getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()
 
     const lonlat = d.attributes.find(a => a.attribute === 'rBtrjV1Mqkz')?.value;
     const location = lonlat
@@ -89,8 +89,7 @@ fn(state => {
             value,
           };
         }
-      })
-      .filter(Boolean);
+      }).filter(Boolean);
 
     return {
       patientNumber,
@@ -162,14 +161,10 @@ each(
     },
     state => {
       state.newPatientUuid ??= [];
-      //console.log('state.references ::', state.references)
+     //console.log('state.references ::', state.references)
       state.newPatientUuid.push({
         patient_number: state.references.at(-1)?.patientNumber,
-        omrs_patient_number: state.references
-          .at(-1)
-          ?.identifiers.find(
-            i => (i.identifierType = `${state.openmrsAutoId}`)
-          ),
+        omrs_patient_number: state.references.at(-1)?.identifiers.find(i => i.identifierType=`${state.openmrsAutoId}`),
         uuid: state.data.uuid,
       });
       return state;
