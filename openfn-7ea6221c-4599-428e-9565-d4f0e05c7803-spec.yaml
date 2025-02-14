@@ -95,7 +95,7 @@ workflows:
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-http@6.5.1'
-        credential: null
+        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
         body:
           path: workflows/wf2/2-mappings.js
 
@@ -145,15 +145,6 @@ workflows:
         target_job: Get-Patients
         condition_type: always
         enabled: true
-      Create-Events->Update-TEIs:
-        source_job: Create-Events
-        target_job: Update-TEIs
-        condition_type: js_expression
-        condition_label: has-gender-updated
-        condition_expression: |
-          state?.genderUpdated?.length > 0 && !state.errors
-
-        enabled: true
       Get-Patients->Mappings:
         source_job: Get-Patients
         target_job: Mappings
@@ -202,5 +193,14 @@ workflows:
         condition_label: has-teis
         condition_expression: |
           state.TEIs && !state.errors
+
+        enabled: true
+      Create-Events->Update-TEIs:
+        source_job: Create-Events
+        target_job: Update-TEIs
+        condition_type: js_expression
+        condition_label: has-gender-updated
+        condition_expression: |
+          state?.genderUpdated?.length > 0 && !state.errors
 
         enabled: true
