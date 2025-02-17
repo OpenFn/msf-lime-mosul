@@ -4,7 +4,6 @@
   "description": "staging project for main MSF workflows\n",
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-02-14T16:38:10Z",
-  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -32,6 +31,7 @@
       "owner": "mtuchi@openfn.org"
     }
   },
+  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
