@@ -95,7 +95,7 @@ workflows:
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-http@6.5.1'
-        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        credential: mtuchi@openfn.org-mtuchi-github-token
         body:
           path: workflows/wf2/2-mappings.js
 
@@ -144,11 +144,6 @@ workflows:
         source_trigger: cron
         target_job: Get-Patients
         condition_type: always
-        enabled: true
-      Get-Patients->Mappings:
-        source_job: Get-Patients
-        target_job: Mappings
-        condition_type: on_job_success
         enabled: true
       Mappings->Upsert-TEIs:
         source_job: Mappings
@@ -203,4 +198,9 @@ workflows:
         condition_expression: |
           state?.genderUpdated?.length > 0 && !state.errors
 
+        enabled: true
+      Get-Patients->Mappings:
+        source_job: Get-Patients
+        target_job: Mappings
+        condition_type: on_job_success
         enabled: true
