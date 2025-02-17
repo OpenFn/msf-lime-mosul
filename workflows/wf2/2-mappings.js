@@ -23,7 +23,7 @@ const isValidUUID = id => {
 
 collections.get('metadata-mappings', 'mappingSets').then(state => {
   const { cursor, lastRunDateTime, patients, data } = state;
-  if (!data) {
+  if (!Object.keys(data).length === 0) {
     throw new Error('Empty collection');
   }
   return { ...data, cursor, patients, lastRunDateTime };
