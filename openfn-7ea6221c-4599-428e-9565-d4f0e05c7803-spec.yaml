@@ -63,6 +63,11 @@ workflows:
         target_job: Fetch-Metadata
         condition_type: always
         enabled: true
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
+        condition_type: on_job_success
+        enabled: true
       Fetch-Metadata->Get-Teis-and-Locations:
         source_job: Fetch-Metadata
         target_job: Get-Teis-and-Locations
@@ -76,11 +81,6 @@ workflows:
         condition_expression: |
           state.teis.length > 0 && !state.errors
 
-        enabled: true
-      Create-Patients->Update-Teis:
-        source_job: Create-Patients
-        target_job: Update-Teis
-        condition_type: on_job_success
         enabled: true
   wf2-omrs-dhis2:
     name: wf2-omrs-dhis2
