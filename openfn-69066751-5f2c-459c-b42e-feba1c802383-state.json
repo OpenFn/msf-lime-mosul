@@ -4,9 +4,6 @@
   "description": "OpenFn cloud project for workflow testing between MSF and OpenFn teams\n",
   "inserted_at": "2024-10-30T06:18:14Z",
   "updated_at": "2025-02-11T13:00:36Z",
-  "history_retention_period": 90,
-  "dataclip_retention_period": null,
-  "retention_policy": "retain_all",
   "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
@@ -70,6 +67,9 @@
       "owner": "mtuchi@openfn.org"
     }
   },
+  "history_retention_period": 90,
+  "dataclip_retention_period": null,
+  "retention_policy": "retain_all",
   "collections": {},
   "workflows": {
     "wf1-dhis2-omrs-migration": {
