@@ -3,7 +3,11 @@
         "steps": [
             {
                 "id": "fetch-metadata",
-                "adaptor": "http",
+                "adaptors": [
+                    "collections",
+                    "common"
+                ],
+                "configuration": "../tmp/collections-creds.json",
                 "expression": "1-fetch-metadata.js",
                 "state": {
                     "manualCursor": "2024-06-04"
