@@ -3,8 +3,11 @@
   "name": "msf-lime-mosul-staging",
   "description": "staging project for main MSF workflows\n",
   "inserted_at": "2025-01-30T11:16:04Z",
-  "updated_at": "2025-02-17T17:24:18Z",
+  "updated_at": "2025-02-18T12:34:21Z",
   "scheduled_deletion": null,
+  "history_retention_period": 365,
+  "dataclip_retention_period": null,
+  "retention_policy": "retain_all",
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -32,9 +35,6 @@
       "owner": "mtuchi@openfn.org"
     }
   },
-  "history_retention_period": 365,
-  "dataclip_retention_period": null,
-  "retention_policy": "retain_all",
   "collections": {
     "metadata-mappings": {
       "id": "1a91634a-21d8-4b36-995b-71e155542dbd",
@@ -45,8 +45,8 @@
     "wf1-dhis2-omrs-migration": {
       "id": "37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0",
       "name": "wf1-dhis2-omrs-migration",
-      "inserted_at": "2025-02-17T12:28:04.283435Z",
-      "lock_version": 10,
+      "inserted_at": "2025-02-18T09:33:01.182506Z",
+      "lock_version": 11,
       "triggers": {
         "webhook": {
           "enabled": false,
@@ -59,8 +59,8 @@
           "id": "c4616bf4-6a28-4307-8798-d5710dcfc75f",
           "name": "Fetch Metadata",
           "body": "cursor($.manualCursor || $.lastRunDateTime).then(state => {\n  console.log('Date cursor to filter TEI extract ::', state.cursor);\n  return state;\n});\n\ncursor('now', {\n  key: 'lastRunDateTime',\n  format: c => {\n    const offset = 2; // GMT+2 (Geneva time)\n    c.setHours(c.getHours() + offset);\n    return c.toISOString().replace('Z', '');\n  },\n}).then(state => {\n  console.log('Next sync start date:', state.lastRunDateTime);\n  return state;\n});\n\n// get(\n//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/collections/metadata/mapping.json',\n//   { parseAs: 'json' },\n//   state => {\n//     const { cursor, lastRunDateTime, data } = state;\n\n//     return { ...data, cursor, lastRunDateTime };\n//   }\n// );\n\ncollections.get('metadata-mappings', 'mappingSets').then(state => {\n  const { cursor, lastRunDateTime, data } = state;\n  if (!Object.keys(data).length === 0) {\n    throw new Error('Empty collection');\n  }\n  return { ...data, cursor, lastRunDateTime };\n});\n\nfn(({ identifiers, optsMap, formMaps, formMetadata, ...state }) => {\n  state.genderOptions = {\n    male: 'M',\n    female: 'F',\n    unknown: 'U',\n    transgender_female: 'O',\n    transgender_male: 'O',\n    prefer_not_to_answer: 'O',\n    gender_variant_non_conforming: 'O',\n  };\n  state.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n    'dhis2 attribute id'\n  ];\n  state.program = identifiers.find(i => i.type === 'PROGRAM')?.[\n    'dhis2 attribute id'\n  ];\n  state.nationalityMap = optsMap\n    .filter(o => o['DHIS2 DE full name'] === 'Nationality')\n    .reduce((acc, value) => {\n      acc[value['DHIS2 Option Code']] = value['value.uuid - External ID'];\n      return acc;\n    }, {});\n\n  state.statusMap = optsMap\n    .filter(o => o['DHIS2 DE full name'].includes(' status'))\n    .reduce((acc, value) => {\n      acc[value['DHIS2 Option Code']] = value['value.uuid - External ID'];\n      return acc;\n    }, {});\n\n  state.patientAttributes = formMaps.patient.dataValueMap;\n\n  state.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  state.dhis2PatientNumberAttributeId = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['dhis2 attribute id']; //DHIS2 ID or DHIS2 Patient Number\n\n  state.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  state.openmrsAutoIdAttributeId = identifiers.find(\n    i => i.type === 'OPENMRS_AUTO_ID'\n  )?.['dhis2 attribute id']; //MSF ID or OpenMRS Patient Number\n\n  return state;\n});\n",
-          "adaptor": "@openfn/language-http@6.5.1",
-          "project_credential_id": "90cddfa1-9b77-4625-a812-2a04d061522c"
+          "adaptor": "@openfn/language-common@latest",
+          "project_credential_id": null
         },
         "Get-Teis-and-Locations": {
           "id": "1845ba39-b556-452f-80db-c794c8b2bb9c",
@@ -92,13 +92,6 @@
           "source_trigger_id": "836df7a7-d15f-4fc6-8f3d-5bb85c823218",
           "condition_type": "always"
         },
-        "Create-Patients->Update-Teis": {
-          "enabled": true,
-          "id": "05d88b14-52e6-4f24-8acc-ed0ba455c942",
-          "target_job_id": "f4702169-b017-43da-8e66-5ee3bfa305fb",
-          "source_job_id": "d26ee140-a7d7-424b-8d82-ed34d25174f2",
-          "condition_type": "on_job_success"
-        },
         "Fetch-Metadata->Get-Teis-and-Locations": {
           "enabled": true,
           "id": "947f7f92-1205-4fda-8595-4d8025786c35",
@@ -114,14 +107,21 @@
           "condition_type": "js_expression",
           "condition_label": "has-teis",
           "condition_expression": "state.teis.length > 0 && !state.errors\n"
+        },
+        "Create-Patients->Update-Teis": {
+          "enabled": true,
+          "id": "05d88b14-52e6-4f24-8acc-ed0ba455c942",
+          "target_job_id": "f4702169-b017-43da-8e66-5ee3bfa305fb",
+          "source_job_id": "d26ee140-a7d7-424b-8d82-ed34d25174f2",
+          "condition_type": "on_job_success"
         }
       }
     },
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-02-18T09:22:45.699092Z",
-      "lock_version": 21,
+      "inserted_at": "2025-02-18T12:47:15.459249Z",
+      "lock_version": 22,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -134,7 +134,7 @@
         "Get-Patients": {
           "id": "d99463fe-d81f-4aea-8066-49a543874dee",
           "name": "Get Patients",
-          "body": "cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000+0000');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v: 'full', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient - log number of patient that are fetched\n\n// get collections neccessary for patient mapping\n\n// map patient here - this will be passed down to next step\n\n// delete the initial patient object and only pass on the mapped one",
+          "body": "cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v: 'full', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient - log number of patient that are fetched\n\n// get collections neccessary for patient mapping\n\n// map patient here - this will be passed down to next step\n\n// delete the initial patient object and only pass on the mapped one",
           "adaptor": "@openfn/language-openmrs@4.3.0",
           "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         },
