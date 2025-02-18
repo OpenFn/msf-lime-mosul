@@ -4,6 +4,7 @@
   "description": "staging project for main MSF workflows\n",
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-02-17T17:24:18Z",
+  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -31,7 +32,6 @@
       "owner": "mtuchi@openfn.org"
     }
   },
-  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
@@ -120,8 +120,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-02-17T17:27:00.845021Z",
-      "lock_version": 19,
+      "inserted_at": "2025-02-18T09:21:47.204155Z",
+      "lock_version": 20,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -134,7 +134,7 @@
         "Get-Patients": {
           "id": "d99463fe-d81f-4aea-8066-49a543874dee",
           "name": "Get Patients",
-          "body": "cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000+0000');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v: 'full', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n",
+          "body": "cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000+0000');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v: 'full', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient\n\n// get collections neccessary for patient mapping\n\n// map patient here\n\n// delete the initial patient object and only pass on the mapped one",
           "adaptor": "@openfn/language-openmrs@4.3.0",
           "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         },

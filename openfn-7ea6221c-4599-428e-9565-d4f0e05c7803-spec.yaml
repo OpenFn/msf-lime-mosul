@@ -91,7 +91,6 @@ workflows:
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2/1-get-patients.js
-
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-http@6.5.1'
