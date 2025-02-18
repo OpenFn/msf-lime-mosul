@@ -23,3 +23,11 @@ fn(state => {
 
   return { cursor, lastRunDateTime, patients };
 });
+
+// get patient
+
+// get collections neccessary for patient mapping
+
+// map patient here
+
+// delete the initial patient object and only pass on the mapped one
