@@ -35,7 +35,9 @@ workflows:
 
           // collections.remove("metadata-mappings", "mappings-*")
 
-           collections.get("metadata-mappings", "mapping*")
+          //  collections.remove("metadata-mappings", "mapping*")
+
+           collections.get("metadata-mappings", "*")
 
     triggers:
       webhook:
