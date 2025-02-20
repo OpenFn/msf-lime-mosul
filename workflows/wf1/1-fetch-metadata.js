@@ -27,7 +27,7 @@ cursor('now', {
 
 collections.get('metadata-mappings', 'mappingSets').then(state => {
   const { cursor, lastRunDateTime, data } = state;
-  if (!Object.keys(data).length === 0) {
+  if (Object.keys(data).length === 0) {
     throw new Error('Empty collection');
   }
   return { ...data, cursor, lastRunDateTime };
