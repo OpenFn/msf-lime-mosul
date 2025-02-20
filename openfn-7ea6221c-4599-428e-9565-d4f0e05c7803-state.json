@@ -5,9 +5,6 @@
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-02-18T12:34:21Z",
   "scheduled_deletion": null,
-  "history_retention_period": 365,
-  "dataclip_retention_period": null,
-  "retention_policy": "retain_all",
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -35,6 +32,9 @@
       "owner": "mtuchi@openfn.org"
     }
   },
+  "history_retention_period": 365,
+  "dataclip_retention_period": null,
+  "retention_policy": "retain_all",
   "collections": {
     "metadata-mappings": {
       "id": "1a91634a-21d8-4b36-995b-71e155542dbd",
@@ -45,8 +45,8 @@
     "wf1-dhis2-omrs-migration": {
       "id": "37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0",
       "name": "wf1-dhis2-omrs-migration",
-      "inserted_at": "2025-02-18T09:33:01.182506Z",
-      "lock_version": 11,
+      "inserted_at": "2025-02-20T09:36:10.574457Z",
+      "lock_version": 14,
       "triggers": {
         "webhook": {
           "enabled": false,
@@ -74,7 +74,7 @@
           "name": "Create Patients",
           "body": "//Define gender options and prepare newPatientUuid and identifiers\nfn(state => {\n  const { teis } = state;\n  if (teis.length > 0)\n    console.log('# of TEIs to send to OpenMRS: ', teis.length);\n  if (teis.length === 0) console.log('No data fetched in step prior to sync.');\n\n  return state;\n});\n\n//First we generate a unique OpenMRS ID for each patient\neach(\n  $.teis,\n  post(\n    'idgen/identifiersource/8549f706-7e85-4c1d-9424-217d50a2988b/identifier',\n    {},\n    state => {\n      state.identifiers ??= [];\n      state.identifiers.push(state.data.identifier);\n      return state;\n    }\n  )\n);\n\n// Then we map teis to openMRS data model\nfn(state => {\n  const {\n    teis,\n    nationalityMap,\n    genderOptions,\n    identifiers,\n    statusMap,\n    locations,\n  } = state;\n\n  const getValueForCode = (attributes, code) => {\n    const result = attributes.find(attribute => attribute.code === code);\n    return result ? result.value : undefined;\n  };\n\n  const calculateDOB = age => {\n    if (!age) return age;\n    const currentDate = new Date();\n    const currentYear = currentDate.getFullYear();\n    const birthYear = currentYear - age;\n\n    const birthday = new Date(\n      birthYear,\n      currentDate.getMonth(),\n      currentDate.getDay()\n    );\n\n    return birthday.toISOString().replace(/\\.\\d+Z$/, '+0000');\n  };\n\n  state.patients = teis.map((d, i) => {\n    const patientNumber =\n      getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()\n\n    const lonlat = d.attributes.find(a => a.attribute === 'rBtrjV1Mqkz')?.value;\n    const location = lonlat\n      ? locations.options.find(o => o.code === lonlat)?.displayName\n      : undefined;\n\n    let countyDistrict, cityVillage;\n\n    if (location) {\n      const match = location.match(/^(.*?)\\s*\\((.*?)\\)/);\n      if (match) {\n        [, countyDistrict, cityVillage] = match;\n        cityVillage = cityVillage.split('-')[0].trim(); // Remove country code and trim\n      }\n    }\n\n    const attributes = d.attributes\n      .filter(a => a.attribute in state.patientAttributes)\n      .map(a => {\n        let value = a.value;\n\n        if (a.displayName === 'Nationality') {\n          value = nationalityMap[a.value];\n        } else if (a.displayName.includes(' status')) {\n          value = statusMap[a.value];\n        }\n\n        if (value) {\n          return {\n            attributeType: state.patientAttributes[a.attribute].trim(),\n            value,\n          };\n        }\n      })\n      .filter(Boolean);\n\n    return {\n      patientNumber,\n      person: {\n        age: getValueForCode(d.attributes, 'age'),\n        gender: genderOptions[getValueForCode(d.attributes, 'sex')] || 'U',\n        birthdate:\n          d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ??\n          calculateDOB(getValueForCode(d.attributes, 'age')),\n        birthdateEstimated: d.attributes.find(\n          a => a.attribute === 'WDp4nVor9Z7'\n        )\n          ? true\n          : false,\n        names: [\n          {\n            familyName:\n              d.attributes.find(a => a.attribute === 'fa7uwpCKIwa')?.value ??\n              'unknown',\n            givenName:\n              d.attributes.find(a => a.attribute === 'Jt9BhFZkvP2')?.value ??\n              'unknown',\n          },\n        ],\n        addresses: [\n          {\n            country: 'Iraq',\n            stateProvince: 'Ninewa',\n            countyDistrict,\n            cityVillage,\n          },\n        ],\n        attributes,\n      },\n      identifiers: [\n        {\n          identifier: identifiers[i], //map ID value from DHIS2 attribute\n          identifierType: '05a29f94-c0ed-11e2-94be-8c13b969e334',\n          location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location old:44c3efb0-2583-4c80-a79e-1f756a03c0a1\n          preferred: true,\n        },\n        {\n          uuid: d.trackedEntity,\n          identifier: patientNumber,\n          identifierType: '8d79403a-c2cc-11de-8d13-0010c6dffd0f', //Old Identification number\n          location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location\n          preferred: false, //default value for this identifiertype\n        },\n      ],\n    };\n  });\n\n  return state;\n});\n\n// Creating patients in openMRS\neach(\n  $.patients,\n  upsert(\n    'patient',\n    { q: $.data.patientNumber },\n    state => {\n      const { patientNumber, ...patient } = state.data;\n      console.log(\n        'Upserting patient record...',\n        JSON.stringify(patient, null, 2)\n      );\n      return patient;\n    },\n    state => {\n      state.newPatientUuid ??= [];\n      //console.log('state.references ::', state.references)\n      state.newPatientUuid.push({\n        patient_number: state.references.at(-1)?.patientNumber,\n        omrs_patient_number: state.references\n          .at(-1)\n          ?.identifiers.find(\n            i => (i.identifierType = `${state.openmrsAutoId}`)\n          ),\n        uuid: state.data.uuid,\n      });\n      return state;\n    }\n  )\n);\n\n// Clean up state\nfn(({ data, references, ...state }) => state);\n",
           "adaptor": "@openfn/language-openmrs@latest",
-          "project_credential_id": null
+          "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         },
         "Update-Teis": {
           "id": "f4702169-b017-43da-8e66-5ee3bfa305fb",
@@ -117,11 +117,42 @@
         }
       }
     },
+    "test-collections": {
+      "id": "6be0f9f1-2933-403a-b3b1-4272ce0a3bc5",
+      "name": "test-collections",
+      "inserted_at": "2025-02-20T10:00:58.059234Z",
+      "lock_version": 5,
+      "triggers": {
+        "webhook": {
+          "enabled": false,
+          "id": "3b67cdd7-b64f-45fb-87fc-5f6487159c5f",
+          "type": "webhook"
+        }
+      },
+      "jobs": {
+        "New-job": {
+          "id": "4586e5d2-8775-456a-81d2-1809601b38c8",
+          "name": "New job",
+          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n\n// collections.remove(\"metadata-mappings\", \"mappings-*\")\n\n collections.get(\"metadata-mappings\", \"mapping*\")\n",
+          "adaptor": "@openfn/language-common@latest",
+          "project_credential_id": null
+        }
+      },
+      "edges": {
+        "webhook->New-job": {
+          "enabled": true,
+          "id": "809a825b-da5e-4f02-857a-7d08017e42c4",
+          "target_job_id": "4586e5d2-8775-456a-81d2-1809601b38c8",
+          "source_trigger_id": "3b67cdd7-b64f-45fb-87fc-5f6487159c5f",
+          "condition_type": "always"
+        }
+      }
+    },
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-02-18T12:47:15.459249Z",
-      "lock_version": 22,
+      "inserted_at": "2025-02-20T13:18:36.665981Z",
+      "lock_version": 26,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -134,7 +165,7 @@
         "Get-Patients": {
           "id": "d99463fe-d81f-4aea-8066-49a543874dee",
           "name": "Get Patients",
-          "body": "cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v: 'full', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient - log number of patient that are fetched\n\n// get collections neccessary for patient mapping\n\n// map patient here - this will be passed down to next step\n\n// delete the initial patient object and only pass on the mapped one",
+          "body": "cursor($.lastRunDateTime || $.manualCursor || '2025-02-18T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v: 'full', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient - log number of patient that are fetched\n\n// get collections neccessary for patient mapping\n\n// map patient here - this will be passed down to next step\n\n// delete the initial patient object and only pass on the mapped one",
           "adaptor": "@openfn/language-openmrs@4.3.0",
           "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         },
@@ -157,7 +188,7 @@
           "name": "Get Encounters",
           "body": "// Fetch all encounters\nhttp\n  .get('/ws/fhir2/R4/Encounter', {\n    query: { _count: 100, _lastUpdated: `ge${$.cursor}` },\n  })\n  .then(state => {\n    const { link, total } = state.data;\n    state.nextUrl = link\n      .find(l => l.relation === 'next')\n      ?.url.replace(/(_count=)\\d+/, `$1${total}`)\n      .split('/openmrs')[1];\n\n    state.allResponse = state.data;\n    return state;\n  });\n\nfnIf(\n  $.nextUrl,\n  http.get($.nextUrl).then(state => {\n    console.log(`Fetched ${state.data.entry.length} remaining encounters`);\n    delete state.allResponse.link;\n    state.allResponse.entry.push(...state.data.entry);\n    return state;\n  })\n);\n\nfn(state => {\n  console.log(\n    'Total # of encounters fetched: ',\n    state.allResponse?.entry?.length\n  );\n  state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);\n  state.patientUuids = [\n    ...new Set(\n      state.allResponse?.entry?.map(p =>\n        p.resource.subject.reference.replace('Patient/', '')\n      )\n    ),\n  ];\n\n  return state;\n});\n\n// Fetch patient encounters\neach(\n  $.patientUuids,\n  get('encounter', { patient: $.data, v: 'full' }).then(state => {\n    const patientUuid = state.references.at(-1);\n    const filteredEncounters = state.formUuids.map(formUuid =>\n      state.data.results.filter(\n        e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid\n      )\n    );\n\n    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);\n    state.encounters ??= [];\n    state.encounters.push(...encounters);\n\n    console.log(\n      encounters.length,\n      `# of filtered encounters found in OMRS for ${patientUuid}`\n    );\n\n    return state;\n  })\n);\n\nfnIf($.encounters, state => {\n  const {\n    data,\n    index,\n    response,\n    references,\n    allResponse,\n    patientUuids,\n    ...next\n  } = state;\n  console.log(next.encounters.length, '# of new encounters to sync to dhis2');\n\n  return next;\n});\n\nfnIf(!$.encounters, state => {\n  console.log('No encounters found for cursor: ', state.cursor);\n  return state;\n});\n",
           "adaptor": "@openfn/language-openmrs@latest",
-          "project_credential_id": null
+          "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         },
         "Get-TEIs-and-Map-Answers": {
           "id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",

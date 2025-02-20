@@ -22,6 +22,31 @@ credentials:
     name: mtuchi-github-token
     owner: mtuchi@openfn.org
 workflows:
+  test-collections:
+    name: test-collections
+    jobs:
+      New-job:
+        name: New job
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
+          // collections.remove("metadata-mappings", "mappings-*")
+
+           collections.get("metadata-mappings", "mapping*")
+
+    triggers:
+      webhook:
+        type: webhook
+        enabled: false
+    edges:
+      webhook->New-job:
+        source_trigger: webhook
+        target_job: New-job
+        condition_type: always
+        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
@@ -42,7 +67,7 @@ workflows:
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@latest'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf1/3-create-patients.js
 
@@ -108,7 +133,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@latest'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2/4-get-encounters.js
 
