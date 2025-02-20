@@ -117,37 +117,6 @@
         }
       }
     },
-    "test-collections": {
-      "id": "6be0f9f1-2933-403a-b3b1-4272ce0a3bc5",
-      "name": "test-collections",
-      "inserted_at": "2025-02-20T10:00:58.059234Z",
-      "lock_version": 5,
-      "triggers": {
-        "webhook": {
-          "enabled": false,
-          "id": "3b67cdd7-b64f-45fb-87fc-5f6487159c5f",
-          "type": "webhook"
-        }
-      },
-      "jobs": {
-        "New-job": {
-          "id": "4586e5d2-8775-456a-81d2-1809601b38c8",
-          "name": "New job",
-          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n\n// collections.remove(\"metadata-mappings\", \"mappings-*\")\n\n collections.get(\"metadata-mappings\", \"mapping*\")\n",
-          "adaptor": "@openfn/language-common@latest",
-          "project_credential_id": null
-        }
-      },
-      "edges": {
-        "webhook->New-job": {
-          "enabled": true,
-          "id": "809a825b-da5e-4f02-857a-7d08017e42c4",
-          "target_job_id": "4586e5d2-8775-456a-81d2-1809601b38c8",
-          "source_trigger_id": "3b67cdd7-b64f-45fb-87fc-5f6487159c5f",
-          "condition_type": "always"
-        }
-      }
-    },
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
@@ -280,6 +249,37 @@
           "target_job_id": "6f787076-7706-4104-834e-29340029c5ee",
           "source_job_id": "d99463fe-d81f-4aea-8066-49a543874dee",
           "condition_type": "on_job_success"
+        }
+      }
+    },
+    "test-collections": {
+      "id": "6be0f9f1-2933-403a-b3b1-4272ce0a3bc5",
+      "name": "test-collections",
+      "inserted_at": "2025-02-20T17:29:32.494573Z",
+      "lock_version": 7,
+      "triggers": {
+        "webhook": {
+          "enabled": false,
+          "id": "3b67cdd7-b64f-45fb-87fc-5f6487159c5f",
+          "type": "webhook"
+        }
+      },
+      "jobs": {
+        "New-job": {
+          "id": "4586e5d2-8775-456a-81d2-1809601b38c8",
+          "name": "New job",
+          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n\n// collections.remove(\"metadata-mappings\", \"mappings-*\")\n\n//  collections.remove(\"metadata-mappings\", \"mapping*\")\n\n collections.get(\"metadata-mappings\", \"*\")\n\n",
+          "adaptor": "@openfn/language-common@latest",
+          "project_credential_id": null
+        }
+      },
+      "edges": {
+        "webhook->New-job": {
+          "enabled": true,
+          "id": "809a825b-da5e-4f02-857a-7d08017e42c4",
+          "target_job_id": "4586e5d2-8775-456a-81d2-1809601b38c8",
+          "source_trigger_id": "3b67cdd7-b64f-45fb-87fc-5f6487159c5f",
+          "condition_type": "always"
         }
       }
     }
