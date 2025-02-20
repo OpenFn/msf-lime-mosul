@@ -120,8 +120,8 @@ workflows:
           path: workflows/wf2/1-get-patients.js
       Mappings:
         name: Mappings
-        adaptor: '@openfn/language-http@6.5.1'
-        credential: mtuchi@openfn.org-mtuchi-github-token
+        adaptor: '@openfn/language-common@latest'
+        credential: null
         body:
           path: workflows/wf2/2-mappings.js
 
