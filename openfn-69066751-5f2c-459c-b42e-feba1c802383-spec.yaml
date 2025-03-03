@@ -50,6 +50,7 @@ workflows:
         credential: null
         body:
           path: workflows/wf1/1-fetch-metadata.js
+
       Get-Teis-and-Locations:
         name: Get Teis and Locations
         adaptor: '@openfn/language-dhis2@5.0.1'
@@ -138,6 +139,7 @@ workflows:
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf2/6-create-events.js
+
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-http@6.5.1'
