@@ -128,14 +128,14 @@ fn(state => {
       },
       identifiers: [
         {
-          identifier: identifiers[i], //map ID value from DHIS2 attribute
+          identifier: identifiers[i], //OMRS-generated identifier - see above
           identifierType: '05a29f94-c0ed-11e2-94be-8c13b969e334',
           location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location old:44c3efb0-2583-4c80-a79e-1f756a03c0a1
           preferred: true,
         },
         {
           uuid: d.trackedEntity,
-          identifier: patientNumber,
+          identifier: patientNumber, //Patient Number from DHIS2
           identifierType: '8d79403a-c2cc-11de-8d13-0010c6dffd0f', //Old Identification number
           location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location
           preferred: false, //default value for this identifiertype
