@@ -5,9 +5,6 @@
                 "id": "fetch-metadata",
                 "adaptor": "http",
                 "expression": "1-fetch-metadata.js",
-                "state": {
-                    "manualCursor": "2024-06-04"
-                },
                 "next": {
                     "get-teis": "!state.errors"
                 }
@@ -18,8 +15,14 @@
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "2-get-teis-and-locations.js",
                 "next": {
-                    "create-patients": "!state.errors"
+                    "alert-admin": "state.duplicatePatients.length > 0 && !state.errors",
+                    "create-patients": "state.uniqueTeis.length > 0 && !state.errors"
                 }
+            },
+            {
+                "id": "alert-admin",
+                "adaptor": "common",
+                "expression": "3-alert-admin.js"
             },
             {
                 "id": "create-patients",
@@ -27,13 +30,13 @@
                 "configuration": "../tmp/openmrs-creds.json",
                 "expression": "3-create-patients.js",
                 "next": {
-                    "update-teis": true
+                    "update-teis": "!state.errors"
                 }
             },
             {
                 "id": "update-teis",
-                "adaptor": "openmrs",
-                "configuration": "../tmp/openmrs-creds.json",
+                "adaptor": "dhis2",
+                "configuration": "../tmp/dhis2-creds.json",
                 "expression": "4-update-teis.js"
             }
         ]
