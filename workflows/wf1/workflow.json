@@ -35,8 +35,8 @@
             },
             {
                 "id": "update-teis",
-                "adaptor": "openmrs",
-                "configuration": "../tmp/openmrs-creds.json",
+                "adaptor": "dhis2",
+                "configuration": "../tmp/dhis2-creds.json",
                 "expression": "4-update-teis.js"
             }
         ]
