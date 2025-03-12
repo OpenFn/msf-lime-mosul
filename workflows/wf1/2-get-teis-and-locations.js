@@ -37,6 +37,7 @@ fn(state => {
 
   console.log('Filtered TEIs ::', filteredTeis.length);
   const duplicateIds = findDuplicatePatient(filteredTeis);
+  console.log('Duplicate Patient Numbers::', [...duplicateIds]);
 
   filteredTeis.forEach(tei => {
     const patientNumber = tei.attributes.find(
