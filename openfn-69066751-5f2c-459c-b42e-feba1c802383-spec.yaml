@@ -64,16 +64,9 @@ workflows:
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: aleksa@openfn.org-openmrs-admin
+        credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf1/3-create-patients.js
-      
-      Alert-Admin:
-        name: Alert Admin
-        adaptor: '@openfn/language-common@latest'
-        credential: null
-        body:
-          path: workflows/wf1/3-alert-admin.js
 
       Update-Teis:
         name: Update Teis
@@ -81,6 +74,13 @@ workflows:
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf1/4-update-teis.js
+
+      Alert-Admin:
+        name: Alert Admin
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body:
+          path: workflows/wf1/3-alert-admin.js
 
     triggers:
       cron:
@@ -96,6 +96,11 @@ workflows:
       Fetch-Metadata->Get-Teis-and-Locations:
         source_job: Fetch-Metadata
         target_job: Get-Teis-and-Locations
+        condition_type: on_job_success
+        enabled: true
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
         condition_type: on_job_success
         enabled: true
       Get-Teis-and-Locations->Create-Patients:
@@ -115,11 +120,6 @@ workflows:
         condition_expression: |
           state.duplicatePatients.length > 0 && !state.errors
 
-        enabled: true
-      Create-Patients->Update-Teis:
-        source_job: Create-Patients
-        target_job: Update-Teis
-        condition_type: on_job_success
         enabled: true
   wf2-omrs-dhis2:
     name: wf2-omrs-dhis2

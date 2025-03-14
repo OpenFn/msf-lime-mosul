@@ -37,7 +37,6 @@ fn(state => {
 
   console.log('Filtered TEIs ::', filteredTeis.length);
   const duplicateIds = findDuplicatePatient(filteredTeis);
-  console.log('Duplicate Patient Numbers::', [...duplicateIds]);
 
   filteredTeis.forEach(tei => {
     const patientNumber = tei.attributes.find(
@@ -54,6 +53,8 @@ fn(state => {
   });
 
   console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
+    console.log('# Duplicate Patients found::', duplicatePatients.length);
+
   // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
   return {
     ...state,

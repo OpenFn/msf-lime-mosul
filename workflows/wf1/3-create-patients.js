@@ -152,7 +152,9 @@ each(
   $.patients,
   upsert(
     'patient',
-    { q: $.data.patientNumber },
+    { q: $.data.patientNumber,
+      limit: 1, 
+      startIndex: 0 },
     state => {
       const { patientNumber, ...patient } = state.data;
       console.log(
