@@ -3,7 +3,7 @@
         "steps": [
             {
                 "id": "fetch-metadata",
-                "adaptor": "http",
+                "adaptor": "http@6.5.1",
                 "expression": "1-fetch-metadata.js",
                 "next": {
                     "get-teis": "!state.errors"
@@ -11,7 +11,7 @@
             },
             {
                 "id": "get-teis",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "2-get-teis-and-locations.js",
                 "next": {
@@ -21,12 +21,12 @@
             },
             {
                 "id": "alert-admin",
-                "adaptor": "common",
+                "adaptor": "common@2.1.1",
                 "expression": "3-alert-admin.js"
             },
             {
                 "id": "create-patients",
-                "adaptor": "openmrs",
+                "adaptor": "openmrs@4.2.0",
                 "configuration": "../tmp/openmrs-creds.json",
                 "expression": "3-create-patients.js",
                 "next": {
@@ -35,7 +35,7 @@
             },
             {
                 "id": "update-teis",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "4-update-teis.js"
             }
