@@ -7,7 +7,7 @@ credentials:
   aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024:
     name: MSF OMRS Demo Nov 2024
     owner: aissatou@openfn.org
-  "aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024-(raw)":
+  'aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024-(raw)':
     name: 'MSF OMRS Demo Nov 2024 (raw)'
     owner: aissatou@openfn.org
   aleksa@openfn.org-AK-Sharepoint:
@@ -136,14 +136,14 @@ workflows:
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
-          path: workflows/wf2/2-upsert-teis.js
+          path: workflows/wf2/3-upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: michael.bontyes@geneva.msf.org-openmrs
         body:
-          path: workflows/wf2/3-get-encounters.js
+          path: workflows/wf2/4-get-encounters.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers

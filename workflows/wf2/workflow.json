@@ -15,7 +15,11 @@
             },
             {
                 "id": "mappings",
-                "adaptor": "http",
+                "adaptors": [
+                    "collections",
+                    "http"
+                ],
+                "configuration": "../tmp/collections-creds.json",
                 "expression": "2-mappings.js",
                 "next": {
                     "upsert-teis": "state.patients.length > 0 && !state.errors",

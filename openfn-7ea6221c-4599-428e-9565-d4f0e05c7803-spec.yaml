@@ -104,14 +104,14 @@ workflows:
         adaptor: '@openfn/language-dhis2@latest'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2/2-upsert-teis.js
+          path: workflows/wf2/3-upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@latest'
         credential: null
         body:
-          path: workflows/wf2/3-get-encounters.js
+          path: workflows/wf2/4-get-encounters.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
