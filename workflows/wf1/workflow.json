@@ -3,7 +3,11 @@
         "steps": [
             {
                 "id": "fetch-metadata",
-                "adaptor": "http@6.5.1",
+                "adaptors": [
+                    "collections",
+                    "http@6.5.1"
+                ],
+                "configuration": "../tmp/collections-creds.json",
                 "expression": "1-fetch-metadata.js",
                 "next": {
                     "get-teis": "!state.errors"
