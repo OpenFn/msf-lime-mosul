@@ -3,9 +3,12 @@ description: |
   staging project for main MSF workflows
 
 collections:
-  metadata-mappings:
-    name: metadata-mappings
+  mosul-metadata-mappings:
+    name: mosul-metadata-mappings
 credentials:
+  aisha@openfn.org-MSF-OMRS-admin:
+    name: MSF OMRS admin
+    owner: aisha@openfn.org
   "mtuchi@openfn.org-Collections-Config[Mtuchi]":
     name: 'Collections Config[Mtuchi]'
     owner: mtuchi@openfn.org
@@ -22,31 +25,37 @@ credentials:
     name: mtuchi-github-token
     owner: mtuchi@openfn.org
 workflows:
-  test-collections:
-    name: test-collections
+  get-metadata-collections:
+    name: get-metadata-collections
     jobs:
-      New-job:
-        name: New job
+      Get-and-set-metadata-collections:
+        name: Get and set metadata collections
         adaptor: '@openfn/language-common@latest'
-        credential: null
+        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
 
           // collections.remove("metadata-mappings", "mappings-*")
 
-           collections.remove("metadata-mappings", "mapping*")
+          //  collections.remove("metadata-mappings", "mapping*")
 
-          //  collections.get("metadata-mappings", "*")
+           collections.get("metadata_mappings", "mappingSets") // getting collections from metadata project
+
+           collections.set("mosul-metadata-mappings", "mappingSets", state => {
+            return state.data
+           })
+
+          collections.get("mosul-metadata-mappings", "mappingSets") 
 
     triggers:
       webhook:
         type: webhook
         enabled: false
     edges:
-      webhook->New-job:
+      webhook->Get-and-set-metadata-collections:
         source_trigger: webhook
-        target_job: New-job
+        target_job: Get-and-set-metadata-collections
         condition_type: always
         enabled: true
   wf1-dhis2-omrs-migration:
@@ -61,21 +70,21 @@ workflows:
 
       Get-Teis-and-Locations:
         name: Get Teis and Locations
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: '@openfn/language-dhis2@6.3.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf1/2-get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
-        adaptor: '@openfn/language-openmrs@latest'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        adaptor: '@openfn/language-openmrs@4.4.0'
+        credential: aisha@openfn.org-MSF-OMRS-admin
         body:
           path: workflows/wf1/3-create-patients.js
 
       Update-Teis:
         name: Update Teis
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: '@openfn/language-dhis2@6.3.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf1/4-update-teis.js
@@ -127,35 +136,35 @@ workflows:
 
       Upsert-TEIs:
         name: Upsert TEIs
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: '@openfn/language-dhis2@6.3.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/3-upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
-        adaptor: '@openfn/language-openmrs@latest'
+        adaptor: '@openfn/language-openmrs@4.4.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2/4-get-encounters.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: '@openfn/language-dhis2@6.3.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/5-get-teis.js
 
       Create-Events:
         name: Create Events
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: '@openfn/language-dhis2@6.3.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/6-create-events.js
 
       Update-TEIs:
         name: Update TEIs
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: '@openfn/language-dhis2@6.3.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/7-update-teis.js

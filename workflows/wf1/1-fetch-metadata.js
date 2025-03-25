@@ -25,7 +25,7 @@ cursor('now', {
 //   }
 // );
 
-collections.get('metadata-mappings', 'mappingSets').then(state => {
+collections.get('mosul-metadata-mappings', 'mappingSets').then(state => {
   const { cursor, lastRunDateTime, data } = state;
   if (Object.keys(data).length === 0) {
     throw new Error('Empty collection');
