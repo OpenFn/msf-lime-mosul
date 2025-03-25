@@ -1,4 +1,4 @@
-cursor($.lastRunDateTime || $.manualCursor || '2025-02-18T06:01:24.000Z');
+cursor($.lastRunDateTime || $.manualCursor || '2025-03-20T06:01:24.000Z');
 
 cursor('today', {
   key: 'lastRunDateTime',
