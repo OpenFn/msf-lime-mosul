@@ -75,9 +75,9 @@ workflows:
         body:
           path: workflows/wf1/4-update-teis.js
 
-      Alert-Admin:
-        name: Alert Admin
-        adaptor: '@openfn/language-common@latest'
+      Alert-Admin-of-Duplicate-TEIs:
+        name: Alert Admin of Duplicate TEIs
+        adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
           path: workflows/wf1/3-alert-admin.js
@@ -112,9 +112,9 @@ workflows:
           state.uniqueTeis.length > 0 && !state.errors
 
         enabled: true
-      Get-Teis-and-Locations->Alert-Admin:
+      Get-Teis-and-Locations->Alert-Admin-of-Duplicate-TEIs:
         source_job: Get-Teis-and-Locations
-        target_job: Alert-Admin
+        target_job: Alert-Admin-of-Duplicate-TEIs
         condition_type: js_expression
         condition_label: has-duplicate-patients
         condition_expression: |
@@ -127,7 +127,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: aleksa@openfn.org-openmrs-admin
         body:
           path: workflows/wf2/1-get-patients.js
 
