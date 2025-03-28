@@ -217,8 +217,8 @@
     "wf1-dhis2-omrs-migration": {
       "id": "37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0",
       "name": "wf1-dhis2-omrs-migration",
-      "inserted_at": "2025-03-28T08:56:27.377532Z",
-      "lock_version": 31,
+      "inserted_at": "2025-03-28T08:57:06.235833Z",
+      "lock_version": 32,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -286,7 +286,7 @@
           "source_job_id": "1845ba39-b556-452f-80db-c794c8b2bb9c",
           "condition_type": "js_expression",
           "condition_label": "has-teis",
-          "condition_expression": "state.teis.length > 0 && !state.errors\n"
+          "condition_expression": "state.uniqueTeis.length > 0 && !state.errors\n"
         },
         "Create-Patients->Update-Teis": {
           "enabled": true,
