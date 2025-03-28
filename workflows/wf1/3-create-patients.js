@@ -1,31 +1,30 @@
 //Define gender options and prepare newPatientUuid and identifiers
 fn(state => {
-  const { teis } = state;
-  if (teis.length > 0)
-    console.log('# of TEIs to send to OpenMRS: ', teis.length);
-  if (teis.length === 0) console.log('No data fetched in step prior to sync.');
+  const { uniqueTeis } = state;
+  if (uniqueTeis.length > 0)
+    console.log('# of TEIs to send to OpenMRS: ', uniqueTeis.length);
+  if (uniqueTeis.length === 0)
+    console.log('No data fetched in step prior to sync.');
 
   return state;
 });
 
 //First we generate a unique OpenMRS ID for each patient
 each(
-  $.teis,
+  $.uniqueTeis,
   post(
-    'idgen/identifiersource/8549f706-7e85-4c1d-9424-217d50a2988b/identifier',
-    {},
-    state => {
-      state.identifiers ??= [];
-      state.identifiers.push(state.data.identifier);
-      return state;
-    }
-  )
+    'idgen/identifiersource/8549f706-7e85-4c1d-9424-217d50a2988b/identifier'
+  ).then(state => {
+    state.identifiers ??= [];
+    state.identifiers.push(state.data.identifier);
+    return state;
+  })
 );
 
-// Then we map teis to openMRS data model
+// Then we map uniqueTeis to openMRS data model
 fn(state => {
   const {
-    teis,
+    uniqueTeis,
     nationalityMap,
     genderOptions,
     identifiers,
@@ -53,7 +52,7 @@ fn(state => {
     return birthday.toISOString().replace(/\.\d+Z$/, '+0000');
   };
 
-  state.patients = teis.map((d, i) => {
+  state.patients = uniqueTeis.map((d, i) => {
     const patientNumber =
       getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()
 
@@ -96,9 +95,12 @@ fn(state => {
       patientNumber,
       person: {
         age: getValueForCode(d.attributes, 'age'),
-        gender: genderOptions[getValueForCode(d.attributes, 'sex')] || 'U',
-        birthdate: d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ?
-            calculateDOB(getValueForCode(d.attributes, 'age')) : '1900-01-01', //return default DOB if none
+        gender: genderOptions[getValueForCode(d.attributes, 'sex')] ?? 'U',
+        birthdate:
+          d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ??
+          calculateDOB(getValueForCode(d.attributes, 'age')),
+        // d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ?
+        // calculateDOB(getValueForCode(d.attributes, 'age')) : '1900-01-01',
         birthdateEstimated: d.attributes.find(
           a => a.attribute === 'WDp4nVor9Z7'
         )
@@ -126,14 +128,14 @@ fn(state => {
       },
       identifiers: [
         {
-          identifier: identifiers[i], //map ID value from DHIS2 attribute
+          identifier: identifiers[i], //OMRS-generated identifier - see above
           identifierType: '05a29f94-c0ed-11e2-94be-8c13b969e334',
           location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location old:44c3efb0-2583-4c80-a79e-1f756a03c0a1
           preferred: true,
         },
         {
           uuid: d.trackedEntity,
-          identifier: patientNumber,
+          identifier: patientNumber, //Patient Number from DHIS2
           identifierType: '8d79403a-c2cc-11de-8d13-0010c6dffd0f', //Old Identification number
           location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location
           preferred: false, //default value for this identifiertype
@@ -150,7 +152,11 @@ each(
   $.patients,
   upsert(
     'patient',
-    { q: $.data.patientNumber },
+    {
+      q: $.data.patientNumber,
+      limit: 1,
+      startIndex: 0
+    },
     state => {
       const { patientNumber, ...patient } = state.data;
       console.log(
