@@ -63,39 +63,65 @@ workflows:
     jobs:
       Fetch-Metadata:
         name: Fetch Metadata
-        adaptor: '@openfn/language-common@latest'
+        adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
           path: workflows/wf1/1-fetch-metadata.js
 
       Get-Teis-and-Locations:
         name: Get Teis and Locations
-        adaptor: '@openfn/language-dhis2@6.3.1'
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf1/2-get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
-        adaptor: '@openfn/language-openmrs@4.4.0'
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aisha@openfn.org-MSF-OMRS-admin
         body:
           path: workflows/wf1/3-create-patients.js
 
       Update-Teis:
         name: Update Teis
-        adaptor: '@openfn/language-dhis2@6.3.1'
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf1/4-update-teis.js
 
+      Alert-Admin-of-Duplicate-TEIs:
+        name: Alert Admin of Duplicate TEIs
+        adaptor: '@openfn/language-common@2.1.1'
+        credential: null
+        body: |
+          fn(state => {
+            const code = 'DUPLICATE_PATIENT_NUMBERS';
+            const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;
+            const message = `${code}: ${description}`;
+            const patientNumbers = state.duplicatePatients.map(
+              patient =>
+                patient.attributes.find(attr => attr.code === 'patient_number').value
+            );
+
+            const details = {
+              code,
+              description,
+              duplicatePatientNumbers: patientNumbers,
+            };
+            const e = new Error(message);
+            e.details = details;
+            console.error(e.details);
+            throw e;
+          });
+
     triggers:
-      webhook:
-        type: webhook
+      cron:
+        type: cron
+        cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      webhook->Fetch-Metadata:
-        source_trigger: webhook
+      cron->Fetch-Metadata:
+        source_trigger: cron
         target_job: Fetch-Metadata
         condition_type: always
         enabled: true
@@ -117,6 +143,15 @@ workflows:
         source_job: Create-Patients
         target_job: Update-Teis
         condition_type: on_job_success
+        enabled: true
+      Get-Teis-and-Locations->Alert-Admin-of-Duplicate-TEIs:
+        source_job: Get-Teis-and-Locations
+        target_job: Alert-Admin-of-Duplicate-TEIs
+        condition_type: js_expression
+        condition_label: has-duplicate-patients
+        condition_expression: |
+          state.duplicatePatients.length > 0 && !state.errors
+
         enabled: true
   wf2-omrs-dhis2:
     name: wf2-omrs-dhis2
