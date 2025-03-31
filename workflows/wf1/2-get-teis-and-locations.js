@@ -47,7 +47,7 @@ fn(state => {
       attr => attr.code === 'patient_uid'
     )?.value;
     if (patientUid) {
-      console.log('Skipping TEI with patientUid: ', patientUid);
+      console.log('Skipping TEI for existing patientUid: ', patientUid);
       return;
     }
     if (!patientNumber) {
