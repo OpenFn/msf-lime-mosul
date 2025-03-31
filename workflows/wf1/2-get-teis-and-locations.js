@@ -47,7 +47,9 @@ fn(state => {
       attr => attr.code === 'patient_uid'
     )?.value;
     if (patientUid) {
-      console.log('Skipping TEI for existing patientUid: ', patientUid);
+      console.log(
+        `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
+      );
       return;
     }
     if (!patientNumber) {
