@@ -5,7 +5,6 @@
   "concurrency": null,
   "inserted_at": "2024-10-30T06:18:14Z",
   "updated_at": "2025-03-19T08:46:30Z",
-  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "55508835-a9c3-4283-813e-ae6f9c4958fd",
@@ -73,11 +72,11 @@
       "owner": "aleksa@openfn.org"
     }
   },
+  "scheduled_deletion": null,
   "history_retention_period": 90,
   "dataclip_retention_period": null,
   "retention_policy": "retain_all",
   "collections": {},
-  "requires_mfa": false,
   "workflows": {
     "wf1-dhis2-omrs-migration": {
       "id": "73fda9b2-2555-4764-b0f9-388a99583532",
@@ -308,5 +307,6 @@
         }
       }
     }
-  }
+  },
+  "requires_mfa": false
 }
