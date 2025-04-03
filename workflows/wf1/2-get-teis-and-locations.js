@@ -43,6 +43,15 @@ fn(state => {
       attr => attr.code === 'patient_number'
     )?.value;
 
+    const patientUid = tei.attributes.find(
+      attr => attr.code === 'patient_uid'
+    )?.value;
+    if (patientUid) {
+      console.log(
+        `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
+      );
+      return;
+    }
     if (!patientNumber) {
       missingPatientNumber.push(tei);
     } else if (duplicateIds.has(patientNumber)) {
@@ -53,7 +62,7 @@ fn(state => {
   });
 
   console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
-    console.log('# Duplicate Patients found::', duplicatePatients.length);
+  console.log('# Duplicate Patients found::', duplicatePatients.length);
 
   // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
   return {
