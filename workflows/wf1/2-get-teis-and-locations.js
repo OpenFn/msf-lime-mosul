@@ -44,7 +44,7 @@ fn(state => {
     )?.value;
 
     const patientUid = tei.attributes.find(
-      attr => attr.code === 'patient_uid'
+      attr => attr.attribute === 'AYbfTPYMNJH' //filtering patients that have OMRS-id
     )?.value;
     if (patientUid) {
       console.log(
