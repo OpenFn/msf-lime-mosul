@@ -46,6 +46,8 @@ data to help the dev validate the implementation.
 
 `Name of Toggl project`
 
+## Branch and Project
+
 ## Pre-Development Checklist
 
 Before handling this issue to a developer, ensure the following items are
@@ -63,3 +65,13 @@ checked:
 - [ ] Workflow Diagrams: Ensure workflow diagrams are complete and linked.
 - [ ] VPN Access: Ensure VPN Access is provided if required to run the workflow
 - [ ] Toggl: Ensure the Toggl project name is provided.
+
+## Pre-deployment Checklist(For consultants)
+
+Before closing off this issue, ensure the following items are checked:
+
+- [ ] **Run test suite**: For major releases that affect most parts of the workflow, run the entire test suite and ensure that it passes
+- [ ] **Version-locking of CLI**: Ensure that each job is version locked to the adaptor versions that are specified in the [cache registry](https://github.com/MSF-OCG/LIME-EMR/blob/main/scripts/run_msf_addons.sh#L53). 
+- [ ] **Export Configuration**: Export both project.yaml (the project spec) and projectState. Version this release - check how github versioning with actions? works - have a chat with Mtuchi
+- [ ] **Modify documentations and diagram**: For features that require documentation and diagram updates. Review test suite
+- [ ] **Submit for Review on MSF github repo:** Push changes to a GitHub branch and create a PR  for MSF to review.
