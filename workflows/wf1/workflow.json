@@ -5,10 +5,10 @@
                 "id": "fetch-metadata",
                 "adaptors": [
                     "collections",
-                    "common"
+                    "common@2.1.1"
                 ],
                 "configuration": "../tmp/collections-creds.json",
-                "expression": "1-fetch-metadata.js",
+                "expression": "fetch-metadata.js",
                 "state": {
                     "manualCursor": "2024-06-04"
                 },
@@ -18,27 +18,34 @@
             },
             {
                 "id": "get-teis",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
-                "expression": "2-get-teis-and-locations.js",
+                "expression": "get-teis-and-locations.js",
                 "next": {
-                    "create-patients": "!state.errors"
+                    "create-patients": "!state.errors",
+                    "alert-admin": "state.duplicatePatients.length > 0 && !state.errors"
                 }
             },
             {
                 "id": "create-patients",
-                "adaptor": "openmrs",
+                "adaptor": "openmrs@4.2.0",
                 "configuration": "../tmp/openmrs-creds.json",
-                "expression": "3-create-patients.js",
+                "expression": "create-patients.js",
                 "next": {
                     "update-teis": true
                 }
             },
             {
                 "id": "update-teis",
-                "adaptor": "openmrs",
-                "configuration": "../tmp/openmrs-creds.json",
-                "expression": "4-update-teis.js"
+                "adaptor": "dhis2@5.0.1",
+                "configuration": "../tmp/dhis2-creds.json",
+                "expression": "update-teis.js"
+            },
+            {
+                "id": "alert-admin",
+                "adaptor": "common@2.1.1",
+                "configuration": null,
+                "expression": "alert-admin.js"
             }
         ]
     }
