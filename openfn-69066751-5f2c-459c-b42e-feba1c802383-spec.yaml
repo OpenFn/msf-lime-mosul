@@ -42,28 +42,28 @@ workflows:
         adaptor: '@openfn/language-http@6.5.1'
         credential: null
         body:
-          path: workflows/wf1/1-fetch-metadata.js
+          path: workflows/wf1/fetch-metadata.js
 
       Get-Teis-and-Locations:
         name: Get Teis and Locations
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf1/2-get-teis-and-locations.js
+          path: workflows/wf1/get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@4.2.0'
         credential: aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024
         body:
-          path: workflows/wf1/3-create-patients.js
+          path: workflows/wf1/create-patients.js
 
       Update-Teis:
         name: Update Teis
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf1/4-update-teis.js
+          path: workflows/wf1/update-teis.js
 
     triggers:
       cron:
