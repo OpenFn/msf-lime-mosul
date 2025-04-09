@@ -5,10 +5,6 @@
   "concurrency": null,
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-03-30T16:54:31Z",
-  "scheduled_deletion": null,
-  "history_retention_period": 365,
-  "dataclip_retention_period": 365,
-  "retention_policy": "retain_all",
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -41,13 +37,16 @@
       "owner": "aisha@openfn.org"
     }
   },
+  "scheduled_deletion": null,
+  "history_retention_period": 365,
+  "dataclip_retention_period": 365,
+  "retention_policy": "retain_all",
   "collections": {
     "mosul-metadata-mappings": {
       "id": "1a91634a-21d8-4b36-995b-71e155542dbd",
       "name": "mosul-metadata-mappings"
     }
   },
-  "requires_mfa": false,
   "workflows": {
     "wf1-dhis2-omrs-migration": {
       "id": "37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0",
@@ -307,5 +306,6 @@
         }
       }
     }
-  }
+  },
+  "requires_mfa": false
 }
