@@ -46,13 +46,17 @@ each(
   $.patientUuids,
   get('encounter', { patient: $.data, v: 'full' }).then(state => {
     const patientUuid = state.references.at(-1);
-    const filteredEncounters = state.formUuids.map(formUuid =>
-      state.data.results.filter(
-        e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
+    const filteredEncounters = state.formUuids
+      .map(formUuid =>
+        state.data.results.filter(
+          e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
+        )
       )
-    );
+      .flat();
 
-    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+    // TODO: Ask AK Why are we picking the first encounter?
+    // const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+    const encounters = filteredEncounters.filter(Boolean).flat();
     state.encounters ??= [];
     state.encounters.push(...encounters);
 
