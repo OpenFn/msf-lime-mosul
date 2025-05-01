@@ -31,110 +31,6 @@ each(
   )
 );
 
-const processAnswer = (
-  answer,
-  conceptUuid,
-  dataElement,
-  optsMap,
-  optionSetKey
-) => {
-  return typeof answer.value === 'object'
-    ? processObjectAnswer(
-        answer,
-        conceptUuid,
-        dataElement,
-        optsMap,
-        optionSetKey
-      )
-    : processOtherAnswer(answer, conceptUuid, dataElement);
-};
-
-const processObjectAnswer = (
-  answer,
-  conceptUuid,
-  dataElement,
-  optsMap,
-  optionSetKey
-) => {
-  if (isDiagnosisByPsychologist(conceptUuid, dataElement)) {
-    console.log('Yes done by psychologist..');
-    return '' + answer.value.uuid === '278401ee-3d6f-4c65-9455-f1c16d0a7a98';
-  }
-
-  if (isTrueOnlyQuestion(conceptUuid, dataElement)) {
-    console.log('True only question detected..', dataElement);
-    return answer.value.uuid === '681cf0bc-5213-492a-8470-0a0b3cc324dd'
-      ? 'true'
-      : undefined;
-  }
-
-  return findMatchingOption(answer, optsMap, optionSetKey);
-};
-
-const processOtherAnswer = (answer, conceptUuid, dataElement) => {
-  if (isPhq9Score(answer.value, conceptUuid, dataElement)) {
-    console.log('isPhq9Score', isPhq9Score);
-    return getRangePhq(answer.value);
-  }
-  return answer.value;
-};
-
-const processNoAnswer = (data, conceptUuid, dataElement) => {
-  if (isEncounterDate(conceptUuid, dataElement)) {
-    return data.encounterDatetime.replace('+0000', '');
-  }
-  return '';
-};
-
-const findMatchingOption = (answer, optsMap, optionSetKey) => {
-  const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
-
-  const matchingOptionSet = optionSetKey[optionKey];
-  console.log('optionKey', optionKey);
-  console.log('conceptUid', answer.concept.uuid);
-  console.log('value uid', answer.value.uuid);
-  console.log('value display', answer.value.display);
-  console.log('matchingOptionSet', matchingOptionSet);
-
-  const matchingOption =
-    optsMap.find(
-      o =>
-        o['value.uuid - External ID'] === answer.value.uuid &&
-        o['DHIS2 Option Set UID'] === matchingOptionSet
-    )?.['DHIS2 Option Code'] || answer.value.display; //TODO: revisit this logic if optionSet not found
-
-  console.log('matchingOption value', matchingOption);
-
-  if (matchingOption === 'FALSE') {
-    return 'false';
-  }
-  if (matchingOption === 'TRUE') {
-    return 'true';
-  }
-
-  return matchingOption || '';
-};
-
-const isEncounterDate = (conceptUuid, dataElement) => {
-  return (
-    conceptUuid === 'encounter-date' &&
-    ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement)
-  );
-};
-
-const isTrueOnlyQuestion = (conceptUuid, dataElement) =>
-  conceptUuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9' &&
-  dataElement === 'G0hLyxqgcO7';
-
-const isDiagnosisByPsychologist = (conceptUuid, dataElement) =>
-  conceptUuid === '722dd83a-c1cf-48ad-ac99-45ac131ccc96' &&
-  dataElement === 'pN4iQH4AEzk';
-
-const isPhq9Score = (value, conceptUuid, dataElement) =>
-  typeof value === 'number' &&
-  (conceptUuid === '5f3d618e-5c89-43bd-8c79-07e4e98c2f23' ||
-    conceptUuid === '6545b874-f44d-4d18-9ab1-7a8bb21c0a15');
-
 const getRangePhq = input => {
   if (input >= 20) return '>20';
   if (input >= 15) return '15_19';
@@ -142,23 +38,94 @@ const getRangePhq = input => {
   if (input >= 5) return '5_9';
   return '0_4';
 };
+const processAnswer = (
+  answer,
+  conceptUuid,
+  dataElement,
+  optsMap,
+  optionSetKey
+) => {
+  if (typeof answer.value === 'object') {
+    const isDiagnosisByPsychologist =
+      conceptUuid === '722dd83a-c1cf-48ad-ac99-45ac131ccc96' &&
+      dataElement === 'pN4iQH4AEzk';
+    if (isDiagnosisByPsychologist) {
+      console.log('Yes done by psychologist..');
+      return '' + answer.value.uuid === '278401ee-3d6f-4c65-9455-f1c16d0a7a98';
+    }
 
-const dataValuesMapping = (data, dataValueMap, optsMap, optionSetKey) => {
-  return Object.keys(dataValueMap)
-    .map(dataElement => {
-      const conceptUuid = dataValueMap[dataElement];
-      const obsAnswer = data.obs.find(o => o.concept.uuid === conceptUuid);
-      const answer = {
-        ...obsAnswer,
-        formUuid: data.form.uuid,
-      };
-      const value = answer
-        ? processAnswer(answer, conceptUuid, dataElement, optsMap, optionSetKey)
-        : processNoAnswer(data, conceptUuid, dataElement);
+    const isTrueOnlyQuestion =
+      conceptUuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9' &&
+      dataElement === 'G0hLyxqgcO7';
 
-      return { dataElement, value };
-    })
-    .filter(d => d);
+    if (isTrueOnlyQuestion) {
+      console.log('True only question detected..', dataElement);
+      return answer.value.uuid === '681cf0bc-5213-492a-8470-0a0b3cc324dd'
+        ? 'true'
+        : undefined;
+    }
+
+    const isEducationLevel =
+      conceptUuid === 'cc3a5a7a-abfe-4630-b0c0-c1275c6cbb54' &&
+      dataElement === 'Dggll4f9Efj';
+
+    if (isEducationLevel) {
+      console.log('Education level detected..', dataElement);
+      return answer.value.display;
+    }
+
+    const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
+    const matchingOptionSet = optionSetKey[optionKey];
+
+    const matchingOption =
+      optsMap.find(
+        o =>
+          o['value.uuid - External ID'] === answer.value.uuid &&
+          o['DHIS2 Option Set UID'] === matchingOptionSet
+      )?.['DHIS2 Option Code'] || answer.value.display; //TODO: revisit this logic if optionSet not found
+
+    console.log(`matchingOption value: "${matchingOption}" for`);
+    console.log({
+      optionKey,
+      conceptUid: answer.concept.uuid,
+      'answer.value.uid': answer.value.uuid,
+      'answer.value.display': answer.value.display,
+      matchingOption,
+      matchingOptionSet,
+    });
+
+    if (matchingOption === 'FALSE') {
+      return 'false';
+    }
+    if (matchingOption === 'TRUE') {
+      return 'true';
+    }
+
+    return matchingOption || '';
+  }
+
+  const PHQ9_CONCEPT_UUIDS = [
+    '5f3d618e-5c89-43bd-8c79-07e4e98c2f23',
+    '6545b874-f44d-4d18-9ab1-7a8bb21c0a15',
+  ];
+  const isPhq9Score =
+    typeof answer.value === 'number' &&
+    PHQ9_CONCEPT_UUIDS.includes(conceptUuid);
+  if (isPhq9Score) {
+    return getRangePhq(answer.value);
+  }
+  return answer.value;
+};
+
+const processNoAnswer = (data, conceptUuid, dataElement) => {
+  const isEncounterDate =
+    conceptUuid === 'encounter-date' &&
+    ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement);
+
+  if (isEncounterDate) {
+    return data.encounterDatetime.replace('+0000', '');
+  }
+  return '';
 };
 
 // Prepare DHIS2 data model for create events
@@ -177,38 +144,53 @@ fn(state => {
     state.missingRecords[uuid].encounters.push(data.uuid);
   };
 
-  const processEncounter = (data, state) => {
-    const form = state.formMaps[data.form.uuid];
-    if (!form?.dataValueMap) {
-      return null;
-    }
-    const { trackedEntity, enrollment, events } =
-      state.TEIs[data.patient.uuid] || {};
-
-    if (!trackedEntity || !enrollment) {
-      handleMissingRecord(data, state);
-      return null;
-    }
-
-    return {
-      event: events.find(e => e.programStage === form.programStage)?.event,
-      program: state.program,
-      orgUnit: state.orgUnit,
-      trackedEntity,
-      enrollment,
-      occurredAt: data.encounterDatetime.replace('+0000', ''),
-      programStage: form.programStage,
-      dataValues: dataValuesMapping(
-        data,
-        form.dataValueMap,
-        state.optsMap,
-        state.optionSetKey
-      ),
-    };
-  };
-
   state.encountersMapping = state.encounters
-    .map(data => processEncounter(data, state))
+    .map(encounter => {
+      const form = state.formMaps[encounter.form.uuid];
+      if (!form?.dataValueMap) {
+        return null;
+      }
+      const { trackedEntity, enrollment, events } =
+        state.TEIs[encounter.patient.uuid] || {};
+
+      if (!trackedEntity || !enrollment) {
+        handleMissingRecord(encounter, state);
+        return null;
+      }
+
+      return {
+        event: events.find(e => e.programStage === form.programStage)?.event,
+        program: state.program,
+        orgUnit: state.orgUnit,
+        trackedEntity,
+        enrollment,
+        occurredAt: encounter.encounterDatetime.replace('+0000', ''),
+        programStage: form.programStage,
+        dataValues: Object.keys(form.dataValueMap)
+          .map(dataElement => {
+            const conceptUuid = form.dataValueMap[dataElement];
+            const obsAnswer = encounter.obs.find(
+              o => o.concept.uuid === conceptUuid
+            );
+            const answer = {
+              ...obsAnswer,
+              formUuid: encounter.form.uuid,
+            };
+            const value = answer
+              ? processAnswer(
+                  answer,
+                  conceptUuid,
+                  dataElement,
+                  state.optsMap,
+                  state.optionSetKey
+                )
+              : processNoAnswer(encounter, conceptUuid, dataElement);
+
+            return { dataElement, value };
+          })
+          .filter(d => d),
+      };
+    })
     .filter(Boolean);
 
   return state;
