@@ -3,10 +3,10 @@
         "steps": [
             {
                 "id": "get-patients",
-                "adaptor": "openmrs",
+                "adaptor": "openmrs@4.3.0",
                 "configuration": "../tmp/openmrs-creds.json",
                 "state": {
-                    "lastRunDateTime": "2024-12-20T08:00:00.000Z"
+                    "lastRunDateTime": "2025-04-28T08:00:00.000Z"
                 },
                 "expression": "1-get-patients.js",
                 "next": {
@@ -15,7 +15,7 @@
             },
             {
                 "id": "mappings",
-                "adaptor": "http",
+                "adaptor": "http@6.5.1",
                 "expression": "2-mappings.js",
                 "next": {
                     "upsert-teis": "state.patients.length > 0 && !state.errors",
@@ -24,7 +24,7 @@
             },
             {
                 "id": "upsert-teis",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "2-upsert-teis.js",
                 "next": {
@@ -33,7 +33,7 @@
             },
             {
                 "id": "get-encounters",
-                "adaptor": "openmrs",
+                "adaptor": "openmrs@4.3.0",
                 "configuration": "../tmp/openmrs-creds.json",
                 "expression": "3-get-encounters.js",
                 "next": {
@@ -42,7 +42,7 @@
             },
             {
                 "id": "get-teis",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "5-get-teis.js",
                 "next": {
@@ -51,7 +51,7 @@
             },
             {
                 "id": "create-events",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "6-create-events.js",
                 "next": {
@@ -60,7 +60,7 @@
             },
             {
                 "id": "update-teis",
-                "adaptor": "dhis2",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "7-update-teis.js"
             }
