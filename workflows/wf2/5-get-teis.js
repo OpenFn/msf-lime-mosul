@@ -2,33 +2,28 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 each(
   $.encounters,
-  get(
-    'tracker/trackedEntities',
-    {
-      orgUnit: $.orgUnit,
-      program: $.program,
-      filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
-      fields: '*,enrollments[*],enrollments[events[*]]',
-    },
-    {},
-    async state => {
-      const encounter = state.references.at(-1);
-      console.log(encounter.patient.uuid, 'Encounter patient uuid');
+  get('tracker/trackedEntities', {
+    orgUnit: $.orgUnit,
+    program: $.program,
+    filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
+    fields: '*,enrollments[*],enrollments[events[*]]',
+  }).then(async state => {
+    const encounter = state.references.at(-1);
+    console.log(encounter.patient.uuid, 'Encounter patient uuid');
 
-      const { trackedEntity, enrollments } = state.data?.instances?.[0] || {};
-      if (trackedEntity && enrollments) {
-        state.TEIs ??= {};
-        state.TEIs[encounter.patient.uuid] = {
-          trackedEntity,
-          events: enrollments[0]?.events,
-          enrollment: enrollments[0]?.enrollment,
-        };
-      }
-
-      await delay(2000);
-      return state;
+    const { trackedEntity, enrollments } = state.data?.instances?.[0] || {};
+    if (trackedEntity && enrollments) {
+      state.TEIs ??= {};
+      state.TEIs[encounter.patient.uuid] = {
+        trackedEntity,
+        events: enrollments[0]?.events,
+        enrollment: enrollments[0]?.enrollment,
+      };
     }
-  )
+
+    await delay(2000);
+    return state;
+  })
 );
 
 const getRangePhq = input => {
@@ -63,15 +58,6 @@ const processAnswer = (
       return answer.value.uuid === '681cf0bc-5213-492a-8470-0a0b3cc324dd'
         ? 'true'
         : undefined;
-    }
-
-    const isEducationLevel =
-      conceptUuid === 'cc3a5a7a-abfe-4630-b0c0-c1275c6cbb54' &&
-      dataElement === 'Dggll4f9Efj';
-
-    if (isEducationLevel) {
-      console.log('Education level detected..', dataElement);
-      return answer.value.display;
     }
 
     const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
@@ -117,13 +103,13 @@ const processAnswer = (
   return answer.value;
 };
 
-const processNoAnswer = (data, conceptUuid, dataElement) => {
+const processNoAnswer = (encounter, conceptUuid, dataElement) => {
   const isEncounterDate =
     conceptUuid === 'encounter-date' &&
     ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement);
 
   if (isEncounterDate) {
-    return data.encounterDatetime.replace('+0000', '');
+    return encounter.encounterDatetime.replace('+0000', '');
   }
   return '';
 };
