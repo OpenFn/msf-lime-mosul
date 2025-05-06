@@ -5,9 +5,6 @@
                 "id": "get-patients",
                 "adaptor": "openmrs@4.3.0",
                 "configuration": "../tmp/openmrs-creds.json",
-                "state": {
-                    "lastRunDateTime": "2025-04-28T08:00:00.000Z"
-                },
                 "expression": "1-get-patients.js",
                 "next": {
                     "mappings": "!state.errors"
@@ -55,7 +52,7 @@
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "6-create-events.js",
                 "next": {
-                    "update-teis": "state?.genderUpdated?.length > 0 && !state.errors"
+                    "update-teis": "state?.teisToUpdate?.length > 0"
                 }
             },
             {
