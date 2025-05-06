@@ -107,11 +107,18 @@ const processNoAnswer = (encounter, conceptUuid, dataElement) => {
   const isEncounterDate =
     conceptUuid === 'encounter-date' &&
     ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement);
+  // These are data elements for encounter date in DHIS2
+  // F29 MHPSS Baseline v2,
 
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace('+0000', '');
   }
   return '';
+};
+
+const findAnswerByConcept = (encounter, conceptUuid) => {
+  const answer = encounter.obs.find(o => o.concept.uuid === conceptUuid);
+  return answer?.value?.display;
 };
 
 // Prepare DHIS2 data model for create events
@@ -143,6 +150,41 @@ fn(state => {
         handleMissingRecord(encounter, state);
         return null;
       }
+      const formDataValues = Object.keys(form.dataValueMap)
+        .map(dataElement => {
+          const conceptUuid = form.dataValueMap[dataElement];
+          const obsAnswer = encounter.obs.find(
+            o => o.concept.uuid === conceptUuid
+          );
+          const answer = {
+            ...obsAnswer,
+            formUuid: encounter.form.uuid,
+          };
+          const value = answer
+            ? processAnswer(
+                answer,
+                conceptUuid,
+                dataElement,
+                state.optsMap,
+                state.optionSetKey
+              )
+            : processNoAnswer(encounter, conceptUuid, dataElement);
+
+          return { dataElement, value };
+        })
+        .filter(d => d);
+
+      const missingConcept = [
+        {
+          dataElement: 'pN4iQH4AEzk',
+          value: findAnswerByConcept(
+            encounter,
+            '22809b19-54ca-4d88-8d26-9577637c184e'
+          )
+            ? true
+            : false,
+        },
+      ];
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
@@ -152,29 +194,7 @@ fn(state => {
         enrollment,
         occurredAt: encounter.encounterDatetime.replace('+0000', ''),
         programStage: form.programStage,
-        dataValues: Object.keys(form.dataValueMap)
-          .map(dataElement => {
-            const conceptUuid = form.dataValueMap[dataElement];
-            const obsAnswer = encounter.obs.find(
-              o => o.concept.uuid === conceptUuid
-            );
-            const answer = {
-              ...obsAnswer,
-              formUuid: encounter.form.uuid,
-            };
-            const value = answer
-              ? processAnswer(
-                  answer,
-                  conceptUuid,
-                  dataElement,
-                  state.optsMap,
-                  state.optionSetKey
-                )
-              : processNoAnswer(encounter, conceptUuid, dataElement);
-
-            return { dataElement, value };
-          })
-          .filter(d => d),
+        dataValues: [...formDataValues, ...missingConcept],
       };
     })
     .filter(Boolean);
