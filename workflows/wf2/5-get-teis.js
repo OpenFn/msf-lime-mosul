@@ -108,7 +108,7 @@ const processNoAnswer = (encounter, conceptUuid, dataElement) => {
     conceptUuid === 'encounter-date' &&
     ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement);
   // These are data elements for encounter date in DHIS2
-  // F29 MHPSS Baseline v2,
+  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2
 
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace('+0000', '');
