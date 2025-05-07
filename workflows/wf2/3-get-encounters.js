@@ -45,18 +45,19 @@ fn(state => {
 each(
   $.patientUuids,
   get('encounter', { patient: $.data, v: 'full' }).then(state => {
-    const patientUuid = state.references.at(-1);
-    const filteredEncounters = state.formUuids
-      .map(formUuid =>
-        state.data.results.filter(
-          e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
-        )
-      )
-      .flat();
+    state.allEncounters ??= [];
+    state.allEncounters.push(
+      ...state.data.results.filter(e => state.formUuids.includes(e?.form?.uuid))
+    );
 
-    // TODO: Ask AK Why are we picking the first encounter?
-    // const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
-    const encounters = filteredEncounters.filter(Boolean).flat();
+    const patientUuid = state.references.at(-1);
+    const filteredEncounters = state.formUuids.map(formUuid =>
+      state.data.results.filter(
+        e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
+      )
+    );
+
+    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
     state.encounters ??= [];
     state.encounters.push(...encounters);
 
@@ -69,7 +70,7 @@ each(
   })
 );
 
-fnIf($.encounters, state => {
+fn(state => {
   const {
     data,
     index,
@@ -79,12 +80,12 @@ fnIf($.encounters, state => {
     patientUuids,
     ...next
   } = state;
-  console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+
+  if (next.encounters?.length) {
+    console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+  } else {
+    console.log('No encounters found for cursor: ', next.cursor);
+  }
 
   return next;
-});
-
-fnIf(!$.encounters, state => {
-  console.log('No encounters found for cursor: ', state.cursor);
-  return state;
 });
