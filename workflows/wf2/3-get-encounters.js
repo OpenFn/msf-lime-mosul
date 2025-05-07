@@ -41,13 +41,21 @@ fn(state => {
   return state;
 });
 
+const v2FormUuids = [
+  '9287bc3e-5852-3034-a59b-889d06d546ad',
+  'dfd11c31-c253-3ace-866a-0be0bc827f75',
+  '6b87b1cd-b52f-35ba-b7e9-7adc7c7ada5b',
+  '3abb648b-1a0b-390c-b1e6-ade4aa08d849',
+  '7e600a1c-22b8-3127-b7e6-1829dee17f8a',
+  '8843775f-651c-3be2-ab51-8de299268c74',
+];
 // Fetch patient encounters
 each(
   $.patientUuids,
   get('encounter', { patient: $.data, v: 'full' }).then(state => {
     state.allEncounters ??= [];
     state.allEncounters.push(
-      ...state.data.results.filter(e => state.formUuids.includes(e?.form?.uuid))
+      ...state.data.results.filter(e => v2FormUuids.includes(e?.form?.uuid))
     );
 
     const patientUuid = state.references.at(-1);
