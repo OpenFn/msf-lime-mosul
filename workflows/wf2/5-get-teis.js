@@ -106,9 +106,11 @@ const processAnswer = (
 const processNoAnswer = (encounter, conceptUuid, dataElement) => {
   const isEncounterDate =
     conceptUuid === 'encounter-date' &&
-    ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement);
+    ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN', 'EOFi7nk2vNM'].includes(
+      dataElement
+    );
   // These are data elements for encounter date in DHIS2
-  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2
+  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
 
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace('+0000', '');
@@ -174,7 +176,7 @@ fn(state => {
         })
         .filter(d => d);
 
-      const missingConcept = [
+      const customMapping = [
         {
           dataElement: 'pN4iQH4AEzk',
           value: findAnswerByConcept(
@@ -183,6 +185,79 @@ fn(state => {
           )
             ? true
             : false,
+        },
+        {
+          dataElement: 'jtKIoKducvE',
+          value: () => {
+            const missedSession =
+              encounter.obs.find(
+                o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+              )?.value?.display === 'Yes';
+            if (missedSession) {
+              return encounter.encounterDatetime.replace('+0000', '');
+            }
+            const lastFollowupEncounter = state.allEncounters.find(e => {
+              e.form.description.includes('F30-MHPSS Follow-up v2') &&
+                e.obs.find(
+                  o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                )?.value?.display === 'Yes';
+            });
+
+            if (lastFollowupEncounter) {
+              return lastFollowupEncounter.encounterDatetime.replace(
+                '+0000',
+                ''
+              );
+            }
+
+            const f29Encounter = state.allEncounters.find(e =>
+              e.form.description.includes('F29-MHPSS Baseline v2')
+            );
+            if (f29Encounter) {
+              return f29Encounter.encounterDatetime.replace('+0000', '');
+            }
+          },
+        },
+        {
+          dataElement: 'fMqEZpiRVZV',
+          value: () => {
+            const missedSession =
+              encounter.obs.find(
+                o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+              )?.value?.display === 'Yes';
+            if (missedSession) {
+              return encounter.encounterDatetime.replace('+0000', '');
+            }
+            const lastFollowupEncounter = state.allEncounters.find(e => {
+              e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                e.obs.find(
+                  o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                )?.value?.display === 'Yes';
+            });
+
+            if (lastFollowupEncounter) {
+              return lastFollowupEncounter.encounterDatetime.replace(
+                '+0000',
+                ''
+              );
+            }
+
+            const f29Encounter = state.allEncounters.find(e =>
+              e.form.description.includes('F31-mhGAP Baseline v2')
+            );
+            if (f29Encounter) {
+              return f29Encounter.encounterDatetime.replace('+0000', '');
+            }
+          },
+        },
+        {
+          dataElement: 'XBVRRpgkEvE',
+          value: () => {
+            // Find last mGAP consultation baseline or follow-up
+            // const lastMgapConsultation = encounter.find();
+
+            return false;
+          },
         },
       ];
 
@@ -194,7 +269,7 @@ fn(state => {
         enrollment,
         occurredAt: encounter.encounterDatetime.replace('+0000', ''),
         programStage: form.programStage,
-        dataValues: [...formDataValues, ...missingConcept],
+        dataValues: [...formDataValues, ...customMapping],
       };
     })
     .filter(Boolean);
