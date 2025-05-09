@@ -1,5 +1,6 @@
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+//TODO: Group the encounters by patient and then get the TEI for each patient
 each(
   $.encounters,
   get('tracker/trackedEntities', {
@@ -62,13 +63,15 @@ const processAnswer = (
 
     const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
-
+    const opt = optsMap.find(
+      o =>
+        o['value.uuid - External ID'] === answer.value.uuid &&
+        o['DHIS2 Option Set UID'] === matchingOptionSet
+    );
     const matchingOption =
-      optsMap.find(
-        o =>
-          o['value.uuid - External ID'] === answer.value.uuid &&
-          o['DHIS2 Option Set UID'] === matchingOptionSet
-      )?.['DHIS2 Option Code'] || answer.value.display; //TODO: revisit this logic if optionSet not found
+      opt?.['DHIS2 Option Code'] ||
+      opt?.['DHIS2 Option name'] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
+      answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
     console.log(`matchingOption value: "${matchingOption}" for`);
     console.log({
@@ -106,9 +109,11 @@ const processAnswer = (
 const processNoAnswer = (encounter, conceptUuid, dataElement) => {
   const isEncounterDate =
     conceptUuid === 'encounter-date' &&
-    ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN'].includes(dataElement);
+    ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN', 'EOFi7nk2vNM'].includes(
+      dataElement
+    );
   // These are data elements for encounter date in DHIS2
-  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2
+  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
 
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace('+0000', '');
@@ -174,8 +179,10 @@ fn(state => {
         })
         .filter(d => d);
 
-      const missingConcept = [
-        {
+      const customMapping = [];
+
+      if (encounter.form.description.includes('F29-MHPSS Baseline v2')) {
+        customMapping.push({
           dataElement: 'pN4iQH4AEzk',
           value: findAnswerByConcept(
             encounter,
@@ -183,8 +190,112 @@ fn(state => {
           )
             ? true
             : false,
-        },
-      ];
+        });
+      }
+      if (encounter.form.description.includes('F30-MHPSS Follow-up v2')) {
+        customMapping.push({
+          dataElement: 'jtKIoKducvE',
+          value: () => {
+            const missedSession =
+              encounter.obs.find(
+                o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+              )?.value?.display === 'Yes';
+            if (missedSession) {
+              return encounter.encounterDatetime.replace('+0000', '');
+            }
+            const lastFollowupEncounter = state.allEncounters.find(e => {
+              e.form.description.includes('F30-MHPSS Follow-up v2') &&
+                e.obs.find(
+                  o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                )?.value?.display === 'Yes';
+            });
+
+            if (lastFollowupEncounter) {
+              return lastFollowupEncounter.encounterDatetime.replace(
+                '+0000',
+                ''
+              );
+            }
+
+            const f29Encounter = state.allEncounters.find(e =>
+              e.form.description.includes('F29-MHPSS Baseline v2')
+            );
+            if (f29Encounter) {
+              return f29Encounter.encounterDatetime.replace('+0000', '');
+            }
+          },
+        });
+      }
+      if (encounter.form.description.includes('F32-mhGAP Follow-up v2')) {
+        customMapping.push(
+          {
+            dataElement: 'fMqEZpiRVZV',
+            value: () => {
+              console.log('fMqEZpiRVZV was called?');
+              const missedSession =
+                encounter.obs.find(
+                  o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                )?.value?.display === 'Yes';
+              if (missedSession) {
+                return encounter.encounterDatetime.replace('+0000', '');
+              }
+              const lastFollowupEncounter = state.allEncounters.find(e => {
+                e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                  e.obs.find(
+                    o =>
+                      o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                  )?.value?.display === 'Yes';
+              });
+
+              if (lastFollowupEncounter) {
+                return lastFollowupEncounter.encounterDatetime.replace(
+                  '+0000',
+                  ''
+                );
+              }
+
+              const f29Encounter = state.allEncounters.find(e =>
+                e.form.description.includes('F31-mhGAP Baseline v2')
+              );
+              console.log({ f29Encounter });
+              if (f29Encounter) {
+                return f29Encounter.encounterDatetime.replace('+0000', '');
+              }
+            },
+          },
+          {
+            dataElement: 'XBVRRpgkEvE',
+            value: () => {
+              console.log('Was i called?');
+              const patientUuid = encounter.patient.uuid;
+              const previousChangeInDiagnosis = state.allEncounters
+                .find(
+                  e =>
+                    e.patient.uuid === patientUuid &&
+                    e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                    encounter.uuid !== e.uuid
+                )
+                ?.obs.find(
+                  o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
+                ).value?.display;
+
+              const currentChangeInDiagnosis = encounter.obs.find(
+                o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
+              ).value?.display;
+
+              console.log({ previousChangeInDiagnosis });
+              if (
+                previousChangeInDiagnosis &&
+                previousChangeInDiagnosis !== currentChangeInDiagnosis
+              ) {
+                return true;
+              }
+
+              return false;
+            },
+          }
+        );
+      }
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
@@ -194,7 +305,7 @@ fn(state => {
         enrollment,
         occurredAt: encounter.encounterDatetime.replace('+0000', ''),
         programStage: form.programStage,
-        dataValues: [...formDataValues, ...missingConcept],
+        dataValues: [...formDataValues, ...customMapping],
       };
     })
     .filter(Boolean);
