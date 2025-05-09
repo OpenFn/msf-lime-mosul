@@ -1,5 +1,6 @@
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
+//TODO: Group the encounters by patient and then get the TEI for each patient
 each(
   $.encounters,
   get('tracker/trackedEntities', {
@@ -62,13 +63,15 @@ const processAnswer = (
 
     const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
-
+    const opt = optsMap.find(
+      o =>
+        o['value.uuid - External ID'] === answer.value.uuid &&
+        o['DHIS2 Option Set UID'] === matchingOptionSet
+    );
     const matchingOption =
-      optsMap.find(
-        o =>
-          o['value.uuid - External ID'] === answer.value.uuid &&
-          o['DHIS2 Option Set UID'] === matchingOptionSet
-      )?.['DHIS2 Option Code'] || answer.value.display; //TODO: revisit this logic if optionSet not found
+      opt?.['DHIS2 Option Code'] ||
+      opt?.['DHIS2 Option name'] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
+      answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
     console.log(`matchingOption value: "${matchingOption}" for`);
     console.log({
@@ -176,8 +179,10 @@ fn(state => {
         })
         .filter(d => d);
 
-      const customMapping = [
-        {
+      const customMapping = [];
+
+      if (encounter.form.description.includes('F29-MHPSS Baseline v2')) {
+        customMapping.push({
           dataElement: 'pN4iQH4AEzk',
           value: findAnswerByConcept(
             encounter,
@@ -185,8 +190,10 @@ fn(state => {
           )
             ? true
             : false,
-        },
-        {
+        });
+      }
+      if (encounter.form.description.includes('F30-MHPSS Follow-up v2')) {
+        customMapping.push({
           dataElement: 'jtKIoKducvE',
           value: () => {
             const missedSession =
@@ -217,49 +224,78 @@ fn(state => {
               return f29Encounter.encounterDatetime.replace('+0000', '');
             }
           },
-        },
-        {
-          dataElement: 'fMqEZpiRVZV',
-          value: () => {
-            const missedSession =
-              encounter.obs.find(
-                o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'Yes';
-            if (missedSession) {
-              return encounter.encounterDatetime.replace('+0000', '');
-            }
-            const lastFollowupEncounter = state.allEncounters.find(e => {
-              e.form.description.includes('F32-mhGAP Follow-up v2') &&
-                e.obs.find(
+        });
+      }
+      if (encounter.form.description.includes('F32-mhGAP Follow-up v2')) {
+        customMapping.push(
+          {
+            dataElement: 'fMqEZpiRVZV',
+            value: () => {
+              console.log('fMqEZpiRVZV was called?');
+              const missedSession =
+                encounter.obs.find(
                   o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
                 )?.value?.display === 'Yes';
-            });
+              if (missedSession) {
+                return encounter.encounterDatetime.replace('+0000', '');
+              }
+              const lastFollowupEncounter = state.allEncounters.find(e => {
+                e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                  e.obs.find(
+                    o =>
+                      o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                  )?.value?.display === 'Yes';
+              });
 
-            if (lastFollowupEncounter) {
-              return lastFollowupEncounter.encounterDatetime.replace(
-                '+0000',
-                ''
+              if (lastFollowupEncounter) {
+                return lastFollowupEncounter.encounterDatetime.replace(
+                  '+0000',
+                  ''
+                );
+              }
+
+              const f29Encounter = state.allEncounters.find(e =>
+                e.form.description.includes('F31-mhGAP Baseline v2')
               );
-            }
-
-            const f29Encounter = state.allEncounters.find(e =>
-              e.form.description.includes('F31-mhGAP Baseline v2')
-            );
-            if (f29Encounter) {
-              return f29Encounter.encounterDatetime.replace('+0000', '');
-            }
+              console.log({ f29Encounter });
+              if (f29Encounter) {
+                return f29Encounter.encounterDatetime.replace('+0000', '');
+              }
+            },
           },
-        },
-        {
-          dataElement: 'XBVRRpgkEvE',
-          value: () => {
-            // Find last mGAP consultation baseline or follow-up
-            // const lastMgapConsultation = encounter.find();
+          {
+            dataElement: 'XBVRRpgkEvE',
+            value: () => {
+              console.log('Was i called?');
+              const patientUuid = encounter.patient.uuid;
+              const previousChangeInDiagnosis = state.allEncounters
+                .find(
+                  e =>
+                    e.patient.uuid === patientUuid &&
+                    e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                    encounter.uuid !== e.uuid
+                )
+                ?.obs.find(
+                  o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
+                ).value?.display;
 
-            return false;
-          },
-        },
-      ];
+              const currentChangeInDiagnosis = encounter.obs.find(
+                o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
+              ).value?.display;
+
+              console.log({ previousChangeInDiagnosis });
+              if (
+                previousChangeInDiagnosis &&
+                previousChangeInDiagnosis !== currentChangeInDiagnosis
+              ) {
+                return true;
+              }
+
+              return false;
+            },
+          }
+        );
+      }
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
