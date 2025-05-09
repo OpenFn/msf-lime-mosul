@@ -1,3 +1,12 @@
+// http.get('/ws/rest/v1/localeandthemeconfiguration').then(state => {
+//   const { data } = state;
+//   return { data };
+// });
+// http
+//   .get(
+//     '/ws/rest/v1/encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full'
+//   )
+//   .then(({ data }) => ({ data }));
 // Fetch all encounters
 http
   .get('/ws/fhir2/R4/Encounter', {
@@ -41,6 +50,8 @@ fn(state => {
   return state;
 });
 
+// TODO: Remove this after testing
+// Should be in state.v2formUuids
 const v2FormUuids = [
   '9287bc3e-5852-3034-a59b-889d06d546ad',
   'dfd11c31-c253-3ace-866a-0be0bc827f75',
@@ -50,9 +61,38 @@ const v2FormUuids = [
   '8843775f-651c-3be2-ab51-8de299268c74',
 ];
 // Fetch patient encounters
-each(
-  $.patientUuids,
-  get('encounter', { patient: $.data, v: 'full' }).then(state => {
+// each(
+//   $.patientUuids,
+//   get(`encounter?patient=${$.data}&v=full`).then(state => {
+//     state.allEncounters ??= [];
+//     state.allEncounters.push(
+//       ...state.data.results.filter(e => v2FormUuids.includes(e?.form?.uuid))
+//     );
+
+//     const patientUuid = state.references.at(-1);
+//     const filteredEncounters = state.formUuids.map(formUuid =>
+//       state.data.results.filter(
+//         // TODO: Check with AK for the filter date
+//         // e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
+//         e =>
+//           e.auditInfo.dateCreated >= state.cursor && e?.form?.uuid === formUuid
+//       )
+//     );
+
+//     const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+//     state.encounters ??= [];
+//     state.encounters.push(...encounters);
+
+//     console.log(
+//       encounters.length,
+//       `# of filtered encounters found in OMRS for ${patientUuid}`
+//     );
+
+//     return state;
+//   })
+// );
+get(`encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full`).then(
+  state => {
     state.allEncounters ??= [];
     state.allEncounters.push(
       ...state.data.results.filter(e => v2FormUuids.includes(e?.form?.uuid))
@@ -61,7 +101,10 @@ each(
     const patientUuid = state.references.at(-1);
     const filteredEncounters = state.formUuids.map(formUuid =>
       state.data.results.filter(
-        e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
+        // TODO: Check with AK for the filter date
+        // e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
+        e =>
+          e.auditInfo.dateCreated >= state.cursor && e?.form?.uuid === formUuid
       )
     );
 
@@ -75,7 +118,7 @@ each(
     );
 
     return state;
-  })
+  }
 );
 
 fn(state => {
