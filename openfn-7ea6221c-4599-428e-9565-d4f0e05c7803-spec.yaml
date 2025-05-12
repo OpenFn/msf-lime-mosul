@@ -683,7 +683,6 @@ workflows:
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
-          
           const getRangePhq = input => {
             if (input >= 20) return '>20';
             if (input >= 15) return '15_19';
@@ -782,7 +781,6 @@ workflows:
             const answer = encounter.obs.find(o => o.concept.uuid === conceptUuid);
             return answer?.value?.display;
           };
-
           // Prepare DHIS2 data model for create events
           fn(state => {
             const handleMissingRecord = (data, state) => {
@@ -799,7 +797,7 @@ workflows:
               state.missingRecords[uuid].encounters.push(data.uuid);
             };
 
-            state.encountersMapping = state.encounters
+            state.eventsMapping = state.encounters
               .map(encounter => {
                 const form = state.formMaps[encounter.form.uuid];
                 if (!form?.dataValueMap) {
@@ -824,12 +822,12 @@ workflows:
                     };
                     const value = answer
                       ? processAnswer(
-                        answer,
-                        conceptUuid,
-                        dataElement,
-                        state.optsMap,
-                        state.optionSetKey
-                      )
+                          answer,
+                          conceptUuid,
+                          dataElement,
+                          state.optsMap,
+                          state.optionSetKey
+                        )
                       : processNoAnswer(encounter, conceptUuid, dataElement);
 
                     return { dataElement, value };
@@ -850,108 +848,138 @@ workflows:
                   });
                 }
                 if (encounter.form.description.includes('F30-MHPSS Follow-up v2')) {
-                  customMapping.push({
-                    dataElement: 'jtKIoKducvE',
-                    value: () => {
-                      const missedSession =
-                        encounter.obs.find(
+                  const missedSession = encounter => {
+                    if (
+                      encounter.obs.find(
+                        o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                      )?.value?.display === 'Yes'
+                    ) {
+                      return encounter.encounterDatetime.replace('+0000', '');
+                    }
+                    const lastFollowupEncounter = state.allEncounters.find(e => {
+                      e.form.description.includes('F30-MHPSS Follow-up v2') &&
+                        e.obs.find(
                           o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
                         )?.value?.display === 'Yes';
-                      if (missedSession) {
-                        return encounter.encounterDatetime.replace('+0000', '');
-                      }
-                      const lastFollowupEncounter = state.allEncounters.find(e => {
-                        e.form.description.includes('F30-MHPSS Follow-up v2') &&
-                          e.obs.find(
-                            o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                          )?.value?.display === 'Yes';
-                      });
+                    });
 
-                      if (lastFollowupEncounter) {
-                        return lastFollowupEncounter.encounterDatetime.replace(
-                          '+0000',
-                          ''
-                        );
-                      }
+                    if (lastFollowupEncounter) {
+                      return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
+                    }
 
-                      const f29Encounter = state.allEncounters.find(e =>
-                        e.form.description.includes('F29-MHPSS Baseline v2')
-                      );
-                      if (f29Encounter) {
-                        return f29Encounter.encounterDatetime.replace('+0000', '');
-                      }
+                    const f29Encounter = state.allEncounters.find(e =>
+                      e.form.description.includes('F29-MHPSS Baseline v2')
+                    );
+                    if (f29Encounter) {
+                      return f29Encounter.encounterDatetime.replace('+0000', '');
+                    }
+                  };
+                  const mapping = [
+                    {
+                      dataElement: 'jtKIoKducvE',
+                      value: missedSession(encounter),
                     },
-                  });
+                  ];
+                  customMapping.push(...mapping);
                 }
                 if (encounter.form.description.includes('F32-mhGAP Follow-up v2')) {
-                  customMapping.push(
+                  const missedSession = encounter => {
+                    if (
+                      encounter.obs.find(
+                        o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                      )?.value?.display === 'Yes'
+                    ) {
+                      return encounter.encounterDatetime.replace('+0000', '');
+                    }
+                    const lastFollowupEncounter = state.allEncounters.find(e => {
+                      e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                        e.obs.find(
+                          o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                        )?.value?.display === 'Yes';
+                    });
+
+                    if (lastFollowupEncounter) {
+                      return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
+                    }
+
+                    const f29Encounter = state.allEncounters.find(e =>
+                      e.form.description.includes('F31-mhGAP Baseline v2')
+                    );
+                    console.log({ f29Encounter });
+                    if (f29Encounter) {
+                      return f29Encounter.encounterDatetime.replace('+0000', '');
+                    }
+                  };
+                  const changeInDiagnosis = encounter => {
+                    const patientUuid = encounter.patient.uuid;
+                    const previousChangeInDiagnosis = state.allEncounters
+                      .find(
+                        e =>
+                          e.patient.uuid === patientUuid &&
+                          e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                          encounter.uuid !== e.uuid
+                      )
+                      ?.obs.find(
+                        o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
+                      )?.value?.display;
+
+                    const currentChangeInDiagnosis = encounter.obs.find(
+                      o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
+                    )?.value?.display;
+
+                    console.log({ previousChangeInDiagnosis });
+                    if (
+                      previousChangeInDiagnosis &&
+                      previousChangeInDiagnosis !== currentChangeInDiagnosis
+                    ) {
+                      return true;
+                    }
+
+                    return false;
+                  };
+                  const mapping = [
                     {
                       dataElement: 'fMqEZpiRVZV',
-                      value: () => {
-                        console.log('fMqEZpiRVZV was called?');
-                        const missedSession =
-                          encounter.obs.find(
-                            o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                          )?.value?.display === 'Yes';
-                        if (missedSession) {
-                          return encounter.encounterDatetime.replace('+0000', '');
-                        }
-                        const lastFollowupEncounter = state.allEncounters.find(e => {
-                          e.form.description.includes('F32-mhGAP Follow-up v2') &&
-                            e.obs.find(
-                              o =>
-                                o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                            )?.value?.display === 'Yes';
-                        });
-
-                        if (lastFollowupEncounter) {
-                          return lastFollowupEncounter.encounterDatetime.replace(
-                            '+0000',
-                            ''
-                          );
-                        }
-
-                        const f29Encounter = state.allEncounters.find(e =>
-                          e.form.description.includes('F31-mhGAP Baseline v2')
-                        );
-                        console.log({ f29Encounter });
-                        if (f29Encounter) {
-                          return f29Encounter.encounterDatetime.replace('+0000', '');
-                        }
-                      },
+                      value: missedSession(encounter),
                     },
                     {
                       dataElement: 'XBVRRpgkEvE',
-                      value: () => {
-                        console.log('Was i called?');
-                        const patientUuid = encounter.patient.uuid;
-                        const previousChangeInDiagnosis = state.allEncounters
-                          .find(
-                            e =>
-                              e.patient.uuid === patientUuid &&
-                              e.form.description.includes('F32-mhGAP Follow-up v2') &&
-                              encounter.uuid !== e.uuid
-                          )
-                          ?.obs.find(
-                            o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
-                          ).value?.display;
+                      value: changeInDiagnosis(encounter),
+                    },
+                  ];
+                  customMapping.push(...mapping);
+                }
+                if (
+                  encounter.form.description.includes('F33-MHPSS Closure v2') ||
+                  encounter.form.description.includes('F34-mhGAP Closure v2')
+                ) {
+                  const lastScore = encounter.obs.find(
+                    o => o.concept.uuid === '90b3d09c-d296-44d2-8292-8e04377fe027'
+                  )?.value;
 
-                        const currentChangeInDiagnosis = encounter.obs.find(
-                          o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
-                        ).value?.display;
+                  const filterOutScore = state.allEncounters.filter(e => {
+                    const obs = e.obs.find(
+                      o => o.concept.display === 'Mental Health Outcome Scale'
+                    );
+                    return e.uuid !== encounter.uuid && obs && obs?.value !== 0;
+                  });
 
-                        console.log({ previousChangeInDiagnosis });
-                        if (
-                          previousChangeInDiagnosis &&
-                          previousChangeInDiagnosis !== currentChangeInDiagnosis
-                        ) {
-                          return true;
-                        }
+                  const firstScore = filterOutScore
+                    .sort((a, b) => {
+                      return (
+                        new Date(a.encounterDatetime) - new Date(b.encounterDatetime)
+                      );
+                    })
+                    .at(0)
+                    ?.obs.find(
+                      o => o.concept.display === 'Mental Health Outcome Scale'
+                    )?.value;
 
-                        return false;
-                      },
-                    }
-                  );
+                  console.log({ firstScore, lastScore });
+                  customMapping.push({
+                    dataElement: 'b8bjS7ah8Qi',
+                    value: lastScore - firstScore,
+                  });
                 }
 
                 return {
