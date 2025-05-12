@@ -1069,7 +1069,10 @@ workflows:
       Event-Mappings->Create-Events:
         source_job: Event-Mappings
         target_job: Create-Events
-        condition_type: on_job_success
+        condition_type: js_expression
+        condition_label: has-events
+        condition_expression: |
+          state?.eventsMapping?.length > 0 && !state.errors
         enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration

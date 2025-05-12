@@ -5,7 +5,6 @@
   "concurrency": null,
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-04-09T09:49:41Z",
-  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -38,9 +37,11 @@
       "owner": "aisha@openfn.org"
     }
   },
+  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": 365,
   "retention_policy": "retain_all",
+  "allow_support_access": false,
   "collections": {
     "mosul-metadata-mappings": {
       "id": "1a91634a-21d8-4b36-995b-71e155542dbd",
@@ -309,8 +310,8 @@
     "test-wf2-omrs-dhis2": {
       "id": "3ae109b4-2636-4062-8e87-6f900169f8aa",
       "name": "test-wf2-omrs-dhis2",
-      "inserted_at": "2025-05-12T19:12:39.945284Z",
-      "lock_version": 14,
+      "inserted_at": "2025-05-12T19:13:25.654361Z",
+      "lock_version": 15,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -452,11 +453,12 @@
           "id": "34c5ed18-f239-41a7-8646-1c89672d8608",
           "target_job_id": "4c4e5d70-d434-426a-8975-aac0c72ffdb1",
           "source_job_id": "9d71a120-e4a0-4dc2-827b-ecee49364074",
-          "condition_type": "on_job_success"
+          "condition_type": "js_expression",
+          "condition_label": "has-events",
+          "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors"
         }
       }
     }
   },
-  "allow_support_access": false,
   "requires_mfa": false
 }
