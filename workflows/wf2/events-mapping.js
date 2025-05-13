@@ -264,17 +264,20 @@ fn(state => {
         ];
         customMapping.push(...mapping);
       }
-      if (encounter.form.description.includes('F33-MHPSS Closure v2')) {
+      if (
+        encounter.form.description.includes('F33-MHPSS Closure v2') ||
+        encounter.form.description.includes('F34-mhGAP Closure v2')
+      ) {
         const lastScore = encounter.obs.find(
           o => o.concept.uuid === '90b3d09c-d296-44d2-8292-8e04377fe027'
         )?.value;
 
-        const filterOutScore = state.allEncounters.filter(
-          e =>
-            e.uuid !== encounter.uuid &&
-            e.obs.find(o => o.concept.display === 'Mental Health Outcome Scale')
-              ?.value !== 0
-        );
+        const filterOutScore = state.allEncounters.filter(e => {
+          const obs = e.obs.find(
+            o => o.concept.display === 'Mental Health Outcome Scale'
+          );
+          return e.uuid !== encounter.uuid && obs && obs?.value !== 0;
+        });
 
         const firstScore = filterOutScore
           .sort((a, b) => {
@@ -294,44 +297,6 @@ fn(state => {
         });
       }
 
-      if (encounter.form.description.includes('F34-mhGAP Closure v2')) {
-        console.log('Was called', encounter.form.description);
-        const lastScore = encounter.obs.find(
-          o => o.concept.uuid === '90b3d09c-d296-44d2-8292-8e04377fe027'
-        )?.value;
-
-        const filterOutScore = state.allEncounters.filter(
-          e =>
-            e.uuid !== encounter.uuid &&
-            e.obs.find(o => o.concept.display === 'Mental Health Outcome Scale')
-              ?.value !== 0
-        );
-        state.temStore = filterOutScore;
-        // filterOutScore
-        //   .sort((a, b) => {
-        //     return (
-        //       new Date(a.encounterDatetime) - new Date(b.encounterDatetime)
-        //     );
-        //   })
-        //   .at(0);
-        const firstScore = filterOutScore
-          .sort((a, b) => {
-            return (
-              new Date(a.encounterDatetime) - new Date(b.encounterDatetime)
-            );
-          })
-          .at(0)
-          ?.obs.find(
-            o => o.concept.display === 'Mental Health Outcome Scale'
-          )?.value;
-        console.log({ firstScore });
-
-        console.log({ firstScore, lastScore });
-        customMapping.push({
-          dataElement: 'b8bjS7ah8Qi',
-          value: lastScore - firstScore,
-        });
-      }
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
         program: state.program,
