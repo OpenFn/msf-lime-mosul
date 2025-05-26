@@ -1,11 +1,12 @@
-cursor($.lastRunDateTime || $.manualCursor || '2025-03-20T06:01:24.000Z');
+cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000Z');
 
 cursor('today', {
   key: 'lastRunDateTime',
   format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: 'IQ', v: 'full', limit: '100' });
+searchPatient({ q: 'OpenFn Test', v: 'full', limit: '100' });
+// searchPatient({ q: 'IQ', v: 'full', limit: '100' });
 
 fn(state => {
   const { cursor, data, lastRunDateTime } = state;
@@ -23,11 +24,3 @@ fn(state => {
 
   return { cursor, lastRunDateTime, patients };
 });
-
-// get patient - log number of patient that are fetched
-
-// get collections neccessary for patient mapping
-
-// map patient here - this will be passed down to next step
-
-// delete the initial patient object and only pass on the mapped one
