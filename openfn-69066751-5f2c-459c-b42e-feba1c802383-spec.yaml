@@ -208,7 +208,7 @@ workflows:
         condition_type: js_expression
         condition_label: has-gender-updated
         condition_expression: |
-          state?.genderUpdated?.length > 0 && !state.errors
+          state?.teisToUpdate?.length > 0 && !state.errors
 
         enabled: true
       Mappings->Upsert-TEIs:
