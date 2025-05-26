@@ -96,6 +96,38 @@ const findAnswerByConcept = (encounter, conceptUuid) => {
   const answer = encounter.obs.find(o => o.concept.uuid === conceptUuid);
   return answer?.value?.display;
 };
+
+// Helper functions for finding observations
+const findObsByConcept = (encounter, conceptUuid) =>
+  encounter.obs.find(o => o.concept.uuid === conceptUuid);
+
+const findObsByConceptValueDisplay = (encounter, conceptValueDisplay) =>
+  encounter.obs.find(o => o.concept.value.display === conceptValueDisplay);
+
+// Concept UUIDs
+const CONCEPTS = {
+  BASELINE_CONCEPT: '22809b19-54ca-4d88-8d26-9577637c184e',
+  PRIORITY_1: '45b39cbf-0fb2-4682-8544-8aaf3e07a744',
+  PRIORITY_2: 'ee1b7973-e931-494e-a9cb-22b814b4d8ed',
+  PRIORITY_3: '92a92f62-3ff6-4944-9ea9-a7af23949bad',
+  OTHER_SPECIFY: 'e08d532b-e56c-43dc-b831-af705654d2dc',
+  PRECIPITATING_EVENT_1: 'd5e3d927-f7ce-4fdd-ac4e-6ad0b510b608',
+  PRECIPITATING_EVENT_2: '54a9b20e-bce5-4d4a-8c9c-e0248a182586',
+  PRECIPITATING_EVENT_3: 'e0d4e006-85b5-41cb-8a21-e013b1978b8b',
+  PRECIPITATING_EVENT_OTHER: '790b41ce-e1e7-11e8-b02f-0242ac130002',
+};
+
+// DHIS2 Data Elements
+const DATA_ELEMENTS = {
+  BASELINE: 'pN4iQH4AEzk',
+  PRIORITY_1_OTHER: 'pj5hIE6iyAR',
+  PRIORITY_2_OTHER: 'Em5zvpdd5ha',
+  PRIORITY_3_OTHER: 'aWsxYkJR8Ua',
+  PRECIPITATING_EVENT_1_OTHER: 'm8qis4iUOTo',
+  PRECIPITATING_EVENT_2_OTHER: 'mNK6CITsdWD',
+  PRECIPITATING_EVENT_3_OTHER: 'jocqmYW394G',
+};
+
 // Prepare DHIS2 data model for create events
 fn(state => {
   const handleMissingRecord = (data, state) => {
@@ -153,15 +185,94 @@ fn(state => {
 
       if (encounter.form.description.includes('F29-MHPSS Baseline v2')) {
         customMapping.push({
-          dataElement: 'pN4iQH4AEzk',
-          value: findAnswerByConcept(
-            encounter,
-            '22809b19-54ca-4d88-8d26-9577637c184e'
-          )
+          dataElement: DATA_ELEMENTS.BASELINE,
+          value: findAnswerByConcept(encounter, CONCEPTS.BASELINE_CONCEPT)
             ? true
             : false,
         });
+
+        const priority1 = findObsByConcept(encounter, CONCEPTS.PRIORITY_1);
+        if (priority1 && priority1.display === 'other') {
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRIORITY_1_OTHER,
+            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+          });
+        }
+
+        const priority2 = findObsByConceptValueDisplay(
+          encounter,
+          CONCEPTS.PRIORITY_2
+        );
+        if (priority2 && priority2.concept.value.display === 'other') {
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRIORITY_2_OTHER,
+            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+          });
+        }
+
+        const priority3 = findObsByConceptValueDisplay(
+          encounter,
+          CONCEPTS.PRIORITY_3
+        );
+        if (priority3 && priority3.concept.value.display === 'other') {
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRIORITY_3_OTHER,
+            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+          });
+        }
+
+        const precipitatingEvent1 = findObsByConceptValueDisplay(
+          encounter,
+          CONCEPTS.PRECIPITATING_EVENT_1
+        );
+        if (
+          precipitatingEvent1 &&
+          precipitatingEvent1.concept.value.display === 'other'
+        ) {
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
+            value: findObsByConcept(
+              encounter,
+              CONCEPTS.PRECIPITATING_EVENT_OTHER
+            ).value,
+          });
+        }
+
+        const precipitatingEvent2 = findObsByConceptValueDisplay(
+          encounter,
+          CONCEPTS.PRECIPITATING_EVENT_2
+        );
+        if (
+          precipitatingEvent2 &&
+          precipitatingEvent2.concept.value.display === 'other'
+        ) {
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_2_OTHER,
+            value: findObsByConcept(
+              encounter,
+              CONCEPTS.PRECIPITATING_EVENT_OTHER
+            ).value,
+          });
+        }
+
+        const precipitatingEvent3 = findObsByConceptValueDisplay(
+          encounter,
+          CONCEPTS.PRECIPITATING_EVENT_3
+        );
+        if (
+          precipitatingEvent3 &&
+          precipitatingEvent3.concept.value.display === 'other'
+        ) {
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_3_OTHER,
+            value: findObsByConcept(
+              encounter,
+              CONCEPTS.PRECIPITATING_EVENT_OTHER
+            ).value,
+          });
+        }
       }
+
       if (encounter.form.description.includes('F30-MHPSS Follow-up v2')) {
         const missedSession = encounter => {
           if (
