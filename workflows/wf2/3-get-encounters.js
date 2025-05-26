@@ -91,7 +91,7 @@ const v2FormUuids = [
 //     return state;
 //   })
 // );
-get(`encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full`).then(
+get(`encounter?patient=354a512c-6bdf-4df8-abab-a2da7424ce3a&v=full`).then(
   state => {
     state.allEncounters ??= [];
     state.allEncounters.push(
@@ -105,6 +105,10 @@ get(`encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full`).then(
         // e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
         e =>
           e.auditInfo.dateCreated >= state.cursor && e?.form?.uuid === formUuid
+      ).sort(
+        (a, b) =>
+          new Date(b.auditInfo.dateCreated) -
+          new Date(a.auditInfo.dateCreated)
       )
     );
 
