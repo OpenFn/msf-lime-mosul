@@ -44,15 +44,15 @@ const processAnswer = (
       opt?.['DHIS2 Option name'] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    console.log(`matchingOption value: "${matchingOption}" for`);
-    console.log({
-      optionKey,
-      conceptUid: answer.concept.uuid,
-      'answer.value.uid': answer.value.uuid,
-      'answer.value.display': answer.value.display,
-      matchingOption,
-      matchingOptionSet,
-    });
+    // console.log(`matchingOption value: "${matchingOption}" for`);
+    // console.log({
+    //   optionKey,
+    //   conceptUid: answer.concept.uuid,
+    //   'answer.value.uid': answer.value.uuid,
+    //   'answer.value.display': answer.value.display,
+    //   matchingOption,
+    //   matchingOptionSet,
+    // });
 
     if (matchingOption === 'FALSE') {
       return 'false';
@@ -100,9 +100,6 @@ const findAnswerByConcept = (encounter, conceptUuid) => {
 // Helper functions for finding observations
 const findObsByConcept = (encounter, conceptUuid) =>
   encounter.obs.find(o => o.concept.uuid === conceptUuid);
-
-const findObsByConceptValueDisplay = (encounter, conceptValueDisplay) =>
-  encounter.obs.find(o => o.concept.value.display === conceptValueDisplay);
 
 // Concept UUIDs
 const CONCEPTS = {
@@ -192,83 +189,74 @@ fn(state => {
         });
 
         const priority1 = findObsByConcept(encounter, CONCEPTS.PRIORITY_1);
-        if (priority1 && priority1.display === 'other') {
+        if (priority1 && priority1?.value?.display === 'Other') {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRIORITY_1_OTHER,
             value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
           });
         }
 
-        const priority2 = findObsByConceptValueDisplay(
-          encounter,
-          CONCEPTS.PRIORITY_2
-        );
-        if (priority2 && priority2.concept.value.display === 'other') {
+        const priority2 = findObsByConcept(encounter, CONCEPTS.PRIORITY_2);
+        if (priority2 && priority2?.value?.display === 'Other') {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRIORITY_2_OTHER,
             value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
           });
         }
 
-        const priority3 = findObsByConceptValueDisplay(
-          encounter,
-          CONCEPTS.PRIORITY_3
-        );
-        if (priority3 && priority3.concept.value.display === 'other') {
+        const priority3 = findObsByConcept(encounter, CONCEPTS.PRIORITY_3);
+        if (priority3 && priority3?.value?.display === 'Other') {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRIORITY_3_OTHER,
             value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
           });
         }
 
-        const precipitatingEvent1 = findObsByConceptValueDisplay(
+        const precipitatingEvent1 = findObsByConcept(
           encounter,
           CONCEPTS.PRECIPITATING_EVENT_1
         );
+        const otherValue = encounter.obs.find(o =>
+          o.display.includes('Other')
+        ).value;
+
         if (
           precipitatingEvent1 &&
-          precipitatingEvent1.concept.value.display === 'other'
+          precipitatingEvent1?.value?.uuid === otherValue?.uuid
         ) {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
-            value: findObsByConcept(
-              encounter,
-              CONCEPTS.PRECIPITATING_EVENT_OTHER
-            ).value,
+            value: otherValue.display,
           });
         }
 
-        const precipitatingEvent2 = findObsByConceptValueDisplay(
+        const precipitatingEvent2 = findObsByConcept(
           encounter,
           CONCEPTS.PRECIPITATING_EVENT_2
         );
+
         if (
           precipitatingEvent2 &&
-          precipitatingEvent2.concept.value.display === 'other'
+          precipitatingEvent2?.value?.uuid === otherValue?.uuid
         ) {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_2_OTHER,
-            value: findObsByConcept(
-              encounter,
-              CONCEPTS.PRECIPITATING_EVENT_OTHER
-            ).value,
+            value: otherValue.display,
           });
         }
 
-        const precipitatingEvent3 = findObsByConceptValueDisplay(
+        const precipitatingEvent3 = findObsByConcept(
           encounter,
           CONCEPTS.PRECIPITATING_EVENT_3
         );
+
         if (
           precipitatingEvent3 &&
-          precipitatingEvent3.concept.value.display === 'other'
+          precipitatingEvent3?.value?.uuid === otherValue?.uuid
         ) {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_3_OTHER,
-            value: findObsByConcept(
-              encounter,
-              CONCEPTS.PRECIPITATING_EVENT_OTHER
-            ).value,
+            value: otherValue.display,
           });
         }
       }
@@ -331,7 +319,7 @@ fn(state => {
           const f29Encounter = state.allEncounters.find(e =>
             e.form.description.includes('F31-mhGAP Baseline v2')
           );
-          console.log({ f29Encounter });
+
           if (f29Encounter) {
             return f29Encounter.encounterDatetime.replace('+0000', '');
           }
@@ -353,7 +341,6 @@ fn(state => {
             o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
           )?.value?.display;
 
-          console.log({ previousChangeInDiagnosis });
           if (
             previousChangeInDiagnosis &&
             previousChangeInDiagnosis !== currentChangeInDiagnosis
@@ -401,7 +388,6 @@ fn(state => {
             o => o.concept.display === 'Mental Health Outcome Scale'
           )?.value;
 
-        console.log({ firstScore, lastScore });
         customMapping.push({
           dataElement: 'b8bjS7ah8Qi',
           value: lastScore - firstScore,
