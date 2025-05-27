@@ -73,25 +73,43 @@ workflows:
             format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           });
 
-          searchPatient({ q: 'OpenFn Test', v: 'full', limit: '100' });
+          get('/patient/0e3e3d1f-7819-406b-8b39-c45c89dd35dc', { v: 'full' }).then(
+            state => {
+              const { cursor, data, lastRunDateTime } = state;
+              console.log('Filtering patients since cursor:', cursor);
+              // console.log('Patient data:', data);
+
+              state.patients = [data].filter(({ auditInfo }) => {
+                const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+                return lastModified > cursor;
+              });
+              console.log('# of patients to sync to dhis2 ::', state.patients.length);
+              console.log(
+                'uuids of patients to sync to dhis2 ::',
+                state.patients.map(p => p.uuid)
+              );
+              return state;
+            }
+          );
+
           // searchPatient({ q: 'IQ', v: 'full', limit: '100' });
 
-          fn(state => {
-            const { cursor, data, lastRunDateTime } = state;
-            console.log('Filtering patients since cursor:', cursor);
+          // fn(state => {
+          //   const { cursor, data, lastRunDateTime } = state;
+          //   console.log('Filtering patients since cursor:', cursor);
 
-            const patients = data.results.filter(({ auditInfo }) => {
-              const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-              return lastModified > cursor;
-            });
-            console.log('# of patients to sync to dhis2 ::', patients.length);
-            console.log(
-              'uuids of patients to sync to dhis2 ::',
-              patients.map(p => p.uuid)
-            );
+          //   const patients = data.results.filter(({ auditInfo }) => {
+          //     const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+          //     return lastModified > cursor;
+          //   });
+          //   console.log('# of patients to sync to dhis2 ::', patients.length);
+          //   console.log(
+          //     'uuids of patients to sync to dhis2 ::',
+          //     patients.map(p => p.uuid)
+          //   );
 
-            return { cursor, lastRunDateTime, patients };
-          });
+          //   return { cursor, lastRunDateTime, patients };
+          // });
 
       Upsert-TEIs:
         name: Upsert TEIs
@@ -351,7 +369,7 @@ workflows:
           //     return state;
           //   })
           // );
-          get(`encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full`).then(
+          get(`encounter?patient=354a512c-6bdf-4df8-abab-a2da7424ce3a&v=full`).then(
             state => {
               state.allEncounters ??= [];
               state.allEncounters.push(
@@ -863,8 +881,8 @@ workflows:
                     const lastFollowupEncounter = state.allEncounters.find(e => {
                       e.form.description.includes('F30-MHPSS Follow-up v2') &&
                         e.obs.find(
-                          o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                        )?.value?.display === 'Yes';
+                        o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+                      )?.value?.display === 'Yes'
                     });
 
                     if (lastFollowupEncounter) {
@@ -906,12 +924,12 @@ workflows:
                       return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
                     }
 
-                    const f29Encounter = state.allEncounters.find(e =>
+                    const f31Encounter = state.allEncounters.find(e =>
                       e.form.description.includes('F31-mhGAP Baseline v2')
                     );
-                    console.log({ f29Encounter });
-                    if (f29Encounter) {
-                      return f29Encounter.encounterDatetime.replace('+0000', '');
+                    console.log({ f31Encounter });
+                    if (f31Encounter) {
+                      return f31Encounter.encounterDatetime.replace('+0000', '');
                     }
                   };
                   const changeInDiagnosis = encounter => {
