@@ -5,40 +5,21 @@ cursor('today', {
   format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-get('/patient/0e3e3d1f-7819-406b-8b39-c45c89dd35dc', { v: 'full' }).then(
-  state => {
-    const { cursor, data, lastRunDateTime } = state;
-    console.log('Filtering patients since cursor:', cursor);
-    // console.log('Patient data:', data);
+searchPatient({ q: 'IQ', v: 'full', limit: '100' });
 
-    state.patients = [data].filter(({ auditInfo }) => {
-      const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-      return lastModified > cursor;
-    });
-    console.log('# of patients to sync to dhis2 ::', state.patients.length);
-    console.log(
-      'uuids of patients to sync to dhis2 ::',
-      state.patients.map(p => p.uuid)
-    );
-    return state;
-  }
-);
+fn(state => {
+  const { cursor, data, lastRunDateTime } = state;
+  console.log('Filtering patients since cursor:', cursor);
 
-// searchPatient({ q: 'IQ', v: 'full', limit: '100' });
+  const patients = data.results.filter(({ auditInfo }) => {
+    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+    return lastModified > cursor;
+  });
+  console.log('# of patients to sync to dhis2 ::', patients.length);
+  console.log(
+    'uuids of patients to sync to dhis2 ::',
+    patients.map(p => p.uuid)
+  );
 
-// fn(state => {
-//   const { cursor, data, lastRunDateTime } = state;
-//   console.log('Filtering patients since cursor:', cursor);
-
-//   const patients = data.results.filter(({ auditInfo }) => {
-//     const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-//     return lastModified > cursor;
-//   });
-//   console.log('# of patients to sync to dhis2 ::', patients.length);
-//   console.log(
-//     'uuids of patients to sync to dhis2 ::',
-//     patients.map(p => p.uuid)
-//   );
-
-//   return { cursor, lastRunDateTime, patients };
-// });
+  return { cursor, lastRunDateTime, patients };
+});
