@@ -73,43 +73,24 @@ workflows:
             format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           });
 
-          get('/patient/0e3e3d1f-7819-406b-8b39-c45c89dd35dc', { v: 'full' }).then(
-            state => {
-              const { cursor, data, lastRunDateTime } = state;
-              console.log('Filtering patients since cursor:', cursor);
-              // console.log('Patient data:', data);
+          searchPatient({ q: 'IQ', v: 'full', limit: '100' });
 
-              state.patients = [data].filter(({ auditInfo }) => {
-                const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-                return lastModified > cursor;
-              });
-              console.log('# of patients to sync to dhis2 ::', state.patients.length);
-              console.log(
-                'uuids of patients to sync to dhis2 ::',
-                state.patients.map(p => p.uuid)
-              );
-              return state;
-            }
-          );
+          fn(state => {
+            const { cursor, data, lastRunDateTime } = state;
+            console.log('Filtering patients since cursor:', cursor);
 
-          // searchPatient({ q: 'IQ', v: 'full', limit: '100' });
+            const patients = data.results.filter(({ auditInfo }) => {
+              const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+              return lastModified > cursor;
+            });
+            console.log('# of patients to sync to dhis2 ::', patients.length);
+            console.log(
+              'uuids of patients to sync to dhis2 ::',
+              patients.map(p => p.uuid)
+            );
 
-          // fn(state => {
-          //   const { cursor, data, lastRunDateTime } = state;
-          //   console.log('Filtering patients since cursor:', cursor);
-
-          //   const patients = data.results.filter(({ auditInfo }) => {
-          //     const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-          //     return lastModified > cursor;
-          //   });
-          //   console.log('# of patients to sync to dhis2 ::', patients.length);
-          //   console.log(
-          //     'uuids of patients to sync to dhis2 ::',
-          //     patients.map(p => p.uuid)
-          //   );
-
-          //   return { cursor, lastRunDateTime, patients };
-          // });
+            return { cursor, lastRunDateTime, patients };
+          });
 
       Upsert-TEIs:
         name: Upsert TEIs
@@ -328,60 +309,21 @@ workflows:
             return state;
           });
 
-          // TODO: Remove this after testing
-          // Should be in state.v2formUuids
-          const v2FormUuids = [
-            '9287bc3e-5852-3034-a59b-889d06d546ad',
-            'dfd11c31-c253-3ace-866a-0be0bc827f75',
-            '6b87b1cd-b52f-35ba-b7e9-7adc7c7ada5b',
-            '3abb648b-1a0b-390c-b1e6-ade4aa08d849',
-            '7e600a1c-22b8-3127-b7e6-1829dee17f8a',
-            '8843775f-651c-3be2-ab51-8de299268c74',
-          ];
           // Fetch patient encounters
-          // each(
-          //   $.patientUuids,
-          //   get(`encounter?patient=${$.data}&v=full`).then(state => {
-          //     state.allEncounters ??= [];
-          //     state.allEncounters.push(
-          //       ...state.data.results.filter(e => v2FormUuids.includes(e?.form?.uuid))
-          //     );
-
-          //     const patientUuid = state.references.at(-1);
-          //     const filteredEncounters = state.formUuids.map(formUuid =>
-          //       state.data.results.filter(
-          //         // TODO: Check with AK for the filter date
-          //         // e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
-          //         e =>
-          //           e.auditInfo.dateCreated >= state.cursor && e?.form?.uuid === formUuid
-          //       )
-          //     );
-
-          //     const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
-          //     state.encounters ??= [];
-          //     state.encounters.push(...encounters);
-
-          //     console.log(
-          //       encounters.length,
-          //       `# of filtered encounters found in OMRS for ${patientUuid}`
-          //     );
-
-          //     return state;
-          //   })
-          // );
-          get(`encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full`).then(
-            state => {
+          each(
+            $.patientUuids,
+            get(`encounter?patient=${$.data}&v=full`).then(state => {
               state.allEncounters ??= [];
               state.allEncounters.push(
-                ...state.data.results.filter(e => v2FormUuids.includes(e?.form?.uuid))
+                ...state.data.results.filter(e =>
+                  state.v2FormUuids.includes(e?.form?.uuid)
+                )
               );
 
               const patientUuid = state.references.at(-1);
               const filteredEncounters = state.formUuids.map(formUuid =>
                 state.data.results
                   .filter(
-                    // TODO: Check with AK for the filter date
-                    // e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
                     e =>
                       e.auditInfo.dateCreated >= state.cursor &&
                       e?.form?.uuid === formUuid
@@ -403,7 +345,7 @@ workflows:
               );
 
               return state;
-            }
+            })
           );
 
           fn(state => {
