@@ -93,7 +93,7 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
     },
   };
 
-  console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
+  // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
 
   if (isNewPatient) {
     console.log('create enrollment');
