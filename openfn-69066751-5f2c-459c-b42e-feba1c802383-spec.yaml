@@ -67,7 +67,6 @@ workflows:
         credential: aleksa@openfn.org-OpenMRS-Demo-Azure
         body:
           path: workflows/wf1/3-create-patients.js
-
       Update-Teis:
         name: Update Teis
         adaptor: '@openfn/language-dhis2@5.0.1'
