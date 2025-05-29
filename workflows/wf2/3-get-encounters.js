@@ -1,3 +1,12 @@
+// http.get('/ws/rest/v1/localeandthemeconfiguration').then(state => {
+//   const { data } = state;
+//   return { data };
+// });
+// http
+//   .get(
+//     '/ws/rest/v1/encounter?patient=0e3e3d1f-7819-406b-8b39-c45c89dd35dc&v=full'
+//   )
+//   .then(({ data }) => ({ data }));
 // Fetch all encounters
 http
   .get('/ws/fhir2/R4/Encounter', {
@@ -44,12 +53,27 @@ fn(state => {
 // Fetch patient encounters
 each(
   $.patientUuids,
-  get('encounter', { patient: $.data, v: 'full' }).then(state => {
+  get(`encounter?patient=${$.data}&v=full`).then(state => {
+    state.allEncounters ??= [];
+    state.allEncounters.push(
+      ...state.data.results.filter(e =>
+        state.v2FormUuids.includes(e?.form?.uuid)
+      )
+    );
+
     const patientUuid = state.references.at(-1);
     const filteredEncounters = state.formUuids.map(formUuid =>
-      state.data.results.filter(
-        e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
-      )
+      state.data.results
+        .filter(
+          e =>
+            e.auditInfo.dateCreated >= state.cursor &&
+            e?.form?.uuid === formUuid
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.auditInfo.dateCreated) -
+            new Date(a.auditInfo.dateCreated)
+        )
     );
 
     const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
@@ -65,7 +89,7 @@ each(
   })
 );
 
-fnIf($.encounters, state => {
+fn(state => {
   const {
     data,
     index,
@@ -75,12 +99,12 @@ fnIf($.encounters, state => {
     patientUuids,
     ...next
   } = state;
-  console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+
+  if (next.encounters?.length) {
+    console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+  } else {
+    console.log('No encounters found for cursor: ', next.cursor);
+  }
 
   return next;
-});
-
-fnIf(!$.encounters, state => {
-  console.log('No encounters found for cursor: ', state.cursor);
-  return state;
 });

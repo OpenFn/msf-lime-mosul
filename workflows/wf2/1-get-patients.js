@@ -1,4 +1,4 @@
-cursor($.lastRunDateTime || $.manualCursor || '2025-03-20T06:01:24.000Z');
+cursor($.lastRunDateTime || $.manualCursor || '2023-05-20T06:01:24.000Z');
 
 cursor('today', {
   key: 'lastRunDateTime',
@@ -23,11 +23,3 @@ fn(state => {
 
   return { cursor, lastRunDateTime, patients };
 });
-
-// get patient - log number of patient that are fetched
-
-// get collections neccessary for patient mapping
-
-// map patient here - this will be passed down to next step
-
-// delete the initial patient object and only pass on the mapped one
