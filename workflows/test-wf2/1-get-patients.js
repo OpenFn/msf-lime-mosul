@@ -5,8 +5,7 @@ cursor('today', {
   format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: 'OpenFn Test', v: 'full', limit: '100' });
-// searchPatient({ q: 'IQ', v: 'full', limit: '100' });
+searchPatient({ q: 'IQ', v: 'full', limit: '100' });
 
 fn(state => {
   const { cursor, data, lastRunDateTime } = state;
