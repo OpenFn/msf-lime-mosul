@@ -143,7 +143,7 @@ fn(state => {
       ],
     };
   });
-
+state.patients = [state.patients[0]]
   return state;
 });
 
@@ -171,7 +171,7 @@ each(
         omrs_patient_number: state.references
           .at(-1)
           ?.identifiers.find(
-            i => (i.identifierType = `${state.openmrsAutoId}`)
+            i => (i.identifierType === `${state.openmrsAutoId}`)
           ),
         uuid: state.data.uuid,
       });
@@ -181,4 +181,4 @@ each(
 );
 
 // Clean up state
-fn(({ data, references, ...state }) => state);
+fn(({ ...state }) => state);
