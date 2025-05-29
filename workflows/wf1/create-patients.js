@@ -173,7 +173,7 @@ each(
         omrs_patient_number: state.references
           .at(-1)
           ?.identifiers.find(
-            i => (i.identifierType = `${state.openmrsAutoId}`)
+            i => (i.identifierType === `${state.openmrsAutoId}`)
           ),
         uuid: state.data.uuid,
       });
