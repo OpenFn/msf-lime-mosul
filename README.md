@@ -2,7 +2,7 @@
 
 Automating data exchange workflows between `DHIS2`, `OpenMRS`, and `Open Concept Lab (OCL)`. 
 
-*Note that commits to `main` will be auto-deployed to the connected project configuration hosted on OpenFn.org. Always work on a branch and submit a pull request when ready to release!*
+*Note that commits to `main` will be auto-deployed to the connected project configuration hosted on OpenFn.org. Always work on a branch and submit a pull request when ready to release!* 
 
 ## Working with the Repo
 
