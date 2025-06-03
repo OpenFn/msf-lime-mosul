@@ -4,7 +4,7 @@
   "description": "OpenFn cloud project for workflow testing between MSF and OpenFn teams\n",
   "concurrency": null,
   "inserted_at": "2024-10-30T06:18:14Z",
-  "updated_at": "2025-06-03T07:45:56Z",
+  "updated_at": "2025-06-03T08:07:40Z",
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "55508835-a9c3-4283-813e-ae6f9c4958fd",
@@ -179,10 +179,88 @@
     "wf2-omrs-dhis2": {
       "id": "c886121c-0a91-45b5-ae30-7d0922b693be",
       "name": "wf2-omrs-dhis2",
-      "edges": {},
+      "edges": {
+        "cron->Get-Patients": {
+          "enabled": true,
+          "id": "7ffb59e2-b179-4314-8c0d-1ac1de677b4b",
+          "target_job_id": "ecaf53cc-fbde-4703-827b-7b8a5126fb82",
+          "source_trigger_id": "a38c8cfb-8fad-46b3-b69c-a7f6108a0d8c",
+          "condition_type": "always"
+        },
+        "Upsert-TEIs->Get-Encounters": {
+          "enabled": true,
+          "id": "c39d3f96-8cd7-4f57-b040-ca3602864f05",
+          "target_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976",
+          "source_job_id": "5f3d2b64-435a-4df5-9d99-9fc37728d0b8",
+          "condition_type": "js_expression",
+          "condition_label": "has-patient-uuids",
+          "condition_expression": "state.patientUuids.length > 0 && !state.errors\n"
+        },
+        "Get-Encounters->Get-TEIs-and-Map-Answers": {
+          "enabled": true,
+          "id": "0921485d-3490-4f6d-8651-1f8806190e5a",
+          "target_job_id": "793f4fe1-d717-4caa-a617-2b5e2b19880d",
+          "source_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976",
+          "condition_type": "js_expression",
+          "condition_label": "has-encounters",
+          "condition_expression": "!state.errors && state.encounters\n"
+        },
+        "Mappings->Upsert-TEIs": {
+          "enabled": true,
+          "id": "e2c2cbee-ffdb-4ae1-a6d9-c9a439ca2df1",
+          "target_job_id": "5f3d2b64-435a-4df5-9d99-9fc37728d0b8",
+          "source_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516",
+          "condition_type": "js_expression",
+          "condition_label": "has-patients",
+          "condition_expression": "state.patients.length > 0 && !state.errors\n"
+        },
+        "Get-Patients->Mappings": {
+          "enabled": true,
+          "id": "712ee9ea-bbde-4ce7-b802-321bc3d9f394",
+          "target_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516",
+          "source_job_id": "ecaf53cc-fbde-4703-827b-7b8a5126fb82",
+          "condition_type": "on_job_success"
+        },
+        "Mappings->Get-Encounters": {
+          "enabled": true,
+          "id": "21882ff1-f0e3-4cc6-bbdd-da8a304d5810",
+          "target_job_id": "a5c005be-2d95-4809-ad77-fd62f93dc976",
+          "source_job_id": "f022ca80-7da0-4fdb-9728-38e34280c516",
+          "condition_type": "js_expression",
+          "condition_label": "has-no-patients",
+          "condition_expression": "!state.errors && state.patients.length === 0\n"
+        },
+        "Create-Events->Update-TEIs": {
+          "enabled": true,
+          "id": "1954f5ca-fe9a-4e4c-84f2-0c8158ee727f",
+          "target_job_id": "abe0d282-5209-47b5-9272-4cba048a5ba8",
+          "source_job_id": "a1176a6e-cdee-4ddc-9fe1-e49aa7b719cd",
+          "condition_type": "js_expression",
+          "condition_label": "has-gender-updated",
+          "condition_expression": "state?.teisToUpdate?.length > 0\n"
+        },
+        "Get-TEIs-and-Map-Answers->Event-Mappings": {
+          "enabled": true,
+          "id": "ebc123c1-5bee-429c-ae27-56a62694e210",
+          "target_job_id": "345a05ca-74bc-4079-824c-5f23e8677ab8",
+          "source_job_id": "793f4fe1-d717-4caa-a617-2b5e2b19880d",
+          "condition_type": "js_expression",
+          "condition_label": "has-teis",
+          "condition_expression": "state.TEIs && !state.errors\n"
+        },
+        "Event-Mappings->Create-Events": {
+          "enabled": true,
+          "id": "d4215ba2-b765-4069-be0d-ef1b161997d3",
+          "target_job_id": "a1176a6e-cdee-4ddc-9fe1-e49aa7b719cd",
+          "source_job_id": "345a05ca-74bc-4079-824c-5f23e8677ab8",
+          "condition_type": "js_expression",
+          "condition_label": "has-events",
+          "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors\n"
+        }
+      },
       "concurrency": null,
       "inserted_at": "2024-10-30T12:02:03Z",
-      "updated_at": "2025-06-03T07:45:56Z",
+      "updated_at": "2025-06-03T08:07:40Z",
       "jobs": {
         "Get-Patients": {
           "id": "ecaf53cc-fbde-4703-827b-7b8a5126fb82",
@@ -250,7 +328,7 @@
         }
       },
       "deleted_at": null,
-      "lock_version": 188
+      "lock_version": 189
     }
   }
 }
