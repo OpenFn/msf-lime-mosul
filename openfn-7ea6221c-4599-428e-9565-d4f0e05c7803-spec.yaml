@@ -297,7 +297,7 @@ workflows:
               'Total # of encounters fetched: ',
               state.allResponse?.entry?.length
             );
-            state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
+            // state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
             state.patientUuids = [
               ...new Set(
                 state.allResponse?.entry?.map(p =>
@@ -356,15 +356,33 @@ workflows:
               references,
               allResponse,
               patientUuids,
+              patients,
               ...next
             } = state;
 
             if (next.encounters?.length) {
+              next.encounters = next.encounters.map(
+                ({ uuid, patient, obs, form, encounterDatetime }) => ({
+                  uuid,
+                  patient,
+                  obs,
+                  form,
+                  encounterDatetime,
+                })
+              );
               console.log(next.encounters.length, '# of new encounters to sync to dhis2');
             } else {
               console.log('No encounters found for cursor: ', next.cursor);
             }
-
+            next.allEncounters = next.allEncounters.map(
+              ({ uuid, patient, obs, form, encounterDatetime }) => ({
+                uuid,
+                patient,
+                obs,
+                form,
+                encounterDatetime,
+              })
+            );
             return next;
           });
 
@@ -414,9 +432,9 @@ workflows:
               events: state => {
                 console.log(
                   'Creating events for: ',
-                  JSON.stringify(state.encountersMapping, null, 2)
+                  JSON.stringify(state.eventsMapping, null, 2)
                 );
-                return state.encountersMapping;
+                return state.eventsMapping;
               },
             },
             {
@@ -456,8 +474,8 @@ workflows:
               // Lighten state by removing unused properties
               formMaps,
               optionSetKey,
-              encountersMapping,
-              encounterUuids,
+              eventsMapping,
+              // encounterUuids,
               formUuids,
               references,
               ...next
@@ -523,7 +541,9 @@ workflows:
                     attributes: [
                       {
                         attribute: 'Dggll4f9Efj', //education
-                        value: answer.value.display,
+                        value: optsMap.find(
+                          o => o['value.display - Answers'] === answer.value.display
+                        )?.['DHIS2 Option Code'], //map to DHIS2 Option Code in optsMap
                       },
                     ],
                   };
@@ -870,7 +890,7 @@ workflows:
                   );
                   const otherValue = encounter.obs.find(o =>
                     o.display.includes('Other')
-                  ).value;
+                  )?.value;
 
                   if (
                     precipitatingEvent1 &&
