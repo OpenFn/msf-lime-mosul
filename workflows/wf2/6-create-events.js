@@ -114,7 +114,7 @@ fn(state => {
           attributes: [
             {
               attribute: 'Dggll4f9Efj', //education
-              value: answer.value.display,
+              value: answer.value.display, //map to DHIS2 Option Code in optsMap 
             },
           ],
         };
@@ -123,6 +123,19 @@ fn(state => {
     .filter(Boolean)
     .flat();
 
+// {
+//       "DHIS2 DE UID": "Dggll4f9Efj",
+//       "DHIS2 DE full name": "Education",
+//       "DHIS2 Option Code": "illiterate",
+//       "DHIS2 Option Set UID": "tDxpzAER9vr",
+//       "DHIS2 Option Set name": "GL - Education",
+//       "DHIS2 Option UID": "sIF0jNg9LOn",
+//       "DHIS2 Option name": "Illiterate",
+//       "OptionSet name": "Education - MH",
+//       "answerMappingUid": "f49d8262-d0f2-4a99-93c5-4533943663d3-tDxpzAER9vr",
+//       "value.display - Answers": "Illiterate",
+//       "value.uuid - External ID": "f49d8262-d0f2-4a99-93c5-4533943663d3"
+//     },
   return {
     ...next,
     teisToUpdate: [...genderUpdated, ...educationUpdated],

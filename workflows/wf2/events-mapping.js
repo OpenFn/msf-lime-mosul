@@ -218,7 +218,7 @@ fn(state => {
         );
         const otherValue = encounter.obs.find(o =>
           o.display.includes('Other')
-        ).value;
+        )?.value;
 
         if (
           precipitatingEvent1 &&
