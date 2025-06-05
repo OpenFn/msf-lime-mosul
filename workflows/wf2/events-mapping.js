@@ -54,10 +54,10 @@ const processAnswer = (
     //   matchingOptionSet,
     // });
 
-    if (matchingOption === 'FALSE') {
+    if (matchingOption === 'FALSE' || matchingOption === 'No') {
       return 'false';
     }
-    if (matchingOption === 'TRUE') {
+    if (matchingOption === 'TRUE' || matchingOption === 'Yes') {
       return 'true';
     }
 
