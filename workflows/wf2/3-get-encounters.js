@@ -38,7 +38,7 @@ fn(state => {
     'Total # of encounters fetched: ',
     state.allResponse?.entry?.length
   );
-  state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
+  // state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
   state.patientUuids = [
     ...new Set(
       state.allResponse?.entry?.map(p =>
@@ -97,14 +97,32 @@ fn(state => {
     references,
     allResponse,
     patientUuids,
+    patients,
     ...next
   } = state;
 
   if (next.encounters?.length) {
+    next.encounters = next.encounters.map(
+      ({ uuid, patient, obs, form, encounterDatetime }) => ({
+        uuid,
+        patient,
+        obs,
+        form,
+        encounterDatetime,
+      })
+    );
     console.log(next.encounters.length, '# of new encounters to sync to dhis2');
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
   }
-
+  next.allEncounters = next.allEncounters.map(
+    ({ uuid, patient, obs, form, encounterDatetime }) => ({
+      uuid,
+      patient,
+      obs,
+      form,
+      encounterDatetime,
+    })
+  );
   return next;
 });
