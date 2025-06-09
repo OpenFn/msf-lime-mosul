@@ -1287,6 +1287,14 @@ workflows:
         body:
           path: workflows/wf2/7-update-teis.js
 
+      Event-Mappings:
+        name: Event Mappings
+        adaptor: '@openfn/language-common@latest'
+        credential: null
+        body: |
+          // Check out the Job Writing Guide for help getting started:
+          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+
     triggers:
       cron:
         type: cron
@@ -1316,11 +1324,6 @@ workflows:
           state.patientUuids.length > 0 && !state.errors
 
         enabled: true
-      Get-Patients->Mappings:
-        source_job: Get-Patients
-        target_job: Mappings
-        condition_type: on_job_success
-        enabled: true
       Mappings->Get-Encounters:
         source_job: Mappings
         target_job: Get-Encounters
@@ -1339,21 +1342,32 @@ workflows:
           !state.errors && state.encounters
 
         enabled: true
-      Get-TEIs-and-Map-Answers->Create-Events:
-        source_job: Get-TEIs-and-Map-Answers
-        target_job: Create-Events
-        condition_type: js_expression
-        condition_label: has-teis
-        condition_expression: |
-          state.TEIs && !state.errors
-
-        enabled: true
       Create-Events->Update-TEIs:
         source_job: Create-Events
         target_job: Update-TEIs
         condition_type: js_expression
         condition_label: has-gender-updated
         condition_expression: |
-          state?.genderUpdated?.length > 0 && !state.errors
-
+          state?.teisToUpdate?.length > 0
+        enabled: true
+      Get-Patients->Mappings:
+        source_job: Get-Patients
+        target_job: Mappings
+        condition_type: on_job_success
+        enabled: true
+      Get-TEIs-and-Map-Answers->Event-Mappings:
+        source_job: Get-TEIs-and-Map-Answers
+        target_job: Event-Mappings
+        condition_type: js_expression
+        condition_label: has-teis
+        condition_expression: |
+          state.TEIs && !state.errors
+        enabled: true
+      Event-Mappings->Create-Events:
+        source_job: Event-Mappings
+        target_job: Create-Events
+        condition_type: js_expression
+        condition_label: has-events
+        condition_expression: |
+          state?.eventsMapping?.length > 0 && !state.errors
         enabled: true
