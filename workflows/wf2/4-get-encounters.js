@@ -44,7 +44,7 @@ fn(state => {
 // Fetch patient encounters
 each(
   $.patientUuids,
-  get(`encounter?patient=${$.data}&v=full`).then(state => {
+  get('encounter', { patient: $.data, v: 'full' }).then(state => {
     state.allEncounters ??= [];
     state.allEncounters.push(
       ...state.data.results.filter(e =>
