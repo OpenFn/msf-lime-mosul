@@ -32,6 +32,13 @@ collections.get('mosul-metadata-mappings', 'mappingSets').then(state => {
 fn(state => {
   const { formMetadata, identifiers, ...rest } = state;
 
+  rest.v2FormUuids = formMetadata
+    .filter(
+      form =>
+        isValidUUID(form['OMRS form.uuid']) &&
+        form['OMRS Form Version'] === 'v4-2025'
+    )
+    .map(form => form['OMRS form.uuid']);
   rest.formUuids = formMetadata
     .filter(form => isValidUUID(form['OMRS form.uuid']))
     .map(form => form['OMRS form.uuid']);
