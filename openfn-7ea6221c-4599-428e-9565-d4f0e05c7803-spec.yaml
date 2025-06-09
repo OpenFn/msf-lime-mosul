@@ -1291,9 +1291,8 @@ workflows:
         name: Event Mappings
         adaptor: '@openfn/language-common@latest'
         credential: null
-        body: |
-          // Check out the Job Writing Guide for help getting started:
-          // https://docs.openfn.org/documentation/jobs/job-writing-guide
+        body: 
+          path: workflows/wf2/events-mapping.js
 
     triggers:
       cron:
