@@ -29,7 +29,7 @@ fn(state => {
     'Total # of encounters fetched: ',
     state.allResponse?.entry?.length
   );
-  state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
+  // state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
   state.patientUuids = [
     ...new Set(
       state.allResponse?.entry?.map(p =>
@@ -45,11 +45,26 @@ fn(state => {
 each(
   $.patientUuids,
   get('encounter', { patient: $.data, v: 'full' }).then(state => {
+    state.allEncounters ??= [];
+    state.allEncounters.push(
+      ...state.data.results.filter(e =>
+        state.v2FormUuids.includes(e?.form?.uuid)
+      )
+    );
+
     const patientUuid = state.references.at(-1);
     const filteredEncounters = state.formUuids.map(formUuid =>
-      state.data.results.filter(
-        e => e.encounterDatetime >= state.cursor && e?.form?.uuid === formUuid
-      )
+      state.data.results
+        .filter(
+          e =>
+            e.auditInfo.dateCreated >= state.cursor &&
+            e?.form?.uuid === formUuid
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.auditInfo.dateCreated) -
+            new Date(a.auditInfo.dateCreated)
+        )
     );
 
     const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
@@ -65,7 +80,7 @@ each(
   })
 );
 
-fnIf($.encounters, state => {
+fn(state => {
   const {
     data,
     index,
@@ -73,14 +88,32 @@ fnIf($.encounters, state => {
     references,
     allResponse,
     patientUuids,
+    patients,
     ...next
   } = state;
-  console.log(next.encounters.length, '# of new encounters to sync to dhis2');
 
+  if (next.encounters?.length) {
+    next.encounters = next.encounters.map(
+      ({ uuid, patient, obs, form, encounterDatetime }) => ({
+        uuid,
+        patient,
+        obs,
+        form,
+        encounterDatetime,
+      })
+    );
+    console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+  } else {
+    console.log('No encounters found for cursor: ', next.cursor);
+  }
+  next.allEncounters = next.allEncounters.map(
+    ({ uuid, patient, obs, form, encounterDatetime }) => ({
+      uuid,
+      patient,
+      obs,
+      form,
+      encounterDatetime,
+    })
+  );
   return next;
-});
-
-fnIf(!$.encounters, state => {
-  console.log('No encounters found for cursor: ', state.cursor);
-  return state;
 });
