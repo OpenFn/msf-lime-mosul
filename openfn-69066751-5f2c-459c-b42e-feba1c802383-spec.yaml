@@ -64,7 +64,7 @@ workflows:
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: aleksa@openfn.org-OpenMRS-Demo-Azure
+        credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf1/3-create-patients.js
 
@@ -97,7 +97,7 @@ workflows:
         source_job: Fetch-Metadata
         target_job: Get-Teis-and-Locations
         condition_type: on_job_success
-        enabled: false
+        enabled: true
       Create-Patients->Update-Teis:
         source_job: Create-Patients
         target_job: Update-Teis
@@ -127,7 +127,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: aleksa@openfn.org-OpenMRS-Demo-Azure
+        credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf2/1-get-patients.js
 
@@ -141,7 +141,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: aleksa@openfn.org-OpenMRS-Demo-Azure
+        credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf2/3-get-encounters.js
 
