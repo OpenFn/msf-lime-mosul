@@ -97,7 +97,7 @@ workflows:
         source_job: Fetch-Metadata
         target_job: Get-Teis-and-Locations
         condition_type: on_job_success
-        enabled: true
+        enabled: false
       Create-Patients->Update-Teis:
         source_job: Create-Patients
         target_job: Update-Teis

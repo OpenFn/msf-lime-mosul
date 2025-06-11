@@ -115,7 +115,7 @@ fn(state => {
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
   }
-  next.allEncounters = next.allEncounters.map(
+  next.allEncounters = next.allEncounters?.map(
     ({ uuid, patient, obs, form, encounterDatetime }) => ({
       uuid,
       patient,
