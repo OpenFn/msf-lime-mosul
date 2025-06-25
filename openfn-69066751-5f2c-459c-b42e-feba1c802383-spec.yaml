@@ -175,7 +175,7 @@ workflows:
 
       Event-Mappings:
         name: Event Mappings
-        adaptor: '@openfn/language-common@latest'
+        adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
           path: workflows/wf2/events-mapping.js

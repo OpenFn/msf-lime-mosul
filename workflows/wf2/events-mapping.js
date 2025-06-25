@@ -266,15 +266,17 @@ fn(state => {
           if (
             encounter.obs.find(
               o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-            )?.value?.display === 'Yes'
+            )?.value?.display === 'No'
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
           const lastFollowupEncounter = state.allEncounters.find(e => {
             e.form.description.includes('F30-MHPSS Follow-up v2') &&
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
               e.obs.find(
                 o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'Yes';
+              )?.value?.display === 'No';
           });
 
           if (lastFollowupEncounter) {
@@ -282,11 +284,13 @@ fn(state => {
           }
 
           const f29Encounter = state.allEncounters.find(e =>
-            e.form.description.includes('F29-MHPSS Baseline v2')
+            e.form.description.includes('F29-MHPSS Baseline v2') &&
+            e.patient.uuid === encounter.patient.uuid
           );
           if (f29Encounter) {
             return f29Encounter.encounterDatetime.replace('+0000', '');
           }
+          return undefined;
         };
         const mapping = [
           {
@@ -301,27 +305,30 @@ fn(state => {
           if (
             encounter.obs.find(
               o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-            )?.value?.display === 'Yes'
+            )?.value?.display === 'No'
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
           const lastFollowupEncounter = state.allEncounters.find(e => {
             e.form.description.includes('F32-mhGAP Follow-up v2') &&
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
               e.obs.find(
                 o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'Yes';
+              )?.value?.display === 'No';
           });
 
           if (lastFollowupEncounter) {
             return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
           }
 
-          const f29Encounter = state.allEncounters.find(e =>
-            e.form.description.includes('F31-mhGAP Baseline v2')
+          const f31Encounter = state.allEncounters.find(e =>
+            e.form.description.includes('F31-mhGAP Baseline v2')&&
+            e.patient.uuid === encounter.patient.uuid
           );
 
-          if (f29Encounter) {
-            return f29Encounter.encounterDatetime.replace('+0000', '');
+          if (f31Encounter) {
+            return f31Encounter.encounterDatetime.replace('+0000', '');
           }
         };
         const changeInDiagnosis = encounter => {
