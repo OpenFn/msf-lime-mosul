@@ -64,7 +64,7 @@ workflows:
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: aleksa@openfn.org-openmrs-admin
         body:
           path: workflows/wf1/3-create-patients.js
 
