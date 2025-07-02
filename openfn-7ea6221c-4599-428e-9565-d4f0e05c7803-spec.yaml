@@ -19,6 +19,9 @@ credentials:
   mtuchi@openfn.org-OpenMRS-Demo:
     name: OpenMRS Demo
     owner: mtuchi@openfn.org
+  mtuchi@openfn.org-mtuchi-api-token:
+    name: mtuchi-api-token
+    owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-github-token:
     name: mtuchi-github-token
     owner: mtuchi@openfn.org
@@ -1249,7 +1252,7 @@ workflows:
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
-        credential: null
+        credential: mtuchi@openfn.org-mtuchi-api-token
         body:
           path: workflows/wf2/2-mappings.js
 

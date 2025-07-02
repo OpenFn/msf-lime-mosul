@@ -35,6 +35,11 @@
       "id": "d2c62b09-c071-4cbe-95e5-b703aba863f3",
       "name": "MSF OMRS admin",
       "owner": "aisha@openfn.org"
+    },
+    "mtuchi@openfn.org-mtuchi-api-token": {
+      "id": "97973103-5dca-457d-a893-bb280ff66962",
+      "name": "mtuchi-api-token",
+      "owner": "mtuchi@openfn.org"
     }
   },
   "scheduled_deletion": null,
@@ -399,8 +404,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-07-02T17:53:50.245461Z",
-      "lock_version": 54,
+      "inserted_at": "2025-07-02T17:55:16.640021Z",
+      "lock_version": 55,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -422,7 +427,7 @@
           "name": "Mappings",
           "body": "const isValidUUID = id => {\n  if (!id || typeof id !== 'string') return false;\n\n  const UUID_PATTERN =\n    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n  return UUID_PATTERN.test(id);\n};\n\n// get(\n//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/collections/metadata/collections.json',\n//   { parseAs: 'json' },\n//   state => {\n//     const { cursor, lastRunDateTime, patients, data } = state;\n\n//     return {\n//       ...data,\n//       cursor,\n//       patients,\n//       lastRunDateTime,\n//     };\n//   }\n// );\n\ncollections.get('mosul-metadata-mappings-staging').then(state => {\n  state.optsMap = state.data\n    .filter(i => i.key.includes('optsMap-value-'))\n    .map(i => i.value);\n\n  state.identifiers = state.data\n    .filter(i => i.key.includes('identifiers-value-'))\n    .map(i => i.value);\n  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;\n  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;\n  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;\n  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;\n  state.fileDateModified = state.data.filter(\n    i => i.key === 'fileDateModified'\n  )?.[0]?.value;\n  state.optionSetKey = state.data.filter(\n    i => i.key === 'optionSetKey'\n  )?.[0]?.value;\n  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;\n\n  delete state.data\n  delete state.references\n  return state;\n});\n\nfn(state => {\n  const { formMetadata, identifiers, ...rest } = state;\n\n  rest.v2FormUuids = formMetadata\n    .filter(\n      form =>\n        isValidUUID(form['OMRS form.uuid']) &&\n        form['OMRS Form Version'] === 'v4-2025'\n    )\n    .map(form => form['OMRS form.uuid']);\n  rest.formUuids = formMetadata\n    .filter(form => isValidUUID(form['OMRS form.uuid']))\n    .map(form => form['OMRS form.uuid']);\n\n  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n    'dhis2 attribute id'\n  ];\n  rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[\n    'dhis2 attribute id'\n  ];\n\n  rest.patientProgramStage = state.formMaps.patient.programStage;\n\n  rest.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  return rest;\n});\n\nfn(state => {\n  state.genderOptions = state.optsMap\n    .filter(o => o['OptionSet name'] === 'Sex - Patient')\n    .reduce((acc, value) => {\n      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n",
           "adaptor": "@openfn/language-common@2.1.1",
-          "project_credential_id": null
+          "project_credential_id": "97973103-5dca-457d-a893-bb280ff66962"
         },
         "Upsert-TEIs": {
           "id": "788df7f4-5ed3-46bd-8479-778e18c08235",
