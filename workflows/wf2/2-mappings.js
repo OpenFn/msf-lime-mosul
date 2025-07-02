@@ -21,12 +21,29 @@ const isValidUUID = id => {
 //   }
 // );
 
-collections.get('mosul-metadata-mappings', 'mappingSets').then(state => {
-  const { cursor, lastRunDateTime, patients, data } = state;
-  if (Object.keys(data).length === 0) {
-    throw new Error('Empty collection');
-  }
-  return { ...data, cursor, patients, lastRunDateTime };
+collections.get('mosul-metadata-mappings-staging').then(state => {
+  state.optsMap = state.data
+    .filter(i => i.key.includes('optsMap-value-'))
+    .map(i => i.value);
+
+  state.identifiers = state.data
+    .filter(i => i.key.includes('identifiers-value-'))
+    .map(i => i.value);
+  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;
+  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;
+  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;
+  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;
+  state.fileDateModified = state.data.filter(
+    i => i.key === 'fileDateModified'
+  )?.[0]?.value;
+  state.optionSetKey = state.data.filter(
+    i => i.key === 'optionSetKey'
+  )?.[0]?.value;
+  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
+
+  delete state.data
+  delete state.references
+  return state;
 });
 
 fn(state => {

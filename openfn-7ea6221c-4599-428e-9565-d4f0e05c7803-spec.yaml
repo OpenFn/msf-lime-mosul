@@ -2,9 +2,7 @@ name: msf-lime-mosul-staging
 description: |
   staging project for main MSF workflows
 
-collections:
-  mosul-metadata-mappings:
-    name: mosul-metadata-mappings
+collections: null
 credentials:
   aisha@openfn.org-MSF-OMRS-admin:
     name: MSF OMRS admin
@@ -1306,6 +1304,7 @@ workflows:
             const handMadeState = { "testCase1": {} }
             return { handMadeState }
           })
+
       End-Test:
         name: End Test
         adaptor: '@openfn/language-common@latest'
@@ -1400,6 +1399,7 @@ workflows:
         condition_label: test-mode
         condition_expression: |
           state.testMode
+
         enabled: true
       Event-Mappings->End-Test:
         source_job: Event-Mappings
@@ -1408,6 +1408,7 @@ workflows:
         condition_label: test-mode
         condition_expression: |
           state.testMode
+
         enabled: true
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
