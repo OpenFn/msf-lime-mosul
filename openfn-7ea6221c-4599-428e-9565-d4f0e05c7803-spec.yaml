@@ -1429,27 +1429,36 @@ workflows:
             return UUID_PATTERN.test(id);
           };
 
-          // get(
-          //   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/collections/metadata/collections.json',
-          //   { parseAs: 'json' },
-          //   state => {
-          //     const { cursor, lastRunDateTime, patients, data } = state;
+          cursor($.lastRunDateTime || $.manualCursor || '2025-06-30T06:01:24.000Z');
 
-          //     return {
-          //       ...data,
-          //       cursor,
-          //       patients,
-          //       lastRunDateTime,
-          //     };
-          //   }
-          // );
+          cursor('today', {
+            key: 'lastRunDateTime',
+            format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+          });
 
-          collections.get('mosul-metadata-mappings', 'mappingSets').then(state => {
-            const { cursor, lastRunDateTime, patients, data } = state;
-            if (Object.keys(data).length === 0) {
-              throw new Error('Empty collection');
-            }
-            return { ...data, cursor, patients, lastRunDateTime };
+          collections.get('mosul-metadata-mappings-staging').then(state => {
+            state.optsMap = state.data
+              .filter(i => i.key.includes('optsMap-value-'))
+              .map(i => i.value);
+
+            state.identifiers = state.data
+              .filter(i => i.key.includes('identifiers-value-'))
+              .map(i => i.value);
+            state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;
+            state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value; // filter form maps where formmap.workflow == "WF3"
+            state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;
+            state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;
+            state.fileDateModified = state.data.filter(
+              i => i.key === 'fileDateModified'
+            )?.[0]?.value;
+            state.optionSetKey = state.data.filter(
+              i => i.key === 'optionSetKey'
+            )?.[0]?.value;
+            state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
+
+            delete state.data
+            delete state.references
+            return state;
           });
 
           fn(state => {
@@ -1463,13 +1472,10 @@ workflows:
               )
               .map(form => form['OMRS form.uuid']);
             rest.formUuids = formMetadata
-              .filter(form => isValidUUID(form['OMRS form.uuid']))
+              .filter(form => isValidUUID(form['OMRS form.uuid']) && form['Workflow'] === 'WF3')
               .map(form => form['OMRS form.uuid']);
 
             rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-              'dhis2 attribute id'
-            ];
-            rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
               'dhis2 attribute id'
             ];
 
@@ -1500,7 +1506,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: aisha@openfn.org-MSF-OMRS-admin
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
           // Fetch all encounters
           http
@@ -1528,6 +1534,13 @@ workflows:
             })
           );
 
+
+          // get all encounters using fhir API
+          // Create a list of patients received from the FHIR API
+          // For each patient, get encounters using  get('encounter', { patient: $.data, v: 'full' })
+          // filter the encounters using the form-id in the fomrsMap
+          //
+
           fn(state => {
             console.log(
               'Total # of encounters fetched: ',
@@ -1549,21 +1562,21 @@ workflows:
           each(
             $.patientUuids,
             get('encounter', { patient: $.data, v: 'full' }).then(state => {
+              console.log('data', state.data)
               state.allEncounters ??= [];
               state.allEncounters.push(
-                ...state.data.results.filter(e =>
+                ...state.data.filter(e =>
                   state.v2FormUuids.includes(e?.form?.uuid)
                 )
               );
 
               const patientUuid = state.references.at(-1);
               const filteredEncounters = state.formUuids.map(formUuid =>
-                state.data.results
-                  .filter(
-                    e =>
-                      e.auditInfo.dateCreated >= state.cursor &&
-                      e?.form?.uuid === formUuid
-                  )
+                state.data?.filter(
+                  e =>
+                    e.auditInfo.dateCreated >= state.cursor &&
+                    e?.form?.uuid === formUuid
+                )
                   .sort(
                     (a, b) =>
                       new Date(b.auditInfo.dateCreated) -
@@ -1629,11 +1642,11 @@ workflows:
         body: |
           // Create or update events for each encounter
           create(
-            'tracker',
+            "tracker",
             {
-              events: state => {
+              events: (state) => {
                 console.log(
-                  'Creating events for: ',
+                  "Creating events for: ",
                   JSON.stringify(state.eventsMapping, null, 2)
                 );
                 return state.eventsMapping;
@@ -1642,141 +1655,19 @@ workflows:
             {
               params: {
                 async: false,
-                dataElementIdScheme: 'UID',
-                importStrategy: 'CREATE_AND_UPDATE',
+                dataElementIdScheme: "UID",
+                importStrategy: "CREATE_AND_UPDATE",
               },
             }
           );
 
-          const findlatestAnswer = (encounters, conceptUuid) => {
-            const latestAnswer = encounters.reduce((acc, e) => {
-              const answer = e.obs.find(o => o.concept.uuid === conceptUuid);
-              if (answer) {
-                const personUuid = answer.person.uuid;
-                if (
-                  !acc[personUuid] ||
-                  new Date(answer.obsDatetime) > new Date(acc[personUuid].obsDatetime)
-                ) {
-                  acc[personUuid] = answer;
-                }
-              }
-              return acc;
-            }, {});
-
-            return Object.values(latestAnswer);
-          };
-
-          fn(state => {
-            const {
-              encounters,
-              TEIs,
-              program,
-              orgUnit,
-              optsMap,
-              // Lighten state by removing unused properties
-              formMaps,
-              optionSetKey,
-              eventsMapping,
-              // encounterUuids,
-              formUuids,
-              references,
-              ...next
-            } = state;
-
-            const genderMap = optsMap
-              .filter(o => o['DHIS2 DE UID'] === 'qptKDiv9uPl')
-              .reduce((acc, obj) => {
-                acc[obj['value.display - Answers']] = obj['DHIS2 Option Code'];
-                return acc;
-              }, {});
-
-            const latestGenderUpdate = findlatestAnswer(
-              encounters,
-              'ec42d68d-3e23-43de-b8c5-a03bb538e7c7'
-            );
-
-            const latestEducationUpdate = findlatestAnswer(
-              encounters,
-              'cc3a5a7a-abfe-4630-b0c0-c1275c6cbb54'
-            );
-
-            const genderUpdated = latestGenderUpdate
-              .map(answer => {
-                const { trackedEntity } = TEIs[answer?.person?.uuid] || {};
-                if (!trackedEntity) {
-                  console.log('No TEI found for person', answer.person.uuid);
-                }
-                if (trackedEntity) {
-                  return {
-                    trackedEntity,
-                    program,
-                    orgUnit,
-                    trackedEntityType: 'cHlzCA2MuEF',
-                    attributes: [
-                      {
-                        attribute: 'qptKDiv9uPl', //gender
-                        value: genderMap[answer.value.display],
-                      },
-                      {
-                        attribute: 'AYbfTPYMNJH', //OpenMRS Patient UID to use to upsert TEI
-                        value: answer.person.uuid,
-                      },
-                    ],
-                  };
-                }
-              })
-              .filter(Boolean)
-              .flat();
-
-            const educationUpdated = latestEducationUpdate
-              .map(answer => {
-                const { trackedEntity } = TEIs[answer?.person?.uuid] || {};
-                if (!trackedEntity) {
-                  console.log('No TEI found for person', answer.person.uuid);
-                }
-                if (trackedEntity) {
-                  return {
-                    trackedEntity,
-                    program,
-                    orgUnit,
-                    trackedEntityType: 'cHlzCA2MuEF',
-                    attributes: [
-                      {
-                        attribute: 'Dggll4f9Efj', //education
-                        value: optsMap.find(
-                          o => o['value.display - Answers'] === answer.value.display
-                        )?.['DHIS2 Option Code'], //map to DHIS2 Option Code in optsMap
-                      },
-                    ],
-                  };
-                }
-              })
-              .filter(Boolean)
-              .flat();
-
-            return {
-              ...next,
-              teisToUpdate: [...genderUpdated, ...educationUpdated],
-            };
-          });
-
-          fnIf(
-            state => state.teisToUpdate.length === 0,
-            ({ lastRunDateTime }) => ({ lastRunDateTime })
-          );
+          fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
 
       Custom-Logic-for-Events:
         name: Custom Logic for Events
         adaptor: '@openfn/language-common@latest'
         credential: null
         body: |
-          const getRangePhq = input => {
-            if (input >= 20) return '>20';
-            if (input >= 15) return '15_19';
-            if (input >= 10) return '10_14';
-            if (input >= 5) return '5_9';
-            return '0_4';
-          };
           const processAnswer = (
             answer,
             conceptUuid,
@@ -1784,36 +1675,17 @@ workflows:
             optsMap,
             optionSetKey
           ) => {
-            if (typeof answer.value === 'object') {
-              const isDiagnosisByPsychologist =
-                conceptUuid === '722dd83a-c1cf-48ad-ac99-45ac131ccc96' &&
-                dataElement === 'pN4iQH4AEzk';
-              if (isDiagnosisByPsychologist) {
-                console.log('Yes done by psychologist..');
-                return '' + answer.value.uuid === '278401ee-3d6f-4c65-9455-f1c16d0a7a98';
-              }
-
-              const isTrueOnlyQuestion =
-                conceptUuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9' &&
-                dataElement === 'G0hLyxqgcO7';
-
-              if (isTrueOnlyQuestion) {
-                console.log('True only question detected..', dataElement);
-                return answer.value.uuid === '681cf0bc-5213-492a-8470-0a0b3cc324dd'
-                  ? 'true'
-                  : undefined;
-              }
-
+            if (typeof answer.value === "object") {
               const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
               const matchingOptionSet = optionSetKey[optionKey];
               const opt = optsMap.find(
-                o =>
-                  o['value.uuid - External ID'] === answer.value.uuid &&
-                  o['DHIS2 Option Set UID'] === matchingOptionSet
+                (o) =>
+                  o["value.uuid - External ID"] === answer.value.uuid &&
+                  o["DHIS2 Option Set UID"] === matchingOptionSet
               );
               const matchingOption =
-                opt?.['DHIS2 Option Code'] ||
-                opt?.['DHIS2 Option name'] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
+                opt?.["DHIS2 Option Code"] ||
+                opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
                 answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
               // console.log(`matchingOption value: "${matchingOption}" for`);
@@ -1826,111 +1698,57 @@ workflows:
               //   matchingOptionSet,
               // });
 
-              if (matchingOption === 'FALSE' || matchingOption === 'No') {
-                return 'false';
+              if (matchingOption === "FALSE" || matchingOption === "No") {
+                return "false";
               }
-              if (matchingOption === 'TRUE' || matchingOption === 'Yes') {
-                return 'true';
+              if (matchingOption === "TRUE" || matchingOption === "Yes") {
+                return "true";
               }
 
-              return matchingOption || '';
+              return matchingOption || "";
             }
 
-            const PHQ9_CONCEPT_UUIDS = [
-              '5f3d618e-5c89-43bd-8c79-07e4e98c2f23',
-              '6545b874-f44d-4d18-9ab1-7a8bb21c0a15',
-            ];
-            const isPhq9Score =
-              typeof answer.value === 'number' &&
-              PHQ9_CONCEPT_UUIDS.includes(conceptUuid);
-            if (isPhq9Score) {
-              return getRangePhq(answer.value);
-            }
             return answer.value;
           };
 
           const processNoAnswer = (encounter, conceptUuid, dataElement) => {
             const isEncounterDate =
-              conceptUuid === 'encounter-date' &&
-              ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN', 'EOFi7nk2vNM'].includes(
+              conceptUuid === "encounter-date" &&
+              ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
                 dataElement
               );
             // These are data elements for encounter date in DHIS2
             // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
 
             if (isEncounterDate) {
-              return encounter.encounterDatetime.replace('+0000', '');
+              return encounter.encounterDatetime.replace("+0000", "");
             }
-            return '';
+            return "";
           };
 
           const findAnswerByConcept = (encounter, conceptUuid) => {
-            const answer = encounter.obs.find(o => o.concept.uuid === conceptUuid);
+            const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
             return answer?.value?.display;
           };
 
           // Helper functions for finding observations
           const findObsByConcept = (encounter, conceptUuid) =>
-            encounter.obs.find(o => o.concept.uuid === conceptUuid);
-
-          // Concept UUIDs
-          const CONCEPTS = {
-            BASELINE_CONCEPT: '22809b19-54ca-4d88-8d26-9577637c184e',
-            PRIORITY_1: '45b39cbf-0fb2-4682-8544-8aaf3e07a744',
-            PRIORITY_2: 'ee1b7973-e931-494e-a9cb-22b814b4d8ed',
-            PRIORITY_3: '92a92f62-3ff6-4944-9ea9-a7af23949bad',
-            OTHER_SPECIFY: 'e08d532b-e56c-43dc-b831-af705654d2dc',
-            PRECIPITATING_EVENT_1: 'd5e3d927-f7ce-4fdd-ac4e-6ad0b510b608',
-            PRECIPITATING_EVENT_2: '54a9b20e-bce5-4d4a-8c9c-e0248a182586',
-            PRECIPITATING_EVENT_3: 'e0d4e006-85b5-41cb-8a21-e013b1978b8b',
-            PRECIPITATING_EVENT_OTHER: '790b41ce-e1e7-11e8-b02f-0242ac130002',
-          };
-
-          // DHIS2 Data Elements
-          const DATA_ELEMENTS = {
-            BASELINE: 'pN4iQH4AEzk',
-            PRIORITY_1_OTHER: 'pj5hIE6iyAR',
-            PRIORITY_2_OTHER: 'Em5zvpdd5ha',
-            PRIORITY_3_OTHER: 'aWsxYkJR8Ua',
-            PRECIPITATING_EVENT_1_OTHER: 'm8qis4iUOTo',
-            PRECIPITATING_EVENT_2_OTHER: 'mNK6CITsdWD',
-            PRECIPITATING_EVENT_3_OTHER: 'jocqmYW394G',
-          };
+            encounter.obs.find((o) => o.concept.uuid === conceptUuid);
 
           // Prepare DHIS2 data model for create events
-          fn(state => {
-            const handleMissingRecord = (data, state) => {
-              const { uuid, display } = data.patient;
-
-              console.log(uuid, 'Patient is missing trackedEntity && enrollment');
-
-              state.missingRecords ??= {};
-              state.missingRecords[uuid] ??= {
-                encounters: [],
-                patient: display,
-              };
-
-              state.missingRecords[uuid].encounters.push(data.uuid);
-            };
-
+          fn((state) => {
             state.eventsMapping = state.encounters
-              .map(encounter => {
+              .map((encounter) => {
                 const form = state.formMaps[encounter.form.uuid];
                 if (!form?.dataValueMap) {
                   return null;
                 }
-                const { trackedEntity, enrollment, events } =
-                  state.TEIs[encounter.patient.uuid] || {};
 
-                if (!trackedEntity || !enrollment) {
-                  handleMissingRecord(encounter, state);
-                  return null;
-                }
                 const formDataValues = Object.keys(form.dataValueMap)
-                  .map(dataElement => {
+                  .map((dataElement) => {
                     const conceptUuid = form.dataValueMap[dataElement];
                     const obsAnswer = encounter.obs.find(
-                      o => o.concept.uuid === conceptUuid
+                      (o) => o.concept.uuid === conceptUuid
                     );
                     const answer = {
                       ...obsAnswer,
@@ -1948,233 +1766,14 @@ workflows:
 
                     return { dataElement, value };
                   })
-                  .filter(d => d);
-
-                const customMapping = [];
-
-                if (encounter.form.description.includes('F29-MHPSS Baseline v2')) {
-                  customMapping.push({
-                    dataElement: DATA_ELEMENTS.BASELINE,
-                    value: findAnswerByConcept(encounter, CONCEPTS.BASELINE_CONCEPT)
-                      ? true
-                      : false,
-                  });
-
-                  const priority1 = findObsByConcept(encounter, CONCEPTS.PRIORITY_1);
-                  if (priority1 && priority1?.value?.display === 'Other') {
-                    customMapping.push({
-                      dataElement: DATA_ELEMENTS.PRIORITY_1_OTHER,
-                      value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
-                    });
-                  }
-
-                  const priority2 = findObsByConcept(encounter, CONCEPTS.PRIORITY_2);
-                  if (priority2 && priority2?.value?.display === 'Other') {
-                    customMapping.push({
-                      dataElement: DATA_ELEMENTS.PRIORITY_2_OTHER,
-                      value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
-                    });
-                  }
-
-                  const priority3 = findObsByConcept(encounter, CONCEPTS.PRIORITY_3);
-                  if (priority3 && priority3?.value?.display === 'Other') {
-                    customMapping.push({
-                      dataElement: DATA_ELEMENTS.PRIORITY_3_OTHER,
-                      value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
-                    });
-                  }
-
-                  const precipitatingEvent1 = findObsByConcept(
-                    encounter,
-                    CONCEPTS.PRECIPITATING_EVENT_1
-                  );
-                  const otherValue = encounter.obs.find(o =>
-                    o.display.includes('Other')
-                  )?.value;
-
-                  if (
-                    precipitatingEvent1 &&
-                    precipitatingEvent1?.value?.uuid === otherValue?.uuid
-                  ) {
-                    customMapping.push({
-                      dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
-                      value: otherValue.display,
-                    });
-                  }
-
-                  const precipitatingEvent2 = findObsByConcept(
-                    encounter,
-                    CONCEPTS.PRECIPITATING_EVENT_2
-                  );
-
-                  if (
-                    precipitatingEvent2 &&
-                    precipitatingEvent2?.value?.uuid === otherValue?.uuid
-                  ) {
-                    customMapping.push({
-                      dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_2_OTHER,
-                      value: otherValue.display,
-                    });
-                  }
-
-                  const precipitatingEvent3 = findObsByConcept(
-                    encounter,
-                    CONCEPTS.PRECIPITATING_EVENT_3
-                  );
-
-                  if (
-                    precipitatingEvent3 &&
-                    precipitatingEvent3?.value?.uuid === otherValue?.uuid
-                  ) {
-                    customMapping.push({
-                      dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_3_OTHER,
-                      value: otherValue.display,
-                    });
-                  }
-                }
-
-                if (encounter.form.description.includes('F30-MHPSS Follow-up v2')) {
-                  const missedSession = encounter => {
-                    if (
-                      encounter.obs.find(
-                        o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                      )?.value?.display === 'Yes'
-                    ) {
-                      return encounter.encounterDatetime.replace('+0000', '');
-                    }
-                    const lastFollowupEncounter = state.allEncounters.find(e => {
-                      e.form.description.includes('F30-MHPSS Follow-up v2') &&
-                        e.obs.find(
-                          o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                        )?.value?.display === 'Yes';
-                    });
-
-                    if (lastFollowupEncounter) {
-                      return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
-                    }
-
-                    const f29Encounter = state.allEncounters.find(e =>
-                      e.form.description.includes('F29-MHPSS Baseline v2')
-                    );
-                    if (f29Encounter) {
-                      return f29Encounter.encounterDatetime.replace('+0000', '');
-                    }
-                  };
-                  const mapping = [
-                    {
-                      dataElement: 'jtKIoKducvE',
-                      value: missedSession(encounter),
-                    },
-                  ];
-                  customMapping.push(...mapping);
-                }
-                if (encounter.form.description.includes('F32-mhGAP Follow-up v2')) {
-                  const missedSession = encounter => {
-                    if (
-                      encounter.obs.find(
-                        o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                      )?.value?.display === 'Yes'
-                    ) {
-                      return encounter.encounterDatetime.replace('+0000', '');
-                    }
-                    const lastFollowupEncounter = state.allEncounters.find(e => {
-                      e.form.description.includes('F32-mhGAP Follow-up v2') &&
-                        e.obs.find(
-                          o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-                        )?.value?.display === 'Yes';
-                    });
-
-                    if (lastFollowupEncounter) {
-                      return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
-                    }
-
-                    const f29Encounter = state.allEncounters.find(e =>
-                      e.form.description.includes('F31-mhGAP Baseline v2')
-                    );
-
-                    if (f29Encounter) {
-                      return f29Encounter.encounterDatetime.replace('+0000', '');
-                    }
-                  };
-                  const changeInDiagnosis = encounter => {
-                    const patientUuid = encounter.patient.uuid;
-                    const previousChangeInDiagnosis = state.allEncounters
-                      .find(
-                        e =>
-                          e.patient.uuid === patientUuid &&
-                          e.form.description.includes('F32-mhGAP Follow-up v2') &&
-                          encounter.uuid !== e.uuid
-                      )
-                      ?.obs.find(
-                        o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
-                      )?.value?.display;
-
-                    const currentChangeInDiagnosis = encounter.obs.find(
-                      o => o.concept.uuid === '22809b19-54ca-4d88-8d26-9577637c184e'
-                    )?.value?.display;
-
-                    if (
-                      previousChangeInDiagnosis &&
-                      previousChangeInDiagnosis !== currentChangeInDiagnosis
-                    ) {
-                      return true;
-                    }
-
-                    return false;
-                  };
-                  const mapping = [
-                    {
-                      dataElement: 'fMqEZpiRVZV',
-                      value: missedSession(encounter),
-                    },
-                    {
-                      dataElement: 'XBVRRpgkEvE',
-                      value: changeInDiagnosis(encounter),
-                    },
-                  ];
-                  customMapping.push(...mapping);
-                }
-                if (
-                  encounter.form.description.includes('F33-MHPSS Closure v2') ||
-                  encounter.form.description.includes('F34-mhGAP Closure v2')
-                ) {
-                  const lastScore = encounter.obs.find(
-                    o => o.concept.uuid === '90b3d09c-d296-44d2-8292-8e04377fe027'
-                  )?.value;
-
-                  const filterOutScore = state.allEncounters.filter(e => {
-                    const obs = e.obs.find(
-                      o => o.concept.display === 'Mental Health Outcome Scale'
-                    );
-                    return e.uuid !== encounter.uuid && obs && obs?.value !== 0;
-                  });
-
-                  const firstScore = filterOutScore
-                    .sort((a, b) => {
-                      return (
-                        new Date(a.encounterDatetime) - new Date(b.encounterDatetime)
-                      );
-                    })
-                    .at(0)
-                    ?.obs.find(
-                      o => o.concept.display === 'Mental Health Outcome Scale'
-                    )?.value;
-
-                  customMapping.push({
-                    dataElement: 'b8bjS7ah8Qi',
-                    value: lastScore - firstScore,
-                  });
-                }
+                  .filter((d) => d);
 
                 return {
-                  event: events.find(e => e.programStage === form.programStage)?.event,
-                  program: state.program,
+                  program: form.programStage,
                   orgUnit: state.orgUnit,
-                  trackedEntity,
-                  enrollment,
-                  occurredAt: encounter.encounterDatetime.replace('+0000', ''),
+                  occurredAt: encounter.encounterDatetime.replace("+0000", ""),
                   programStage: form.programStage,
-                  dataValues: [...formDataValues, ...customMapping],
+                  dataValues: formDataValues,
                 };
               })
               .filter(Boolean);
@@ -2186,7 +1785,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
-        enabled: true
+        enabled: false
     edges:
       cron->Get-Mappings-from-Collection:
         source_trigger: cron
