@@ -509,8 +509,8 @@
     "wf3-omrs-dhis2": {
       "id": "fb49b01d-dba8-420a-9f4c-b9ca20984ee5",
       "name": "wf3-omrs-dhis2",
-      "inserted_at": "2025-07-04T11:31:19.341691Z",
-      "lock_version": 22,
+      "inserted_at": "2025-07-04T11:31:39.973054Z",
+      "lock_version": 23,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -580,7 +580,7 @@
           "source_job_id": "2b1e02ae-7546-480a-86cc-77a815f61256",
           "condition_type": "js_expression",
           "condition_label": "has-encounters",
-          "condition_expression": "!state.errors && state.encounters\n"
+          "condition_expression": "!state.errors && state.encounters?.length > 0\n"
         }
       }
     }

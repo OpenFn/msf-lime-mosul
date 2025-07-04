@@ -1822,6 +1822,6 @@ workflows:
         condition_type: js_expression
         condition_label: has-encounters
         condition_expression: |
-          !state.errors && state.encounters
+          !state.errors && state.encounters?.length > 0
 
         enabled: true
