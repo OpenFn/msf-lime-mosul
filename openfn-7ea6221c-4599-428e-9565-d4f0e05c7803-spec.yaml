@@ -1535,18 +1535,13 @@ workflows:
           );
 
 
-          // get all encounters using fhir API
-          // Create a list of patients received from the FHIR API
-          // For each patient, get encounters using  get('encounter', { patient: $.data, v: 'full' })
-          // filter the encounters using the form-id in the fomrsMap
-          //
 
           fn(state => {
             console.log(
               'Total # of encounters fetched: ',
               state.allResponse?.entry?.length
             );
-            // state.encounterUuids = state.allResponse?.entry?.map(p => p.resource.id);
+            
             state.patientUuids = [
               ...new Set(
                 state.allResponse?.entry?.map(p =>
@@ -1562,13 +1557,7 @@ workflows:
           each(
             $.patientUuids,
             get('encounter', { patient: $.data, v: 'full' }).then(state => {
-              console.log('data', state.data)
-              state.allEncounters ??= [];
-              state.allEncounters.push(
-                ...state.data.filter(e =>
-                  state.v2FormUuids.includes(e?.form?.uuid)
-                )
-              );
+
 
               const patientUuid = state.references.at(-1);
               const filteredEncounters = state.formUuids.map(formUuid =>
@@ -1623,15 +1612,36 @@ workflows:
             } else {
               console.log('No encounters found for cursor: ', next.cursor);
             }
-            next.allEncounters = next.allEncounters.map(
-              ({ uuid, patient, obs, form, encounterDatetime }) => ({
-                uuid,
-                patient,
-                obs,
-                form,
-                encounterDatetime,
-              })
-            );
+
+
+            // Group encounters by patient UUID
+            state.encountersByPatient = next.encounters.reduce((acc, obj) => {
+              const key = obj.patient.uuid;
+              if (!acc[key]) {
+                acc[key] = [];
+              }
+              acc[key].push(obj);
+              return acc;
+            }, {});
+
+            const matchedEncounters = []
+            for (const patient in state.encountersByPatient) {
+              const encounters = state.encountersByPatient[patient]
+              const matched = ['F09-ITFC', 'F08-ITFC'].every(form =>
+                encounters.some(encounter => encounter.form.description.includes(form))
+              );
+
+              if (matched) {
+                matchedEncounters.push(encounters)
+              }
+
+            }
+            state.encounters = matchedEncounters.flat();
+
+            delete state.data
+            delete state.references
+            delete state.encounters
+
             return next;
           });
 
