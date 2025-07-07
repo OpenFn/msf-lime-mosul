@@ -1675,7 +1675,7 @@ workflows:
 
       Custom-Logic-for-Events:
         name: Custom Logic for Events
-        adaptor: '@openfn/language-common@latest'
+        adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body: |
           const processAnswer = (
