@@ -2,7 +2,9 @@ name: msf-lime-mosul
 description: |
   OpenFn cloud project for workflow testing between MSF and OpenFn teams
 
-collections: null
+collections:
+  mosul-metadata-mappings:
+    name: mosul-metadata-mappings
 credentials:
   aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024:
     name: MSF OMRS Demo Nov 2024
