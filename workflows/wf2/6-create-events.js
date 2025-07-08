@@ -1,23 +1,23 @@
 // Create or update events for each encounter
-create(
-  'tracker',
-  {
-    events: state => {
-      console.log(
-        'Creating events for: ',
-        JSON.stringify(state.eventsMapping, null, 2)
-      );
-      return state.eventsMapping;
-    },
-  },
-  {
-    params: {
-      async: false,
-      dataElementIdScheme: 'UID',
-      importStrategy: 'CREATE_AND_UPDATE',
-    },
-  }
-);
+// create(
+//   'tracker',
+//   {
+//     events: state => {
+//       console.log(
+//         'Creating events for: ',
+//         JSON.stringify(state.eventsMapping, null, 2)
+//       );
+//       return state.eventsMapping;
+//     },
+//   },
+//   {
+//     params: {
+//       async: false,
+//       dataElementIdScheme: 'UID',
+//       importStrategy: 'CREATE_AND_UPDATE',
+//     },
+//   }
+// );
 
 const findlatestAnswer = (encounters, conceptUuid) => {
   const latestAnswer = encounters.reduce((acc, e) => {
@@ -70,6 +70,8 @@ fn(state => {
     encounters,
     'cc3a5a7a-abfe-4630-b0c0-c1275c6cbb54'
   );
+
+  console.log({latestEducationUpdate})
 
   const genderUpdated = latestGenderUpdate
     .map(answer => {

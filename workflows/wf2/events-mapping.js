@@ -10,7 +10,8 @@ const processAnswer = (
   conceptUuid,
   dataElement,
   optsMap,
-  optionSetKey
+  optionSetKey,
+  formUuid
 ) => {
   if (typeof answer.value === 'object') {
     const isDiagnosisByPsychologist =
@@ -32,7 +33,7 @@ const processAnswer = (
         : undefined;
     }
 
-    const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
+    const optionKey = `${formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       o =>
@@ -85,7 +86,7 @@ const processNoAnswer = (encounter, conceptUuid, dataElement) => {
     );
   // These are data elements for encounter date in DHIS2
   // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
-
+  console.log("is encounter date", isEncounterDate)
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace('+0000', '');
   }
@@ -154,32 +155,32 @@ fn(state => {
         handleMissingRecord(encounter, state);
         return null;
       }
-      const formDataValues = Object.keys(form.dataValueMap)
+      let formDataValues = Object.keys(form.dataValueMap)
         .map(dataElement => {
+          console.log({dataElement})
           const conceptUuid = form.dataValueMap[dataElement];
           const obsAnswer = encounter.obs.find(
             o => o.concept.uuid === conceptUuid
           );
-          const answer = {
-            ...obsAnswer,
-            formUuid: encounter.form.uuid,
-          };
+          const answer = obsAnswer
+          console.log({answer})
           const value = answer
             ? processAnswer(
               answer,
               conceptUuid,
               dataElement,
               state.optsMap,
-              state.optionSetKey
+              state.optionSetKey,
+              encounter.form.uuid
             )
             : processNoAnswer(encounter, conceptUuid, dataElement);
           if (value) {
-              return { dataElement, value };
+            return { dataElement, value };
           }
         })
         .filter(d => d);
 
-      const customMapping = [];
+      let customMapping = [];
 
       if (encounter.form.description.includes('F29-MHPSS Baseline v2')) {
         customMapping.push({
@@ -233,15 +234,15 @@ fn(state => {
               o['value.uuid - External ID'] === otherValue?.value?.uuid
           );
           const item = customMapping.find(item => item.dataElement == "m8qis4iUOTo")
-          if (item){
+          if (item) {
             console.log("item found!")
             item.value = opt?.['DHIS2 Option Code']
           } else {
             customMapping.push({
-            dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
-            value: opt?.['DHIS2 Option Code']
-          });
-          }          
+              dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
+              value: opt?.['DHIS2 Option Code']
+            });
+          }
         }
 
         const precipitatingEvent2 = findObsByConcept(
@@ -288,20 +289,26 @@ fn(state => {
           if (
             encounter.obs.find(
               o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-            )?.value?.display === 'Yes'
+            )?.value?.display === 'No'
           ) {
+            console.log("here?")
             return encounter.encounterDatetime.replace('+0000', '');
           }
-          const lastFollowupEncounter = state.allEncounters.find(e => {
+          console.log("here??")
+          const lastFollowupEncounter = state.allEncounters.find(e => 
             e.form.description.includes('F30-MHPSS Follow-up v2') &&
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
               e.obs.find(
                 o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'Yes';
-          });
+              )?.value?.display === 'No'
+          );
+          console.log({lastFollowupEncounter})
 
           if (lastFollowupEncounter) {
             return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
           }
+          console.log("here???")
 
           const f29Encounter = state.allEncounters.find(e =>
             e.form.description.includes('F29-MHPSS Baseline v2')
@@ -309,6 +316,8 @@ fn(state => {
           if (f29Encounter) {
             return f29Encounter.encounterDatetime.replace('+0000', '');
           }
+          return undefined;
+
         };
         const mapping = [
           {
@@ -323,27 +332,29 @@ fn(state => {
           if (
             encounter.obs.find(
               o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-            )?.value?.display === 'Yes'
+            )?.value?.display === 'No'
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
-          const lastFollowupEncounter = state.allEncounters.find(e => {
+          const lastFollowupEncounter = state.allEncounters.find(e => 
             e.form.description.includes('F32-mhGAP Follow-up v2') &&
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
               e.obs.find(
                 o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'Yes';
-          });
+              )?.value?.display === 'No'
+          );
 
           if (lastFollowupEncounter) {
             return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
           }
 
-          const f29Encounter = state.allEncounters.find(e =>
+          const f31Encounter = state.allEncounters.find(e =>
             e.form.description.includes('F31-mhGAP Baseline v2')
           );
 
-          if (f29Encounter) {
-            return f29Encounter.encounterDatetime.replace('+0000', '');
+          if (f31Encounter) {
+            return f31Encounter.encounterDatetime.replace('+0000', '');
           }
         };
         const changeInDiagnosis = encounter => {
@@ -415,6 +426,8 @@ fn(state => {
           value: lastScore - firstScore,
         });
       }
+       formDataValues = formDataValues.filter(item => item.dataElement !== DATA_ELEMENTS.PRIORITY_1_OTHER &&
+            item.dataElement !== 'KjgDauY9v4J');
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
