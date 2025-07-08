@@ -166,15 +166,16 @@ fn(state => {
           };
           const value = answer
             ? processAnswer(
-                answer,
-                conceptUuid,
-                dataElement,
-                state.optsMap,
-                state.optionSetKey
-              )
+              answer,
+              conceptUuid,
+              dataElement,
+              state.optsMap,
+              state.optionSetKey
+            )
             : processNoAnswer(encounter, conceptUuid, dataElement);
-
-          return { dataElement, value };
+          if (value) {
+              return { dataElement, value };
+          }
         })
         .filter(d => d);
 
@@ -217,17 +218,30 @@ fn(state => {
           CONCEPTS.PRECIPITATING_EVENT_1
         );
         const otherValue = encounter.obs.find(o =>
-          o.display.includes('Other')
-        )?.value;
+          o.display.includes('Past / Precipitating Events - Other')
+        );
+
+        console.log(precipitatingEvent1?.value?.uuid)
+        console.log(otherValue?.value?.uuid)
 
         if (
           precipitatingEvent1 &&
-          precipitatingEvent1?.value?.uuid === otherValue?.uuid
+          precipitatingEvent1?.value?.uuid === otherValue?.value?.uuid
         ) {
-          customMapping.push({
+          const opt = state.optsMap.find(
+            o =>
+              o['value.uuid - External ID'] === otherValue?.value?.uuid
+          );
+          const item = customMapping.find(item => item.dataElement == "m8qis4iUOTo")
+          if (item){
+            console.log("item found!")
+            item.value = opt?.['DHIS2 Option Code']
+          } else {
+            customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
-            value: otherValue.display,
+            value: opt?.['DHIS2 Option Code']
           });
+          }          
         }
 
         const precipitatingEvent2 = findObsByConcept(
@@ -237,11 +251,15 @@ fn(state => {
 
         if (
           precipitatingEvent2 &&
-          precipitatingEvent2?.value?.uuid === otherValue?.uuid
+          precipitatingEvent2?.value?.uuid === otherValue?.value?.uuid
         ) {
+          const opt = state.optsMap.find(
+            o =>
+              o['value.uuid - External ID'] === otherValue?.value?.uuid
+          );
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_2_OTHER,
-            value: otherValue.display,
+            value: opt?.['DHIS2 Option Code'],
           });
         }
 
@@ -254,9 +272,13 @@ fn(state => {
           precipitatingEvent3 &&
           precipitatingEvent3?.value?.uuid === otherValue?.uuid
         ) {
+          const opt = state.optsMap.find(
+            o =>
+              o['value.uuid - External ID'] === otherValue?.value?.uuid
+          );
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_3_OTHER,
-            value: otherValue.display,
+            value: opt?.['DHIS2 Option Code'],
           });
         }
       }
