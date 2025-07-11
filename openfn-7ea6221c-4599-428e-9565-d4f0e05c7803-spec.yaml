@@ -2807,6 +2807,9 @@ workflows:
         adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body: |
+          const f08Form = "f0bb3bf7-4e0a-3545-afce-a6b33b0378e4"
+          const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261"
+
           const processAnswer = (
             answer,
             conceptUuid,
@@ -2874,52 +2877,67 @@ workflows:
           const findObsByConcept = (encounter, conceptUuid) =>
             encounter.obs.find((o) => o.concept.uuid === conceptUuid);
 
-          // Prepare DHIS2 data model for create events
+          // Helper function to process dataValues from an encounter
+          function processEncounterDataValues(encounter, form, state) {
+            return Object.keys(form.dataValueMap)
+              .map((dataElement) => {
+                const conceptUuid = form.dataValueMap[dataElement];
+                const obsAnswer = encounter.obs.find(
+                  (o) => o.concept.uuid === conceptUuid
+                );
+                const answer = {
+                  ...obsAnswer,
+                  formUuid: encounter.form.uuid,
+                };
+                const value = answer
+                  ? processAnswer(
+                    answer,
+                    conceptUuid,
+                    dataElement,
+                    state.optsMap,
+                    state.optionSetKey
+                  )
+                  : processNoAnswer(encounter, conceptUuid, dataElement);
+
+                return { dataElement, value };
+              })
+              .filter((d) => d);
+          }
+
           fn((state) => {
-            state.eventsMapping = state.encounters
-              .map((encounter) => {
-                const form = state.formMaps[encounter.form.uuid];
-                if (!form?.dataValueMap) {
-                  return null;
-                }
-
-                const formDataValues = Object.keys(form.dataValueMap)
-                  .map((dataElement) => {
-                    const conceptUuid = form.dataValueMap[dataElement];
-                    const obsAnswer = encounter.obs.find(
-                      (o) => o.concept.uuid === conceptUuid
-                    );
-                    const answer = {
-                      ...obsAnswer,
-                      formUuid: encounter.form.uuid,
-                    };
-                    const value = answer
-                      ? processAnswer(
-                          answer,
-                          conceptUuid,
-                          dataElement,
-                          state.optsMap,
-                          state.optionSetKey
-                        )
-                      : processNoAnswer(encounter, conceptUuid, dataElement);
-
-                    return { dataElement, value };
-                  })
-                  .filter((d) => d);
-
+            state.eventsMapping = Object.entries(state.encountersByPatient)
+              .map(([patientUuid, encounters]) => {
+                // Skip if we don't have exactly 2 encounters
+                if (encounters.length !== 2) return null;
+                
+                // Get the forms for both encounters
+                const form1 = state.formMaps[encounters[0].form.uuid];
+                const form2 = state.formMaps[encounters[1].form.uuid];
+                
+                // Skip if either form doesn't have dataValueMap
+                if (!form1?.dataValueMap || !form2?.dataValueMap) return null;
+                
+                // Combine dataValues from both encounters
+                const formDataValues = [
+                  ...processEncounterDataValues(encounters[0], form1, state),
+                  ...processEncounterDataValues(encounters[1], form2, state)
+                ];
+                
+                // Use properties from the first encounter for the event metadata
+                // (or choose which encounter to use for each field)
                 return {
-                  program: form.programId,
-                  orgUnit: form.orgUnit,
-                  occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-                  programStage: form.programStage,
+                  program: form1.programId,
+                  orgUnit: form1.orgUnit,
+                  occurredAt: encounters[0].encounterDatetime.replace("+0000", ""),
+                  programStage: form1.programStage,
                   dataValues: formDataValues,
+                  trackedEntityInstance: patientUuid
                 };
               })
               .filter(Boolean);
 
             return state;
           });
-
     triggers:
       cron:
         type: cron
