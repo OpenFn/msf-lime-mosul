@@ -2687,7 +2687,6 @@ workflows:
             $.patientUuids,
             get('encounter', { patient: $.data, v: 'full' }).then(state => {
 
-
               const patientUuid = state.references.at(-1);
               const filteredEncounters = state.formUuids.map(formUuid =>
                 state.data?.filter(
@@ -2744,7 +2743,7 @@ workflows:
 
 
             // Group encounters by patient UUID
-            state.encountersByPatient = next.encounters.reduce((acc, obj) => {
+            next.encountersByPatient = next.encounters?.reduce((acc, obj) => {
               const key = obj.patient.uuid;
               if (!acc[key]) {
                 acc[key] = [];
@@ -2752,24 +2751,6 @@ workflows:
               acc[key].push(obj);
               return acc;
             }, {});
-
-            const matchedEncounters = []
-            for (const patient in state.encountersByPatient) {
-              const encounters = state.encountersByPatient[patient]
-              const matched = ['F09-ITFC', 'F08-ITFC'].every(form =>
-                encounters.some(encounter => encounter.form.description.includes(form))
-              );
-
-              if (matched) {
-                matchedEncounters.push(encounters)
-              }
-
-            }
-            state.encounters = matchedEncounters.flat();
-
-            delete state.data
-            delete state.references
-            delete state.encounters
 
             return next;
           });
