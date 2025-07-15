@@ -10,7 +10,8 @@ const processAnswer = (
   conceptUuid,
   dataElement,
   optsMap,
-  optionSetKey
+  optionSetKey,
+  formUuid
 ) => {
   if (typeof answer.value === 'object') {
     const isDiagnosisByPsychologist =
@@ -32,7 +33,7 @@ const processAnswer = (
         : undefined;
     }
 
-    const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
+    const optionKey = `${formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       o =>
@@ -85,7 +86,6 @@ const processNoAnswer = (encounter, conceptUuid, dataElement) => {
     );
   // These are data elements for encounter date in DHIS2
   // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
-
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace('+0000', '');
   }
@@ -154,27 +154,27 @@ fn(state => {
         handleMissingRecord(encounter, state);
         return null;
       }
-      const formDataValues = Object.keys(form.dataValueMap)
+      let formDataValues = Object.keys(form.dataValueMap)
         .map(dataElement => {
           const conceptUuid = form.dataValueMap[dataElement];
           const obsAnswer = encounter.obs.find(
             o => o.concept.uuid === conceptUuid
           );
-          const answer = {
-            ...obsAnswer,
-            formUuid: encounter.form.uuid,
-          };
+          const answer = obsAnswer;
           const value = answer
             ? processAnswer(
                 answer,
                 conceptUuid,
                 dataElement,
                 state.optsMap,
-                state.optionSetKey
+                state.optionSetKey,
+                encounter.form.uuid
               )
             : processNoAnswer(encounter, conceptUuid, dataElement);
 
-          return { dataElement, value };
+          if (value) {
+            return { dataElement, value };
+          }
         })
         .filter(d => d);
 
@@ -224,10 +224,15 @@ fn(state => {
           precipitatingEvent1 &&
           precipitatingEvent1?.value?.uuid === otherValue?.uuid
         ) {
-          customMapping.push({
-            dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
-            value: otherValue.display,
-          });
+          const opt = state.optsMap.find(
+            o =>
+              o['value.uuid - External ID'] === otherValue?.value?.uuid
+          );
+         
+            customMapping.push({
+              dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
+              value: opt?.['DHIS2 Option Code']
+          })
         }
 
         const precipitatingEvent2 = findObsByConcept(
@@ -239,9 +244,13 @@ fn(state => {
           precipitatingEvent2 &&
           precipitatingEvent2?.value?.uuid === otherValue?.uuid
         ) {
+           const opt = state.optsMap.find(
+            o =>
+              o['value.uuid - External ID'] === otherValue?.value?.uuid
+          );
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_2_OTHER,
-            value: otherValue.display,
+            value: opt?.['DHIS2 Option Code'],
           });
         }
 
@@ -254,9 +263,13 @@ fn(state => {
           precipitatingEvent3 &&
           precipitatingEvent3?.value?.uuid === otherValue?.uuid
         ) {
+          const opt = state.optsMap.find(
+            o =>
+              o['value.uuid - External ID'] === otherValue?.value?.uuid
+          );
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_3_OTHER,
-            value: otherValue.display,
+            value: opt?.['DHIS2 Option Code'],
           });
         }
       }
@@ -270,14 +283,14 @@ fn(state => {
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
-          const lastFollowupEncounter = state.allEncounters.find(e => {
+          const lastFollowupEncounter = state.allEncounters.find(e => 
             e.form.description.includes('F30-MHPSS Follow-up v2') &&
             e.patient.uuid === encounter.patient.uuid &&
             e.uuid !== encounter.uuid &&
               e.obs.find(
                 o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'No';
-          });
+              )?.value?.display === 'No'
+          );
 
           if (lastFollowupEncounter) {
             return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
@@ -309,21 +322,21 @@ fn(state => {
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
-          const lastFollowupEncounter = state.allEncounters.find(e => {
+          const lastFollowupEncounter = state.allEncounters.find(e => 
             e.form.description.includes('F32-mhGAP Follow-up v2') &&
             e.patient.uuid === encounter.patient.uuid &&
             e.uuid !== encounter.uuid &&
               e.obs.find(
                 o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'No';
-          });
+              )?.value?.display === 'No'
+          );
 
           if (lastFollowupEncounter) {
             return lastFollowupEncounter.encounterDatetime.replace('+0000', '');
           }
 
           const f31Encounter = state.allEncounters.find(e =>
-            e.form.description.includes('F31-mhGAP Baseline v2')&&
+            e.form.description.includes('F31-mhGAP Baseline v2') &&
             e.patient.uuid === encounter.patient.uuid
           );
 
@@ -400,6 +413,8 @@ fn(state => {
           value: lastScore - firstScore,
         });
       }
+      formDataValues = formDataValues.filter(item => item.dataElement !== DATA_ELEMENTS.PRIORITY_1_OTHER &&
+            item.dataElement !== 'KjgDauY9v4J');
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
