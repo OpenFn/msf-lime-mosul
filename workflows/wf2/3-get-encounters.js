@@ -76,10 +76,30 @@ each(
         )
     );
 
-    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+    const encounters = filteredEncounters.map(pe => {
+      const isLatestForm = pe.find(e => {
+        return state.formMaps[e?.form?.uuid]?.syncType === 'latest'
+      })
+      if (isLatestForm) {
+        return [isLatestForm]
+      } else {
+        const allPatientEncounter = pe.filter(e => state.formMaps[e?.form?.uuid]?.syncType === 'all')
+        return allPatientEncounter
+      }
+    }).flat()
+
+    // const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+    // const encounters = filteredEncounters.map(e => {
+    //   const isLatestForm = state.formMaps[e?.form?.uuid]?.syncType === 'latest'
+    //   if (isLatestForm) {
+    //     return e[0]
+    //   } else { return e }
+    // }).filter(Boolean)
+
     state.encounters ??= [];
     state.encounters.push(...encounters);
-
+    // state.encounters = state.encounters.filter(obj => Object.keys(obj).length);
+    // console.log({ encounters: state.encounters })
     console.log(
       encounters.length,
       `# of filtered encounters found in OMRS for ${patientUuid}`
@@ -110,7 +130,7 @@ fn(state => {
         form,
         encounterDatetime,
       })
-    );
+    )
     console.log(next.encounters.length, '# of new encounters to sync to dhis2');
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
