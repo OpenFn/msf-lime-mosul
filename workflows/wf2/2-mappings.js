@@ -57,7 +57,8 @@ fn(state => {
     )
     .map(form => form['OMRS form.uuid']);
   rest.formUuids = formMetadata
-    .filter(form => isValidUUID(form['OMRS form.uuid']))
+    .filter(form => isValidUUID(form['OMRS form.uuid']) && 
+            form['Workflow'] === 'WF2')
     .map(form => form['OMRS form.uuid']);
 
   rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[

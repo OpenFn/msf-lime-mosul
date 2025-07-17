@@ -1155,7 +1155,7 @@ workflows:
     triggers:
       webhook:
         type: webhook
-        enabled: true
+        enabled: false
     edges:
       webhook->Get-and-set-metadata-collections:
         source_trigger: webhook
@@ -2216,7 +2216,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
-        enabled: true
+        enabled: false
     edges:
       cron->Get-Patients:
         source_trigger: cron
@@ -2427,24 +2427,6 @@ workflows:
         body:
           path: workflows/wf2/events-mapping.js
 
-      Start-Test:
-        name: Start Test
-        adaptor: '@openfn/language-common@latest'
-        credential: null
-        body: |
-          fn(state => {
-            const handMadeState = { "testCase1": {} }
-            return { handMadeState }
-          })
-
-      End-Test:
-        name: End Test
-        adaptor: '@openfn/language-common@latest'
-        credential: null
-        body: |
-          // Check out the Job Writing Guide for help getting started:
-          // https://docs.openfn.org/documentation/jobs/job-writing-guide
-
     triggers:
       cron:
         type: cron
@@ -2522,24 +2504,6 @@ workflows:
         condition_label: has-events
         condition_expression: |
           state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
-
-        enabled: true
-      Start-Test->Event-Mappings:
-        source_job: Start-Test
-        target_job: Event-Mappings
-        condition_type: js_expression
-        condition_label: test-mode
-        condition_expression: |
-          state.testMode
-
-        enabled: true
-      Event-Mappings->End-Test:
-        source_job: Event-Mappings
-        target_job: End-Test
-        condition_type: js_expression
-        condition_label: test-mode
-        condition_expression: |
-          state.testMode
 
         enabled: true
   wf3-omrs-dhis2:
