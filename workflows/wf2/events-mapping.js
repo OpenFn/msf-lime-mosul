@@ -418,8 +418,8 @@ fn(state => {
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
-        program: state.program,
-        orgUnit: state.orgUnit,
+        program: state.program, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+        orgUnit: state.orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
         trackedEntity,
         enrollment,
         occurredAt: encounter.encounterDatetime.replace('+0000', ''),

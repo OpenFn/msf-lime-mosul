@@ -110,7 +110,7 @@ fn(state => {
       if (trackedEntity) {
         return {
           trackedEntity,
-          program,
+          program, 
           orgUnit,
           trackedEntityType: 'cHlzCA2MuEF',
           attributes: [

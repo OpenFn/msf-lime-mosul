@@ -61,15 +61,20 @@ fn(state => {
             form['Workflow'] === 'WF2')
     .map(form => form['OMRS form.uuid']);
 
-  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-    'dhis2 attribute id'
-  ];
-  rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
-    'dhis2 attribute id'
-  ];
+  // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+  //   'dhis2 attribute id'
+  // ];
 
-  rest.patientProgramStage = state.formMaps.patient.programStage;
+  rest.orgUnit = "sUpt0j2GmBD"
+  //   rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
+  //   'dhis2 attribute id'
+  // ];
 
+  rest.program = "dWdzxMuKa8Z"
+		
+  // rest.patientProgramStage = state.formMaps.patient.programStage;
+
+  rest.patientProgramStage = "vN61drMkGqO"
   rest.dhis2PatientNumber = identifiers.find(
     i => i.type === 'DHIS2_PATIENT_NUMBER'
   )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number

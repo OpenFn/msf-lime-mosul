@@ -4,8 +4,8 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 each(
   $.encounters,
   get('tracker/trackedEntities', {
-    orgUnit: $.orgUnit,
-    program: $.program,
+    orgUnit: $.orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+    program: $.program, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
     filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
     fields: '*,enrollments[*],enrollments[events[*]]',
   }).then(async state => {

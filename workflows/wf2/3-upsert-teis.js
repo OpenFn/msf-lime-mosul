@@ -7,7 +7,7 @@ const buildPatientsUpsert = (state, patient, isNewPatient) => {
   const enrollments = [
     {
       orgUnit: state.orgUnit,
-      program: state.program,
+      program: state.program, // searching by MH program but change this EMR
       programStage: state.patientProgramStage, //'MdTtRixaC1B',
       enrollmentDate: dateCreated,
     },

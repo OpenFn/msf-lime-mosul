@@ -67,7 +67,18 @@ each(
         )
     );
 
-    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+    const encounters = filteredEncounters.map(pe => {
+      const isLatestForm = pe.find(e => {
+        return state.formMaps[e?.form?.uuid]?.syncType === 'latest'
+      })
+      if (isLatestForm) {
+        return [isLatestForm]
+      } else {
+        const allPatientEncounter = pe.filter(e => state.formMaps[e?.form?.uuid]?.syncType === 'all')
+        return allPatientEncounter
+      }
+    }).flat()
+
     state.encounters ??= [];
     state.encounters.push(...encounters);
 
@@ -101,12 +112,12 @@ fn(state => {
         form,
         encounterDatetime,
       })
-    );
+    )
     console.log(next.encounters.length, '# of new encounters to sync to dhis2');
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
   }
-  next.allEncounters = next.allEncounters.map(
+  next.allEncounters = next.allEncounters?.map(
     ({ uuid, patient, obs, form, encounterDatetime }) => ({
       uuid,
       patient,
