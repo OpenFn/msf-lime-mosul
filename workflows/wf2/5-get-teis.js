@@ -3,12 +3,12 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 //TODO: Group the encounters by patient and then get the TEI for each patient
 each(
   $.encounters,
-  get('tracker/trackedEntities', state=> ({
-    orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
-    program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+  get('tracker/trackedEntities', {
+    orgUnit: $.orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+    program: $.program, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
     filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
     fields: '*,enrollments[*],enrollments[events[*]]',
-  })).then(async state => {
+  }).then(async state => {
     const encounter = state.references.at(-1);
     console.log(encounter.patient.uuid, 'Encounter patient uuid');
 

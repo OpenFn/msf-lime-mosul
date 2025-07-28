@@ -46,17 +46,6 @@ collections.get('mosul-metadata-mappings-staging').then(state => {
   return state;
 });
 
-fnIf($.testMode, (state) => {
-  const { formMaps } = state;
-
-  assert(formMaps.patient?.dataValueMap, `Missing formMaps.patient`);
-
-  for (const form of Object.values(formMaps)) {
-    assert(form?.syncType, `Missing syncType for ${form.formName}`);
-  }
-  return state;
-});
-
 fn(state => {
   const { formMetadata, identifiers, ...rest } = state;
 
