@@ -196,7 +196,11 @@ fn(state => {
           if (answers[config.index]) {
             customMapping.push({
               dataElement: config.dataElement,
-              value: answers[config.index]?.value?.display,
+              value: state.optsMap.find(
+                o =>
+                  o['value.display - Answers'] ===
+                  answers[config.index]?.value?.display
+              )?.['DHIS2 Option Code'],
             });
           }
         });
@@ -220,7 +224,11 @@ fn(state => {
           if (answers[config.index] !== undefined) {
             customMapping.push({
               dataElement: config.dataElement,
-              value: answers[config.index]?.value?.display,
+              value: state.optsMap.find(
+                o =>
+                  o['value.display - Answers'] ===
+                  answers[config.index]?.value?.display
+              )?.['DHIS2 Option Code'],
             });
           }
         });
@@ -463,7 +471,8 @@ fn(state => {
       formDataValues = formDataValues.filter(
         item =>
           item.dataElement !== DATA_ELEMENTS.PRIORITY_1_OTHER &&
-          item.dataElement !== 'KjgDauY9v4J'
+          item.dataElement !== 'KjgDauY9v4J' &&
+          item.dataElement !== 'DYTLOoEKRas'
       );
 
       return {
