@@ -449,8 +449,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-07-28T12:02:59.747162Z",
-      "lock_version": 101,
+      "inserted_at": "2025-07-28T12:04:32.288289Z",
+      "lock_version": 102,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -491,7 +491,7 @@
         "Get-TEIs-and-Map-Answers": {
           "id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",
           "name": "Get TEIs and Map Answers",
-          "body": "const delay = ms => new Promise(resolve => setTimeout(resolve, ms));\n\n//TODO: Group the encounters by patient and then get the TEI for each patient\neach(\n  $.encounters,\n  get('tracker/trackedEntities', {\n    orgUnit: $.orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid\n    program: $.program, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid\n    filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],\n    fields: '*,enrollments[*],enrollments[events[*]]',\n  }).then(async state => {\n    const encounter = state.references.at(-1);\n    console.log(encounter.patient.uuid, 'Encounter patient uuid');\n\n    const { trackedEntity, enrollments } = state.data?.instances?.[0] || {};\n    if (trackedEntity && enrollments) {\n      state.TEIs ??= {};\n      state.TEIs[encounter.patient.uuid] = {\n        trackedEntity,\n        events: enrollments[0]?.events,\n        enrollment: enrollments[0]?.enrollment,\n      };\n    }\n\n    await delay(2000);\n    return state;\n  })\n);\n",
+          "body": "const delay = ms => new Promise(resolve => setTimeout(resolve, ms));\n\n//TODO: Group the encounters by patient and then get the TEI for each patient\neach(\n  $.encounters,\n  get('tracker/trackedEntities', state=> ({\n    orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid\n    program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid\n    filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],\n    fields: '*,enrollments[*],enrollments[events[*]]',\n  })).then(async state => {\n    const encounter = state.references.at(-1);\n    console.log(encounter.patient.uuid, 'Encounter patient uuid');\n\n    const { trackedEntity, enrollments } = state.data?.instances?.[0] || {};\n    if (trackedEntity && enrollments) {\n      state.TEIs ??= {};\n      state.TEIs[encounter.patient.uuid] = {\n        trackedEntity,\n        events: enrollments[0]?.events,\n        enrollment: enrollments[0]?.enrollment,\n      };\n    }\n\n    await delay(2000);\n    return state;\n  })\n);\n",
           "adaptor": "@openfn/language-dhis2@5.0.1",
           "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
         },
