@@ -47,8 +47,12 @@ each(
   get('encounter', { patient: $.data, v: 'full' }).then(state => {
     state.allEncounters ??= [];
     state.allEncounters.push(
+      // v2FormsUuids are for mental health forms
+      // ...state.data.results.filter(e =>
+      //   state.v2FormUuids.includes(e?.form?.uuid)
+      // )
       ...state.data.results.filter(e =>
-        state.v2FormUuids.includes(e?.form?.uuid)
+        state.formUuids.includes(e?.form?.uuid)
       )
     );
 
