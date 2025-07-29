@@ -255,7 +255,7 @@ workflows:
         source_job: Get-Patients
         target_job: Mappings
         condition_type: on_job_success
-        enabled: false
+        enabled: true
       Get-TEIs-and-Map-Answers->Event-Mappings:
         source_job: Get-TEIs-and-Map-Answers
         target_job: Event-Mappings

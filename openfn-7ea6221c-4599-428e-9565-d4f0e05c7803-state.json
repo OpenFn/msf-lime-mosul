@@ -171,11 +171,89 @@
         }
       }
     },
+    "wf3-omrs-dhis2": {
+      "id": "fb49b01d-dba8-420a-9f4c-b9ca20984ee5",
+      "name": "wf3-omrs-dhis2",
+      "inserted_at": "2025-07-29T07:23:42.167932Z",
+      "lock_version": 35,
+      "triggers": {
+        "cron": {
+          "enabled": false,
+          "id": "cd9ea573-fb86-4ec4-8c39-200c7de22dfb",
+          "type": "cron",
+          "cron_expression": "0 0 * * *"
+        }
+      },
+      "jobs": {
+        "Get-Mappings-from-Collection": {
+          "id": "0acf6701-064d-412d-8672-db507c9e95c6",
+          "name": "Get Mappings from Collection",
+          "body": "const isValidUUID = id => {\n  if (!id || typeof id !== 'string') return false;\n\n  const UUID_PATTERN =\n    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n  return UUID_PATTERN.test(id);\n};\n\ncursor($.lastRunDateTime || $.manualCursor || '2025-06-30T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\ncollections.get('mosul-metadata-mappings-staging').then(state => {\n  state.optsMap = state.data\n    .filter(i => i.key.includes('optsMap-value-'))\n    .map(i => i.value);\n\n  state.identifiers = state.data\n    .filter(i => i.key.includes('identifiers-value-'))\n    .map(i => i.value);\n  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;\n  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value; // filter form maps where formmap.workflow == \"WF3\"\n  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;\n  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;\n  state.fileDateModified = state.data.filter(\n    i => i.key === 'fileDateModified'\n  )?.[0]?.value;\n  state.optionSetKey = state.data.filter(\n    i => i.key === 'optionSetKey'\n  )?.[0]?.value;\n  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;\n  delete state.data\n  delete state.references\n  return state;\n});\n\nfn(state => {\n  const { formMetadata, identifiers, ...rest } = state;\n\n  rest.v2FormUuids = formMetadata\n    .filter(\n      form =>\n        isValidUUID(form['OMRS form.uuid']) &&\n        form['OMRS Form Version'] === 'v4-2025'\n    )\n    .map(form => form['OMRS form.uuid']);\n  rest.formUuids = formMetadata\n    .filter(form => isValidUUID(form['OMRS form.uuid']) && \n            form['Workflow'] === 'WF3')\n    .map(form => form['OMRS form.uuid']);\n\n  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n    'dhis2 attribute id'\n  ];\n\n  rest.patientProgramStage = state.formMaps.patient.programStage;\n\n  rest.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  return rest;\n});\n\nfn(state => {\n  state.genderOptions = state.optsMap\n    .filter(o => o['OptionSet name'] === 'Sex - Patient')\n    .reduce((acc, value) => {\n      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n",
+          "adaptor": "@openfn/language-common@2.1.1",
+          "project_credential_id": "90cddfa1-9b77-4625-a812-2a04d061522c"
+        },
+        "Get-Encounters": {
+          "id": "2b1e02ae-7546-480a-86cc-77a815f61256",
+          "name": "Get Encounters",
+          "body": "// Fetch all encounters\nhttp\n  .get('/ws/fhir2/R4/Encounter', {\n    query: { _count: 100, _lastUpdated: `ge${$.cursor}` },\n  })\n  .then(state => {\n    const { link, total } = state.data;\n    state.nextUrl = link\n      .find(l => l.relation === 'next')\n      ?.url.replace(/(_count=)\\d+/, `$1${total}`)\n      .split('/openmrs')[1];\n\n    state.allResponse = state.data;\n    return state;\n  });\n\nfnIf(\n  $.nextUrl,\n  http.get($.nextUrl).then(state => {\n    console.log(`Fetched ${state.data.entry.length} remaining encounters`);\n    delete state.allResponse.link;\n    state.allResponse.entry.push(...state.data.entry);\n    return state;\n  })\n);\n\n\n\nfn(state => {\n  console.log(\n    'Total # of encounters fetched: ',\n    state.allResponse?.entry?.length\n  );\n  \n  state.patientUuids = [\n    ...new Set(\n      state.allResponse?.entry?.map(p =>\n        p.resource.subject.reference.replace('Patient/', '')\n      )\n    ),\n  ];\n\n  return state;\n});\n\n// Fetch patient encounters\neach(\n  $.patientUuids,\n  get('encounter', { patient: $.data, v: 'full' }).then(state => {\n\n    const patientUuid = state.references.at(-1);\n    const filteredEncounters = state.formUuids.map(formUuid =>\n      state.data?.filter(\n        e =>\n          e.auditInfo.dateCreated >= state.cursor &&\n          e?.form?.uuid === formUuid\n      )\n        .sort(\n          (a, b) =>\n            new Date(b.auditInfo.dateCreated) -\n            new Date(a.auditInfo.dateCreated)\n        )\n    );\n\n    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);\n    state.encounters ??= [];\n    state.encounters.push(...encounters);\n\n    console.log(\n      encounters.length,\n      `# of filtered encounters found in OMRS for ${patientUuid}`\n    );\n\n    return state;\n  })\n);\n\nfn(state => {\n  const {\n    data,\n    index,\n    response,\n    references,\n    allResponse,\n    patientUuids,\n    patients,\n    ...next\n  } = state;\n\n  if (next.encounters?.length) {\n    next.encounters = next.encounters.map(\n      ({ uuid, patient, obs, form, encounterDatetime }) => ({\n        uuid,\n        patient,\n        obs,\n        form,\n        encounterDatetime,\n      })\n    );\n    console.log(next.encounters.length, '# of new encounters to sync to dhis2');\n  } else {\n    console.log('No encounters found for cursor: ', next.cursor);\n  }\n\n\n  // Group encounters by patient UUID\n  next.encountersByPatient = next.encounters?.reduce((acc, obj) => {\n    const key = obj.patient.uuid;\n    if (!acc[key]) {\n      acc[key] = [];\n    }\n    acc[key].push(obj);\n    return acc;\n  }, {});\n\n  return next;\n});\n",
+          "adaptor": "@openfn/language-openmrs@4.3.0",
+          "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
+        },
+        "Create-Events": {
+          "id": "2d668d2e-c513-4b58-88bb-8a2d3261d9a2",
+          "name": "Create Events",
+          "body": "// Create or update events for each encounter\ncreate(\n  \"tracker\",\n  {\n    events: (state) => {\n      console.log(\n        \"Creating events for: \",\n        JSON.stringify(state.eventsMapping, null, 2)\n      );\n      return state.eventsMapping;\n    },\n  },\n  {\n    params: {\n      async: false,\n      dataElementIdScheme: \"UID\",\n      importStrategy: \"CREATE_AND_UPDATE\",\n    },\n  }\n);\n\nfn(({ lastRunDateTime }) => ({ lastRunDateTime }));\n",
+          "adaptor": "@openfn/language-dhis2@5.0.1",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
+        },
+        "Custom-Logic-for-Events": {
+          "id": "782cdfc3-9357-4763-8681-798ae1b29fd1",
+          "name": "Custom Logic for Events",
+          "body": "const f08Form = \"f0bb3bf7-4e0a-3545-afce-a6b33b0378e4\"\nconst f09Form = \"6e1e468b-00b1-3e5d-a8cf-00f45b8fe261\"\n\nconst processAnswer = (\n  answer,\n  conceptUuid,\n  dataElement,\n  optsMap,\n  optionSetKey\n) => {\n  if (typeof answer.value === \"object\") {\n    const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;\n    const matchingOptionSet = optionSetKey[optionKey];\n    const opt = optsMap.find(\n      (o) =>\n        o[\"value.uuid - External ID\"] === answer.value.uuid &&\n        o[\"DHIS2 Option Set UID\"] === matchingOptionSet\n    );\n    const matchingOption =\n      opt?.[\"DHIS2 Option Code\"] ||\n      opt?.[\"DHIS2 Option name\"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.\n      answer?.value?.display; //TODO: revisit this logic if optionSet not found\n\n    // console.log(`matchingOption value: \"${matchingOption}\" for`);\n    // console.log({\n    //   optionKey,\n    //   conceptUid: answer.concept.uuid,\n    //   'answer.value.uid': answer.value.uuid,\n    //   'answer.value.display': answer.value.display,\n    //   matchingOption,\n    //   matchingOptionSet,\n    // });\n\n    if (matchingOption === \"FALSE\" || matchingOption === \"No\") {\n      return \"false\";\n    }\n    if (matchingOption === \"TRUE\" || matchingOption === \"Yes\") {\n      return \"true\";\n    }\n\n    return matchingOption || \"\";\n  }\n\n  return answer.value;\n};\n\nconst processNoAnswer = (encounter, conceptUuid, dataElement) => {\n  const isEncounterDate =\n    conceptUuid === \"encounter-date\" &&\n    [\"CXS4qAJH2qD\", \"I7phgLmRWQq\", \"yUT7HyjWurN\", \"EOFi7nk2vNM\"].includes(\n      dataElement\n    );\n  // These are data elements for encounter date in DHIS2\n  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2\n\n  if (isEncounterDate) {\n    return encounter.encounterDatetime.replace(\"+0000\", \"\");\n  }\n  return \"\";\n};\n\nconst findAnswerByConcept = (encounter, conceptUuid) => {\n  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);\n  return answer?.value?.display;\n};\n\n// Helper functions for finding observations\nconst findObsByConcept = (encounter, conceptUuid) =>\n  encounter.obs.find((o) => o.concept.uuid === conceptUuid);\n\n// Helper function to process dataValues from an encounter\nfunction processEncounterDataValues(encounter, form, state) {\n  return Object.keys(form.dataValueMap)\n    .map((dataElement) => {\n      const conceptUuid = form.dataValueMap[dataElement];\n      const obsAnswer = encounter.obs.find(\n        (o) => o.concept.uuid === conceptUuid\n      );\n      const answer = {\n        ...obsAnswer,\n        formUuid: encounter.form.uuid,\n      };\n      const value = answer\n        ? processAnswer(\n          answer,\n          conceptUuid,\n          dataElement,\n          state.optsMap,\n          state.optionSetKey\n        )\n        : processNoAnswer(encounter, conceptUuid, dataElement);\n\n      return { dataElement, value };\n    })\n    .filter((d) => d);\n}\n\nfn((state) => {\n  state.eventsMapping = Object.entries(state.encountersByPatient)\n    .map(([patientUuid, encounters]) => {\n      // Skip if we don't have exactly 2 encounters\n      if (encounters.length !== 2) return null;\n      \n      // Get the forms for both encounters\n      const form1 = state.formMaps[encounters[0].form.uuid];\n      const form2 = state.formMaps[encounters[1].form.uuid];\n      \n      // Skip if either form doesn't have dataValueMap\n      if (!form1?.dataValueMap || !form2?.dataValueMap) return null;\n      \n      // Combine dataValues from both encounters\n      const formDataValues = [\n        ...processEncounterDataValues(encounters[0], form1, state),\n        ...processEncounterDataValues(encounters[1], form2, state)\n      ];\n      \n      // Use properties from the first encounter for the event metadata\n      // (or choose which encounter to use for each field)\n      return {\n        program: form1.programId,\n        orgUnit: form1.orgUnit,\n        occurredAt: encounters[0].encounterDatetime.replace(\"+0000\", \"\"),\n        programStage: form1.programStage,\n        dataValues: formDataValues,\n        trackedEntityInstance: patientUuid\n      };\n    })\n    .filter(Boolean);\n\n  return state;\n});",
+          "adaptor": "@openfn/language-common@2.1.1",
+          "project_credential_id": null
+        }
+      },
+      "edges": {
+        "cron->Get-Mappings-from-Collection": {
+          "enabled": true,
+          "id": "b143b322-8a83-49c7-8576-0916f03158fb",
+          "target_job_id": "0acf6701-064d-412d-8672-db507c9e95c6",
+          "source_trigger_id": "cd9ea573-fb86-4ec4-8c39-200c7de22dfb",
+          "condition_type": "always"
+        },
+        "Custom-Logic-for-Events->Create-Events": {
+          "enabled": true,
+          "id": "168e2969-4f85-4c05-843c-445ca7102086",
+          "target_job_id": "2d668d2e-c513-4b58-88bb-8a2d3261d9a2",
+          "source_job_id": "782cdfc3-9357-4763-8681-798ae1b29fd1",
+          "condition_type": "js_expression",
+          "condition_label": "has-events",
+          "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors && !state.testMode\n"
+        },
+        "Get-Mappings-from-Collection->Get-Encounters": {
+          "enabled": true,
+          "id": "d9d6c1fb-627e-491e-88b1-ed2575e77de3",
+          "target_job_id": "2b1e02ae-7546-480a-86cc-77a815f61256",
+          "source_job_id": "0acf6701-064d-412d-8672-db507c9e95c6",
+          "condition_type": "on_job_success"
+        },
+        "Get-Encounters->Custom-Logic-for-Events": {
+          "enabled": true,
+          "id": "fa3ca927-4f08-4d46-86f0-8e20745c661a",
+          "target_job_id": "782cdfc3-9357-4763-8681-798ae1b29fd1",
+          "source_job_id": "2b1e02ae-7546-480a-86cc-77a815f61256",
+          "condition_type": "js_expression",
+          "condition_label": "has-encounters",
+          "condition_expression": "!state.errors && state.encounters?.length > 0\n"
+        }
+      }
+    },
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-07-29T06:56:31.367112Z",
-      "lock_version": 106,
+      "inserted_at": "2025-07-29T07:54:36.190901Z",
+      "lock_version": 119,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -188,7 +266,7 @@
         "Get-Patients": {
           "id": "d99463fe-d81f-4aea-8066-49a543874dee",
           "name": "Get Patients",
-          "body": "cursor($.lastRunDateTime || $.manualCursor || '2025-03-20T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', limit: '100' });\n\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\nconst patients = data.results;\n  // const patients = data.results.filter(({ auditInfo }) => {\n  //   const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n  //   return lastModified > cursor;\n  // });\n  // console.log('# of patients to sync to dhis2 ::', patients.length);\n  // console.log(\n  //   'uuids of patients to sync to dhis2 ::',\n  //   patients.map(p => p.uuid)\n  // );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient - log number of patient that are fetched\n\n// get collections neccessary for patient mapping\n\n// map patient here - this will be passed down to next step\n\n// delete the initial patient object and only pass on the mapped one\n",
+          "body": "cursor($.lastRunDateTime || $.manualCursor || '2025-03-20T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\nsearchPatient({ q: 'IQ', v:'full', includeVoided: true, limit: '100' });\n// get(\"patient\", { query: \"IQ\", includeVoided: true, pageSize: 100, max: 10000  })\nfn(state => {\n  const { cursor, data, lastRunDateTime } = state;\n  console.log('Filtering patients since cursor:', cursor);\n// const patients = data.results;\n  const patients = data.results.filter(({ auditInfo }) => {\n    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;\n    return lastModified > cursor;\n  });\n  console.log('# of patients to sync to dhis2 ::', patients.length);\n  console.log(\n    'uuids of patients to sync to dhis2 ::',\n    patients.map(p => p.uuid)\n  );\n\n  return { cursor, lastRunDateTime, patients };\n});\n\n// get patient - log number of patient that are fetched\n\n// get collections neccessary for patient mapping\n\n// map patient here - this will be passed down to next step\n\n// delete the initial patient object and only pass on the mapped one\n",
           "adaptor": "@openfn/language-openmrs@4.3.0",
           "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         },
@@ -296,7 +374,7 @@
           "condition_expression": "state?.teisToUpdate?.length > 0\n"
         },
         "Get-Patients->Mappings": {
-          "enabled": false,
+          "enabled": true,
           "id": "e2f4678d-270b-430c-82f6-b5553c641def",
           "target_job_id": "6f787076-7706-4104-834e-29340029c5ee",
           "source_job_id": "d99463fe-d81f-4aea-8066-49a543874dee",
@@ -319,84 +397,6 @@
           "condition_type": "js_expression",
           "condition_label": "has-events",
           "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors && !state.testMode\n"
-        }
-      }
-    },
-    "wf3-omrs-dhis2": {
-      "id": "fb49b01d-dba8-420a-9f4c-b9ca20984ee5",
-      "name": "wf3-omrs-dhis2",
-      "inserted_at": "2025-07-29T07:23:42.167932Z",
-      "lock_version": 35,
-      "triggers": {
-        "cron": {
-          "enabled": false,
-          "id": "cd9ea573-fb86-4ec4-8c39-200c7de22dfb",
-          "type": "cron",
-          "cron_expression": "0 0 * * *"
-        }
-      },
-      "jobs": {
-        "Get-Mappings-from-Collection": {
-          "id": "0acf6701-064d-412d-8672-db507c9e95c6",
-          "name": "Get Mappings from Collection",
-          "body": "const isValidUUID = id => {\n  if (!id || typeof id !== 'string') return false;\n\n  const UUID_PATTERN =\n    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n  return UUID_PATTERN.test(id);\n};\n\ncursor($.lastRunDateTime || $.manualCursor || '2025-06-30T06:01:24.000Z');\n\ncursor('today', {\n  key: 'lastRunDateTime',\n  format: c => dateFns.format(new Date(c), \"yyyy-MM-dd'T'HH:mm:ss.SSS'Z'\"),\n});\n\ncollections.get('mosul-metadata-mappings-staging').then(state => {\n  state.optsMap = state.data\n    .filter(i => i.key.includes('optsMap-value-'))\n    .map(i => i.value);\n\n  state.identifiers = state.data\n    .filter(i => i.key.includes('identifiers-value-'))\n    .map(i => i.value);\n  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;\n  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value; // filter form maps where formmap.workflow == \"WF3\"\n  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;\n  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;\n  state.fileDateModified = state.data.filter(\n    i => i.key === 'fileDateModified'\n  )?.[0]?.value;\n  state.optionSetKey = state.data.filter(\n    i => i.key === 'optionSetKey'\n  )?.[0]?.value;\n  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;\n  delete state.data\n  delete state.references\n  return state;\n});\n\nfn(state => {\n  const { formMetadata, identifiers, ...rest } = state;\n\n  rest.v2FormUuids = formMetadata\n    .filter(\n      form =>\n        isValidUUID(form['OMRS form.uuid']) &&\n        form['OMRS Form Version'] === 'v4-2025'\n    )\n    .map(form => form['OMRS form.uuid']);\n  rest.formUuids = formMetadata\n    .filter(form => isValidUUID(form['OMRS form.uuid']) && \n            form['Workflow'] === 'WF3')\n    .map(form => form['OMRS form.uuid']);\n\n  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n    'dhis2 attribute id'\n  ];\n\n  rest.patientProgramStage = state.formMaps.patient.programStage;\n\n  rest.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  return rest;\n});\n\nfn(state => {\n  state.genderOptions = state.optsMap\n    .filter(o => o['OptionSet name'] === 'Sex - Patient')\n    .reduce((acc, value) => {\n      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n",
-          "adaptor": "@openfn/language-common@2.1.1",
-          "project_credential_id": "90cddfa1-9b77-4625-a812-2a04d061522c"
-        },
-        "Get-Encounters": {
-          "id": "2b1e02ae-7546-480a-86cc-77a815f61256",
-          "name": "Get Encounters",
-          "body": "// Fetch all encounters\nhttp\n  .get('/ws/fhir2/R4/Encounter', {\n    query: { _count: 100, _lastUpdated: `ge${$.cursor}` },\n  })\n  .then(state => {\n    const { link, total } = state.data;\n    state.nextUrl = link\n      .find(l => l.relation === 'next')\n      ?.url.replace(/(_count=)\\d+/, `$1${total}`)\n      .split('/openmrs')[1];\n\n    state.allResponse = state.data;\n    return state;\n  });\n\nfnIf(\n  $.nextUrl,\n  http.get($.nextUrl).then(state => {\n    console.log(`Fetched ${state.data.entry.length} remaining encounters`);\n    delete state.allResponse.link;\n    state.allResponse.entry.push(...state.data.entry);\n    return state;\n  })\n);\n\n\n\nfn(state => {\n  console.log(\n    'Total # of encounters fetched: ',\n    state.allResponse?.entry?.length\n  );\n  \n  state.patientUuids = [\n    ...new Set(\n      state.allResponse?.entry?.map(p =>\n        p.resource.subject.reference.replace('Patient/', '')\n      )\n    ),\n  ];\n\n  return state;\n});\n\n// Fetch patient encounters\neach(\n  $.patientUuids,\n  get('encounter', { patient: $.data, v: 'full' }).then(state => {\n\n    const patientUuid = state.references.at(-1);\n    const filteredEncounters = state.formUuids.map(formUuid =>\n      state.data?.filter(\n        e =>\n          e.auditInfo.dateCreated >= state.cursor &&\n          e?.form?.uuid === formUuid\n      )\n        .sort(\n          (a, b) =>\n            new Date(b.auditInfo.dateCreated) -\n            new Date(a.auditInfo.dateCreated)\n        )\n    );\n\n    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);\n    state.encounters ??= [];\n    state.encounters.push(...encounters);\n\n    console.log(\n      encounters.length,\n      `# of filtered encounters found in OMRS for ${patientUuid}`\n    );\n\n    return state;\n  })\n);\n\nfn(state => {\n  const {\n    data,\n    index,\n    response,\n    references,\n    allResponse,\n    patientUuids,\n    patients,\n    ...next\n  } = state;\n\n  if (next.encounters?.length) {\n    next.encounters = next.encounters.map(\n      ({ uuid, patient, obs, form, encounterDatetime }) => ({\n        uuid,\n        patient,\n        obs,\n        form,\n        encounterDatetime,\n      })\n    );\n    console.log(next.encounters.length, '# of new encounters to sync to dhis2');\n  } else {\n    console.log('No encounters found for cursor: ', next.cursor);\n  }\n\n\n  // Group encounters by patient UUID\n  next.encountersByPatient = next.encounters?.reduce((acc, obj) => {\n    const key = obj.patient.uuid;\n    if (!acc[key]) {\n      acc[key] = [];\n    }\n    acc[key].push(obj);\n    return acc;\n  }, {});\n\n  return next;\n});\n",
-          "adaptor": "@openfn/language-openmrs@4.3.0",
-          "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
-        },
-        "Create-Events": {
-          "id": "2d668d2e-c513-4b58-88bb-8a2d3261d9a2",
-          "name": "Create Events",
-          "body": "// Create or update events for each encounter\ncreate(\n  \"tracker\",\n  {\n    events: (state) => {\n      console.log(\n        \"Creating events for: \",\n        JSON.stringify(state.eventsMapping, null, 2)\n      );\n      return state.eventsMapping;\n    },\n  },\n  {\n    params: {\n      async: false,\n      dataElementIdScheme: \"UID\",\n      importStrategy: \"CREATE_AND_UPDATE\",\n    },\n  }\n);\n\nfn(({ lastRunDateTime }) => ({ lastRunDateTime }));\n",
-          "adaptor": "@openfn/language-dhis2@5.0.1",
-          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
-        },
-        "Custom-Logic-for-Events": {
-          "id": "782cdfc3-9357-4763-8681-798ae1b29fd1",
-          "name": "Custom Logic for Events",
-          "body": "const f08Form = \"f0bb3bf7-4e0a-3545-afce-a6b33b0378e4\"\nconst f09Form = \"6e1e468b-00b1-3e5d-a8cf-00f45b8fe261\"\n\nconst processAnswer = (\n  answer,\n  conceptUuid,\n  dataElement,\n  optsMap,\n  optionSetKey\n) => {\n  if (typeof answer.value === \"object\") {\n    const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;\n    const matchingOptionSet = optionSetKey[optionKey];\n    const opt = optsMap.find(\n      (o) =>\n        o[\"value.uuid - External ID\"] === answer.value.uuid &&\n        o[\"DHIS2 Option Set UID\"] === matchingOptionSet\n    );\n    const matchingOption =\n      opt?.[\"DHIS2 Option Code\"] ||\n      opt?.[\"DHIS2 Option name\"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.\n      answer?.value?.display; //TODO: revisit this logic if optionSet not found\n\n    // console.log(`matchingOption value: \"${matchingOption}\" for`);\n    // console.log({\n    //   optionKey,\n    //   conceptUid: answer.concept.uuid,\n    //   'answer.value.uid': answer.value.uuid,\n    //   'answer.value.display': answer.value.display,\n    //   matchingOption,\n    //   matchingOptionSet,\n    // });\n\n    if (matchingOption === \"FALSE\" || matchingOption === \"No\") {\n      return \"false\";\n    }\n    if (matchingOption === \"TRUE\" || matchingOption === \"Yes\") {\n      return \"true\";\n    }\n\n    return matchingOption || \"\";\n  }\n\n  return answer.value;\n};\n\nconst processNoAnswer = (encounter, conceptUuid, dataElement) => {\n  const isEncounterDate =\n    conceptUuid === \"encounter-date\" &&\n    [\"CXS4qAJH2qD\", \"I7phgLmRWQq\", \"yUT7HyjWurN\", \"EOFi7nk2vNM\"].includes(\n      dataElement\n    );\n  // These are data elements for encounter date in DHIS2\n  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2\n\n  if (isEncounterDate) {\n    return encounter.encounterDatetime.replace(\"+0000\", \"\");\n  }\n  return \"\";\n};\n\nconst findAnswerByConcept = (encounter, conceptUuid) => {\n  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);\n  return answer?.value?.display;\n};\n\n// Helper functions for finding observations\nconst findObsByConcept = (encounter, conceptUuid) =>\n  encounter.obs.find((o) => o.concept.uuid === conceptUuid);\n\n// Helper function to process dataValues from an encounter\nfunction processEncounterDataValues(encounter, form, state) {\n  return Object.keys(form.dataValueMap)\n    .map((dataElement) => {\n      const conceptUuid = form.dataValueMap[dataElement];\n      const obsAnswer = encounter.obs.find(\n        (o) => o.concept.uuid === conceptUuid\n      );\n      const answer = {\n        ...obsAnswer,\n        formUuid: encounter.form.uuid,\n      };\n      const value = answer\n        ? processAnswer(\n          answer,\n          conceptUuid,\n          dataElement,\n          state.optsMap,\n          state.optionSetKey\n        )\n        : processNoAnswer(encounter, conceptUuid, dataElement);\n\n      return { dataElement, value };\n    })\n    .filter((d) => d);\n}\n\nfn((state) => {\n  state.eventsMapping = Object.entries(state.encountersByPatient)\n    .map(([patientUuid, encounters]) => {\n      // Skip if we don't have exactly 2 encounters\n      if (encounters.length !== 2) return null;\n      \n      // Get the forms for both encounters\n      const form1 = state.formMaps[encounters[0].form.uuid];\n      const form2 = state.formMaps[encounters[1].form.uuid];\n      \n      // Skip if either form doesn't have dataValueMap\n      if (!form1?.dataValueMap || !form2?.dataValueMap) return null;\n      \n      // Combine dataValues from both encounters\n      const formDataValues = [\n        ...processEncounterDataValues(encounters[0], form1, state),\n        ...processEncounterDataValues(encounters[1], form2, state)\n      ];\n      \n      // Use properties from the first encounter for the event metadata\n      // (or choose which encounter to use for each field)\n      return {\n        program: form1.programId,\n        orgUnit: form1.orgUnit,\n        occurredAt: encounters[0].encounterDatetime.replace(\"+0000\", \"\"),\n        programStage: form1.programStage,\n        dataValues: formDataValues,\n        trackedEntityInstance: patientUuid\n      };\n    })\n    .filter(Boolean);\n\n  return state;\n});",
-          "adaptor": "@openfn/language-common@2.1.1",
-          "project_credential_id": null
-        }
-      },
-      "edges": {
-        "cron->Get-Mappings-from-Collection": {
-          "enabled": true,
-          "id": "b143b322-8a83-49c7-8576-0916f03158fb",
-          "target_job_id": "0acf6701-064d-412d-8672-db507c9e95c6",
-          "source_trigger_id": "cd9ea573-fb86-4ec4-8c39-200c7de22dfb",
-          "condition_type": "always"
-        },
-        "Custom-Logic-for-Events->Create-Events": {
-          "enabled": true,
-          "id": "168e2969-4f85-4c05-843c-445ca7102086",
-          "target_job_id": "2d668d2e-c513-4b58-88bb-8a2d3261d9a2",
-          "source_job_id": "782cdfc3-9357-4763-8681-798ae1b29fd1",
-          "condition_type": "js_expression",
-          "condition_label": "has-events",
-          "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors && !state.testMode\n"
-        },
-        "Get-Mappings-from-Collection->Get-Encounters": {
-          "enabled": true,
-          "id": "d9d6c1fb-627e-491e-88b1-ed2575e77de3",
-          "target_job_id": "2b1e02ae-7546-480a-86cc-77a815f61256",
-          "source_job_id": "0acf6701-064d-412d-8672-db507c9e95c6",
-          "condition_type": "on_job_success"
-        },
-        "Get-Encounters->Custom-Logic-for-Events": {
-          "enabled": true,
-          "id": "fa3ca927-4f08-4d46-86f0-8e20745c661a",
-          "target_job_id": "782cdfc3-9357-4763-8681-798ae1b29fd1",
-          "source_job_id": "2b1e02ae-7546-480a-86cc-77a815f61256",
-          "condition_type": "js_expression",
-          "condition_label": "has-encounters",
-          "condition_expression": "!state.errors && state.encounters?.length > 0\n"
         }
       }
     }

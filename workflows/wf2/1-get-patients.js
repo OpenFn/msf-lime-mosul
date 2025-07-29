@@ -5,21 +5,21 @@ cursor('today', {
   format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: 'IQ', limit: '100' });
-
+searchPatient({ q: 'IQ', v:'full', includeVoided: true, limit: '100' });
+// get("patient", { query: "IQ", includeVoided: true, pageSize: 100, max: 10000  })
 fn(state => {
   const { cursor, data, lastRunDateTime } = state;
   console.log('Filtering patients since cursor:', cursor);
-const patients = data.results;
-  // const patients = data.results.filter(({ auditInfo }) => {
-  //   const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-  //   return lastModified > cursor;
-  // });
-  // console.log('# of patients to sync to dhis2 ::', patients.length);
-  // console.log(
-  //   'uuids of patients to sync to dhis2 ::',
-  //   patients.map(p => p.uuid)
-  // );
+// const patients = data.results;
+  const patients = data.results.filter(({ auditInfo }) => {
+    const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+    return lastModified > cursor;
+  });
+  console.log('# of patients to sync to dhis2 ::', patients.length);
+  console.log(
+    'uuids of patients to sync to dhis2 ::',
+    patients.map(p => p.uuid)
+  );
 
   return { cursor, lastRunDateTime, patients };
 });
