@@ -277,31 +277,66 @@ workflows:
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
     jobs:
-      Get-Mappings-from-Collection:
-        name: Get Mappings from Collection
-        adaptor: '@openfn/language-common@2.1.1'
-        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+      Get-Patients:
+        name: Get Patients
+        adaptor: '@openfn/language-openmrs@4.3.0'
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
-          const isValidUUID = id => {
-            if (!id || typeof id !== 'string') return false;
-
-            const UUID_PATTERN =
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            return UUID_PATTERN.test(id);
-          };
-
-          cursor($.lastRunDateTime || $.manualCursor || '2025-06-30T06:01:24.000Z');
-
+          // Enable test mode
+          const testMode = false
+          
+          cursor($.lastRunDateTime || $.manualCursor || '2025-03-20T06:01:24.000Z');
+          
           cursor('today', {
             key: 'lastRunDateTime',
             format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           });
-
+          
+          searchPatient({ q: 'IQ', v: 'full', includeVoide: true, limit: '100' });
+          
+          fn(state => {
+            const { cursor, data, lastRunDateTime } = state;
+            console.log('Filtering patients since cursor:', cursor);
+          
+            const patients = data.results.filter(({ auditInfo }) => {
+              const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+              return lastModified > cursor;
+            });
+            console.log('# of patients to sync to dhis2 ::', patients.length);
+            console.log(
+              'uuids of patients to sync to dhis2 ::',
+              patients.map(p => p.uuid)
+            );
+          
+            return { cursor, lastRunDateTime, patients, testMode };
+          });
+          
+          // get patient - log number of patient that are fetched
+          
+          // get collections neccessary for patient mapping
+          
+          // map patient here - this will be passed down to next step
+          
+          // delete the initial patient object and only pass on the mapped one
+          
+      Get-Mappings-from-Collection:
+        name: Get Mappings from Collection
+        adaptor: '@openfn/language-common@2.3.0'
+        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        body: |
+          const isValidUUID = id => {
+            if (!id || typeof id !== 'string') return false;
+          
+            const UUID_PATTERN =
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            return UUID_PATTERN.test(id);
+          };
+          
           collections.get('mosul-metadata-mappings-staging').then(state => {
             state.optsMap = state.data
               .filter(i => i.key.includes('optsMap-value-'))
               .map(i => i.value);
-
+          
             state.identifiers = state.data
               .filter(i => i.key.includes('identifiers-value-'))
               .map(i => i.value);
@@ -320,10 +355,11 @@ workflows:
             delete state.references
             return state;
           });
-
+          
+          
           fn(state => {
             const { formMetadata, identifiers, ...rest } = state;
-
+          
             rest.v2FormUuids = formMetadata
               .filter(
                 form =>
@@ -332,27 +368,33 @@ workflows:
               )
               .map(form => form['OMRS form.uuid']);
             rest.formUuids = formMetadata
-              .filter(form => isValidUUID(form['OMRS form.uuid']) && 
-                      form['Workflow'] === 'WF3')
+              .filter(form => isValidUUID(form['OMRS form.uuid']) &&
+                form['Workflow'] === 'WF3')
               .map(form => form['OMRS form.uuid']);
-
-            rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-              'dhis2 attribute id'
-            ];
-
+          
+            // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+            //   'dhis2 attribute id'
+            // ];
+          
+            rest.orgUnit = "sUpt0j2GmBD"
+          
+          
+            rest.program = "dWdzxMuKa8Z"
+          
             rest.patientProgramStage = state.formMaps.patient.programStage;
-
+          
             rest.dhis2PatientNumber = identifiers.find(
               i => i.type === 'DHIS2_PATIENT_NUMBER'
             )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number
-
+          
             rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[
               'omrs identifierType'
             ]; //MSF ID or OpenMRS Patient Number
-
+          
             return rest;
           });
-
+          
+          
           fn(state => {
             state.genderOptions = state.optsMap
               .filter(o => o['OptionSet name'] === 'Sex - Patient')
@@ -360,10 +402,170 @@ workflows:
                 acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];
                 return acc;
               }, {});
-
+          
             return state;
           });
-
+          
+      Upsert-TEIs:
+        name: Upsert TEIs
+        adaptor: '@openfn/language-dhis2@5.0.1'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          const buildPatientsUpsert = (state, patient, isNewPatient) => {
+            const { placeOflivingMap, genderOptions } = state;
+            const dateCreated = patient.auditInfo.dateCreated.substring(0, 10);
+            const findIdentifierByUuid = (identifiers, targetUuid) =>
+              identifiers.find(i => i.identifierType.uuid === targetUuid)?.identifier;
+          
+            const enrollments = [
+              {
+                orgUnit: state.orgUnit,
+                program: state.program, // searching by MH program but change this EMR
+                programStage: state.patientProgramStage, //'MdTtRixaC1B',
+                enrollmentDate: dateCreated,
+              },
+            ];
+          
+            const findOptsUuid = uuid =>
+              patient.person.attributes.find(a => a.attributeType.uuid === uuid)?.value
+                ?.uuid ||
+              patient.person.attributes.find(a => a.attributeType.uuid === uuid)?.value;
+          
+            const findOptCode = optUuid =>
+              state.optsMap.find(o => o['value.uuid - External ID'] === optUuid)?.[
+                'DHIS2 Option Code'
+              ];
+          
+            const patientMap = state.formMaps.patient.dataValueMap;
+            const statusAttrMaps = Object.keys(patientMap).map(d => {
+              const optUid = findOptsUuid(patientMap[d]);
+              return {
+                attribute: d,
+                value: findOptCode(optUid) || optUid,
+              };
+            });
+          
+            const standardAttr = [
+              {
+                attribute: 'fa7uwpCKIwa',
+                value: patient.person?.names[0]?.givenName,
+              },
+              {
+                attribute: 'Jt9BhFZkvP2',
+                value: patient.person?.names[0]?.familyName,
+              },
+              {
+                attribute: 'P4wdYGkldeG', //DHIS2 ID ==> "Patient Number"
+                value:
+                  findIdentifierByUuid(patient.identifiers, state.dhis2PatientNumber) ||
+                  findIdentifierByUuid(patient.identifiers, state.openmrsAutoId), //map OMRS ID if no DHIS2 id
+              },
+              {
+                attribute: 'ZBoxuExmxcZ', //MSF ID ==> "OpenMRS Patient Number"
+                value: findIdentifierByUuid(patient.identifiers, state.openmrsAutoId),
+              },
+              {
+                attribute: 'AYbfTPYMNJH', //"OpenMRS Patient UID"
+                value: patient.uuid,
+              },
+              {
+                attribute: 'qptKDiv9uPl',
+                value: genderOptions[patient.person.gender],
+              },
+              {
+                attribute: 'T1iX2NuPyqS',
+                value: patient.person.age,
+              },
+              {
+                attribute: 'WDp4nVor9Z7',
+                value: patient.person.birthdate?.slice(0, 10),
+              },
+              {
+                attribute: 'rBtrjV1Mqkz', //Place of living
+                value: placeOflivingMap[patient.person?.addresses[0]?.cityVillage],
+              },
+            ];
+          
+            //filter out attributes that don't have a value from dhis2
+            const filteredAttr = standardAttr.filter(a => a.value);
+            const filteredStatusAttr = statusAttrMaps.filter(a => a.value);
+            //console.log('standardAttr ::', JSON.stringify(standardAttr, null,2))
+            //console.log('filteredAttr ::', JSON.stringify(filteredAttr, null,2))
+          
+            const payload = {
+              query: {
+                ou: state.orgUnit,
+                program: state.program,
+                filter: [`AYbfTPYMNJH:Eq:${patient.uuid}`], //upsert on omrs.patient.uid
+              },
+              data: {
+                program: state.program,
+                orgUnit: state.orgUnit,
+                trackedEntityType: 'cHlzCA2MuEF',
+                attributes: [...filteredAttr, ...filteredStatusAttr],
+              },
+            };
+          
+            // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
+          
+            if (isNewPatient) {
+              console.log('create enrollment');
+              payload.data.enrollments = enrollments;
+            }
+          
+            return payload;
+          };
+          
+          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+          
+          each(
+            $.patients,
+            get(
+              'tracker/trackedEntities',
+              {
+                orgUnit: $.orgUnit,
+                filter: [`AYbfTPYMNJH:Eq:${$.data?.uuid}`],
+                program: $.program,
+              },
+              {},
+              async state => {
+                const patient = state.references.at(-1);
+                console.log(patient.uuid, 'patient uuid');
+          
+                const isNewPatient = state.data.instances.length === 0;
+          
+                state.patientsUpsert ??= [];
+                state.patientsUpsert.push(
+                  buildPatientsUpsert(state, patient, isNewPatient)
+                );
+                await delay(2000);
+                return state;
+              }
+            )
+          );
+          
+          // Upsert TEIs to DHIS2
+          each(
+            $.patientsUpsert,
+            upsert('trackedEntityInstances', $.data.query, $.data.data)
+          );
+          fn(state => {
+            const {
+              data,
+              response,
+              references,
+              patients,
+              patientsUpsert,
+              placeOflivingMap,
+              genderOptions,
+              identifiers,
+              ...next
+            } = state;
+          
+            next.patientUuids = patients.map(p => p.uuid);
+            return next;
+          });
+          
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
@@ -380,11 +582,11 @@ workflows:
                 .find(l => l.relation === 'next')
                 ?.url.replace(/(_count=)\d+/, `$1${total}`)
                 .split('/openmrs')[1];
-
+          
               state.allResponse = state.data;
               return state;
             });
-
+          
           fnIf(
             $.nextUrl,
             http.get($.nextUrl).then(state => {
@@ -394,15 +596,15 @@ workflows:
               return state;
             })
           );
-
-
-
+          
+          
+          
           fn(state => {
             console.log(
               'Total # of encounters fetched: ',
               state.allResponse?.entry?.length
             );
-            
+          
             state.patientUuids = [
               ...new Set(
                 state.allResponse?.entry?.map(p =>
@@ -410,18 +612,19 @@ workflows:
                 )
               ),
             ];
-
+          
             return state;
           });
-
+          
+          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
           // Fetch patient encounters
           each(
             $.patientUuids,
             get('encounter', { patient: $.data, v: 'full' }).then(state => {
-
+          
               const patientUuid = state.references.at(-1);
               const filteredEncounters = state.formUuids.map(formUuid =>
-                state.data?.filter(
+                state?.data?.results.filter(
                   e =>
                     e.auditInfo.dateCreated >= state.cursor &&
                     e?.form?.uuid === formUuid
@@ -432,20 +635,21 @@ workflows:
                       new Date(a.auditInfo.dateCreated)
                   )
               );
-
+          
               const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
               state.encounters ??= [];
               state.encounters.push(...encounters);
-
+          
               console.log(
                 encounters.length,
                 `# of filtered encounters found in OMRS for ${patientUuid}`
               );
-
+              delay(1500)
+          
               return state;
             })
           );
-
+          
           fn(state => {
             const {
               data,
@@ -457,7 +661,7 @@ workflows:
               patients,
               ...next
             } = state;
-
+          
             if (next.encounters?.length) {
               next.encounters = next.encounters.map(
                 ({ uuid, patient, obs, form, encounterDatetime }) => ({
@@ -472,8 +676,8 @@ workflows:
             } else {
               console.log('No encounters found for cursor: ', next.cursor);
             }
-
-
+          
+          
             // Group encounters by patient UUID
             next.encountersByPatient = next.encounters?.reduce((acc, obj) => {
               const key = obj.patient.uuid;
@@ -483,18 +687,54 @@ workflows:
               acc[key].push(obj);
               return acc;
             }, {});
-
+          
             return next;
           });
-
+          
+      Get-TEIs-and-Map-Answers:
+        name: Get TEIs and Map Answers
+        adaptor: '@openfn/language-dhis2@5.0.1'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+          
+          //TODO: Group the encounters by patient and then get the TEI for each patient
+          each(
+            $.encounters,
+            get('tracker/trackedEntities', state => ({
+              orgUnit: $.orgUnit,
+              program: $.program,
+              // orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+              // program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+              filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
+              fields: '*,enrollments[*],enrollments[events[*]], attributes[*]',
+            })).then(async state => {
+              const encounter = state.references.at(-1);
+              console.log(encounter.patient.uuid, 'Encounter patient uuid');
+          
+              const { trackedEntity, enrollments, attributes } = state.data?.instances?.[0] || {};
+              if (trackedEntity && enrollments) {
+                state.TEIs ??= {};
+                state.TEIs[encounter.patient.uuid] = {
+                  trackedEntity,
+                  events: enrollments[0]?.events,
+                  enrollment: enrollments[0]?.enrollment,
+                  attributes
+                };
+              }
+          
+              await delay(2000);
+              return state;
+            })
+          );
+          
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
-          // Create or update events for each encounter
-          create(
-            "tracker",
+          // Create or update events for each encounter create(
+          create("tracker",
             {
               events: (state) => {
                 console.log(
@@ -512,17 +752,16 @@ workflows:
               },
             }
           );
-
           fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
-
+          
       Custom-Logic-for-Events:
         name: Custom Logic for Events
         adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body: |
-          const f08Form = "f0bb3bf7-4e0a-3545-afce-a6b33b0378e4"
-          const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261"
-
+          const f08Form = "f0bb3bf7-4e0a-3545-afce-a6b33b0378e4";
+          const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261";
+          
           const processAnswer = (
             answer,
             conceptUuid,
@@ -542,7 +781,7 @@ workflows:
                 opt?.["DHIS2 Option Code"] ||
                 opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
                 answer?.value?.display; //TODO: revisit this logic if optionSet not found
-
+          
               // console.log(`matchingOption value: "${matchingOption}" for`);
               // console.log({
               //   optionKey,
@@ -552,20 +791,20 @@ workflows:
               //   matchingOption,
               //   matchingOptionSet,
               // });
-
+          
               if (matchingOption === "FALSE" || matchingOption === "No") {
                 return "false";
               }
               if (matchingOption === "TRUE" || matchingOption === "Yes") {
                 return "true";
               }
-
+          
               return matchingOption || "";
             }
-
+          
             return answer.value;
           };
-
+          
           const processNoAnswer = (encounter, conceptUuid, dataElement) => {
             const isEncounterDate =
               conceptUuid === "encounter-date" &&
@@ -574,22 +813,22 @@ workflows:
               );
             // These are data elements for encounter date in DHIS2
             // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
-
+          
             if (isEncounterDate) {
               return encounter.encounterDatetime.replace("+0000", "");
             }
             return "";
           };
-
+          
           const findAnswerByConcept = (encounter, conceptUuid) => {
             const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
             return answer?.value?.display;
           };
-
+          
           // Helper functions for finding observations
           const findObsByConcept = (encounter, conceptUuid) =>
             encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-
+          
           // Helper function to process dataValues from an encounter
           function processEncounterDataValues(encounter, form, state) {
             return Object.keys(form.dataValueMap)
@@ -598,6 +837,7 @@ workflows:
                 const obsAnswer = encounter.obs.find(
                   (o) => o.concept.uuid === conceptUuid
                 );
+          
                 const answer = {
                   ...obsAnswer,
                   formUuid: encounter.form.uuid,
@@ -611,31 +851,75 @@ workflows:
                     state.optionSetKey
                   )
                   : processNoAnswer(encounter, conceptUuid, dataElement);
-
+          
                 return { dataElement, value };
               })
               .filter((d) => d);
           }
-
+          
           fn((state) => {
             state.eventsMapping = Object.entries(state.encountersByPatient)
               .map(([patientUuid, encounters]) => {
                 // Skip if we don't have exactly 2 encounters
                 if (encounters.length !== 2) return null;
-                
+          
+          
                 // Get the forms for both encounters
                 const form1 = state.formMaps[encounters[0].form.uuid];
                 const form2 = state.formMaps[encounters[1].form.uuid];
-                
+          
                 // Skip if either form doesn't have dataValueMap
                 if (!form1?.dataValueMap || !form2?.dataValueMap) return null;
-                
+                const f8Encounter = encounters.find(e => e.form.uuid === f08Form)
+                const obsDatetime = findObsByConcept(f8Encounter, '7f00c65d-de60-467a-8964-fe80c7a85ef0')?.obsDatetime
+          
+                const datePart = obsDatetime.substring(0, 10);
+                const timePart = obsDatetime.substring(11, 19);
+                const f8Mapping = [
+                  {
+                    dataElement: "yprMS34o8s3",
+                    value: f8Encounter.encounterDatetime
+                  },
+                  {
+                    dataElement: "iQio7NYSA3m",
+                    value: datePart
+                  },
+                  {
+                    dataElement: "yprMS34o8s3",
+                    value: timePart
+                  }
+                ]
+          
+          
+                const tei = state.TEIs[patientUuid];
+                console.log({ tei, patientUuid })
+          
+                const attributeMap = {
+                  "Lg1LrNf9LQR": "qptKDiv9uPl",
+                  "OVo3FxLURtH": "k26cdlS78i9",
+                  "f3n6kIB9IbI": "Rv8WM2mTuS5",
+                  "oc9zlhOoWmP": "YUIQIA2ClN6",
+                  "DbyD9bbGIvE": "Qq6xQ2s6LO8",
+                  "fiPFww1viBB": "rBtrjV1Mqkz",
+                  "FsL5BjQocuo": "Xvzc9e0JJmp"
+                };
+          
+                const f9Mapping = Object.entries(attributeMap)
+                  .map(([dataElement, attributeId]) => {
+                    const value = tei?.attributes?.find(attr => attr.attribute === attributeId)?.value;
+          
+                    return { dataElement, value };
+                  })
+                  .filter(Boolean);
+          
                 // Combine dataValues from both encounters
                 const formDataValues = [
+                  ...f8Mapping,
+                  ...f9Mapping,
                   ...processEncounterDataValues(encounters[0], form1, state),
-                  ...processEncounterDataValues(encounters[1], form2, state)
-                ];
-                
+                  ...processEncounterDataValues(encounters[1], form2, state),
+                ].filter(d => d.value)
+          
                 // Use properties from the first encounter for the event metadata
                 // (or choose which encounter to use for each field)
                 return {
@@ -644,23 +928,94 @@ workflows:
                   occurredAt: encounters[0].encounterDatetime.replace("+0000", ""),
                   programStage: form1.programStage,
                   dataValues: formDataValues,
-                  trackedEntityInstance: patientUuid
+                  trackedEntityInstance: patientUuid,
                 };
               })
               .filter(Boolean);
-
+          
             return state;
           });
+          
+      Get-Tie:
+        name: Get Tie
+        adaptor: '@openfn/language-dhis2@7.1.3'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+          
+          const patientUid = "d464433d-41d5-482f-808c-7fe364847352"
+          //TODO: Group the encounters by patient and then get the TEI for each patient
+          get('tracker/trackedEntities', state => ({
+            orgUnit: "sUpt0j2GmBD",
+            program: "dWdzxMuKa8Z",
+            // orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+            // program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+            filter: [`AYbfTPYMNJH:Eq:${patientUid}`],
+            fields: '*,enrollments[*],enrollments[events[*]], attributes[*]',
+          })).then(async state => {
+            
+            console.log(patientUid, 'Encounter patient uuid');
+          
+            const { trackedEntity, enrollments, attributes } = state.data?.instances?.[0] || {};
+            if (trackedEntity && enrollments) {
+              state.TEIs ??= {};
+              state.TEIs[patientUid] = {
+                trackedEntity,
+                events: enrollments[0]?.events,
+                enrollment: enrollments[0]?.enrollment,
+                attributes
+              };
+            }
+          
+            await delay(2000);
+            return state;
+          })
     triggers:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      cron->Get-Mappings-from-Collection:
-        source_trigger: cron
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+          
+        enabled: true
+      Get-Mappings-from-Collection->Get-Encounters:
+        source_job: Get-Mappings-from-Collection
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
+          
+        enabled: true
+      Get-Patients->Get-Mappings-from-Collection:
+        source_job: Get-Patients
         target_job: Get-Mappings-from-Collection
-        condition_type: always
+        condition_type: on_job_success
+        enabled: true
+      Get-TEIs-and-Map-Answers->Custom-Logic-for-Events:
+        source_job: Get-TEIs-and-Map-Answers
+        target_job: Custom-Logic-for-Events
+        condition_type: js_expression
+        condition_label: has-teis
+        condition_expression: |
+          state.TEIs && !state.errors
+          
+        enabled: true
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state?.encounters?.length > 0
+          
         enabled: true
       Custom-Logic-for-Events->Create-Events:
         source_job: Custom-Logic-for-Events
@@ -669,19 +1024,27 @@ workflows:
         condition_label: has-events
         condition_expression: |
           state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
-
+          
+        enabled: false
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
         enabled: true
-      Get-Mappings-from-Collection->Get-Encounters:
+      Get-Mappings-from-Collection->Upsert-TEIs:
         source_job: Get-Mappings-from-Collection
-        target_job: Get-Encounters
-        condition_type: on_job_success
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+          
         enabled: true
-      Get-Encounters->Custom-Logic-for-Events:
-        source_job: Get-Encounters
+      Get-Tie->Custom-Logic-for-Events:
+        source_job: Get-Tie
         target_job: Custom-Logic-for-Events
         condition_type: js_expression
-        condition_label: has-encounters
+        condition_label: test-mode
         condition_expression: |
-          !state.errors && state.encounters?.length > 0
-
+          state.testMode
         enabled: true
