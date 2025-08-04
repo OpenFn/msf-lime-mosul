@@ -7,7 +7,7 @@ credentials:
   aisha@openfn.org-MSF-OMRS-admin:
     name: MSF OMRS admin
     owner: aisha@openfn.org
-  'mtuchi@openfn.org-Collections-Config[Mtuchi]':
+  "mtuchi@openfn.org-Collections-Config[Mtuchi]":
     name: 'Collections Config[Mtuchi]'
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-MSF-DHIS2-UAT:
@@ -26,8 +26,8 @@ credentials:
     name: mtuchi-github-token
     owner: mtuchi@openfn.org
 workflows:
-  130-wf2-omrs-dhis2:
-    name: 130-wf2-omrs-dhis2
+  130-wf2-omrs-dhis2-new:
+    name: 130-wf2-omrs-dhis2-new
     jobs:
       Get-Patients:
         name: Get Patients
@@ -1332,6 +1332,73 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
+        enabled: true
+      Mappings->Upsert-Parent-TEIs:
+        source_job: Mappings
+        target_job: Upsert-Parent-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
+      Upsert-Parent-TEIs->Get-Encounters:
+        source_job: Upsert-Parent-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
+      Mappings->Get-Encounters:
+        source_job: Mappings
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
+
+        enabled: true
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state.encounters.length > 0
+
+        enabled: true
+      Create-Events->Update-TEIs:
+        source_job: Create-Events
+        target_job: Update-TEIs
+        condition_type: js_expression
+        condition_label: has-gender-updated
+        condition_expression: |
+          state?.teisToUpdate?.length > 0
+
+        enabled: true
+      Event-Mappings->Create-Events:
+        source_job: Event-Mappings
+        target_job: Create-Events
+        condition_type: js_expression
+        condition_label: has-events
+        condition_expression: |
+          state?.eventsMapping?.length > 0 && !state.errors
+
+        enabled: true
+      Get-TEIs-and-Map-Answers->Create-TEIs-Relationship:
+        source_job: Get-TEIs-and-Map-Answers
+        target_job: Create-TEIs-Relationship
+        condition_type: js_expression
+        condition_label: relationship-mapping
+        condition_expression: |
+          state?.relationshipsMapping?.length > 0
+        enabled: true
       Create-TEIs-Relationship->Event-Mappings:
         source_job: Create-TEIs-Relationship
         target_job: Event-Mappings
@@ -1344,73 +1411,6 @@ workflows:
         source_job: Get-Patients
         target_job: Mappings
         condition_type: on_job_success
-        enabled: true
-      Get-Encounters->Get-TEIs-and-Map-Answers:
-        source_job: Get-Encounters
-        target_job: Get-TEIs-and-Map-Answers
-        condition_type: js_expression
-        condition_label: has-encounters
-        condition_expression: |
-          !state.errors && state.encounters.length > 0
-
-        enabled: true
-      Mappings->Get-Encounters:
-        source_job: Mappings
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-no-patients
-        condition_expression: |
-          !state.errors && state.patients.length === 0
-
-        enabled: true
-      Upsert-Parent-TEIs->Get-Encounters:
-        source_job: Upsert-Parent-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
-      Mappings->Upsert-Parent-TEIs:
-        source_job: Mappings
-        target_job: Upsert-Parent-TEIs
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
-      Create-Events->Update-TEIs:
-        source_job: Create-Events
-        target_job: Update-TEIs
-        condition_type: js_expression
-        condition_label: has-gender-updated
-        condition_expression: |
-          state?.teisToUpdate?.length > 0
-
-        enabled: true
-      Get-TEIs-and-Map-Answers->Create-TEIs-Relationship:
-        source_job: Get-TEIs-and-Map-Answers
-        target_job: Create-TEIs-Relationship
-        condition_type: js_expression
-        condition_label: relationship-mapping
-        condition_expression: |
-          state?.relationshipsMapping?.length > 0
-        enabled: true
-      Event-Mappings->Create-Events:
-        source_job: Event-Mappings
-        target_job: Create-Events
-        condition_type: js_expression
-        condition_label: has-events
-        condition_expression: |
-          state?.eventsMapping?.length > 0 && !state.errors
-
         enabled: true
   get-metadata-collections:
     name: get-metadata-collections
@@ -1433,7 +1433,7 @@ workflows:
             return state.data
            })
 
-          collections.get("mosul-metadata-mappings", "mappingSets")
+          collections.get("mosul-metadata-mappings", "mappingSets") 
 
     triggers:
       webhook:
