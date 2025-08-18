@@ -743,7 +743,7 @@ workflows:
                 if (parentTei) {
                   mappings.push({
                     ...sharedMapping,
-                    trackedEntity: childTei,
+                    trackedEntity: parentTei,
                     program,
                     orgUnit,
                   });
