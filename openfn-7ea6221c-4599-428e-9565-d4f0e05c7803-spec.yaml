@@ -183,13 +183,17 @@ workflows:
                 form['Workflow'] === 'WF2')
               .map(form => form['OMRS form.uuid']);
 
-            rest.orgUnit = "sUpt0j2GmBD"
-            rest.program = "dWdzxMuKa8Z"
+            
             rest.patientProgramStage = "vN61drMkGqO"
 
-            // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-            //   'dhis2 attribute id'
-            // ];
+          // rest.orgUnit = "sUpt0j2GmBD"
+            rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+              'dhis2 attribute id'
+            ];
+            // rest.program = "dWdzxMuKa8Z"
+            rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
+              'dhis2 attribute id'
+            ];
             // rest.patientProgramStage = state.formMaps.patient.programStage;
 
             rest.dhis2PatientNumber = identifiers.find(

@@ -5,7 +5,6 @@
   "concurrency": null,
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-07-29T10:00:24Z",
-  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -43,6 +42,7 @@
       "owner": "mtuchi@openfn.org"
     }
   },
+  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": 365,
   "retention_policy": "retain_all",
@@ -476,8 +476,8 @@
     "130-wf2-omrs-dhis2-new": {
       "id": "8829bb03-58c7-4634-908d-281844b4bde0",
       "name": "130-wf2-omrs-dhis2-new",
-      "inserted_at": "2025-08-18T10:06:25.072518Z",
-      "lock_version": 7,
+      "inserted_at": "2025-08-18T10:38:59.110613Z",
+      "lock_version": 8,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -497,7 +497,7 @@
         "Mappings": {
           "id": "5a91d4b5-31b8-4fbd-8e6d-27c0b4136285",
           "name": "Mappings",
-          "body": "const isValidUUID = id => {\n  if (!id || typeof id !== 'string') return false;\n\n  const UUID_PATTERN =\n    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n  return UUID_PATTERN.test(id);\n};\n\ncollections.get('mosul-metadata-mappings-staging').then(state => {\n  state.optsMap = state.data\n    .filter(i => i.key.includes('optsMap-value-'))\n    .map(i => i.value);\n\n  state.identifiers = state.data\n    .filter(i => i.key.includes('identifiers-value-'))\n    .map(i => i.value);\n  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;\n  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;\n  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;\n  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;\n  state.fileDateModified = state.data.filter(\n    i => i.key === 'fileDateModified'\n  )?.[0]?.value;\n  state.optionSetKey = state.data.filter(\n    i => i.key === 'optionSetKey'\n  )?.[0]?.value;\n  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;\n\n  delete state.data\n  delete state.references\n  return state;\n});\n\nfn(state => {\n  const { formMetadata, identifiers, ...rest } = state;\n\n  rest.v2FormUuids = formMetadata\n    .filter(\n      form =>\n        isValidUUID(form['OMRS form.uuid']) &&\n        form['OMRS Form Version'] === 'v4-2025'\n    )\n    .map(form => form['OMRS form.uuid']);\n  rest.formUuids = formMetadata\n    .filter(form => isValidUUID(form['OMRS form.uuid']) &&\n      form['Workflow'] === 'WF2')\n    .map(form => form['OMRS form.uuid']);\n\n  rest.orgUnit = \"sUpt0j2GmBD\"\n  rest.program = \"dWdzxMuKa8Z\"\n  rest.patientProgramStage = \"vN61drMkGqO\"\n\n  // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n  //   'dhis2 attribute id'\n  // ];\n  // rest.patientProgramStage = state.formMaps.patient.programStage;\n\n  rest.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  return rest;\n});\n\nfn(state => {\n  state.genderOptions = state.optsMap\n    .filter(o => o['OptionSet name'] === 'Sex - Patient')\n    .reduce((acc, value) => {\n      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n",
+          "body": "const isValidUUID = id => {\n  if (!id || typeof id !== 'string') return false;\n\n  const UUID_PATTERN =\n    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n  return UUID_PATTERN.test(id);\n};\n\ncollections.get('mosul-metadata-mappings-staging').then(state => {\n  state.optsMap = state.data\n    .filter(i => i.key.includes('optsMap-value-'))\n    .map(i => i.value);\n\n  state.identifiers = state.data\n    .filter(i => i.key.includes('identifiers-value-'))\n    .map(i => i.value);\n  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;\n  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;\n  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;\n  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;\n  state.fileDateModified = state.data.filter(\n    i => i.key === 'fileDateModified'\n  )?.[0]?.value;\n  state.optionSetKey = state.data.filter(\n    i => i.key === 'optionSetKey'\n  )?.[0]?.value;\n  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;\n\n  delete state.data\n  delete state.references\n  return state;\n});\n\nfn(state => {\n  const { formMetadata, identifiers, ...rest } = state;\n\n  rest.v2FormUuids = formMetadata\n    .filter(\n      form =>\n        isValidUUID(form['OMRS form.uuid']) &&\n        form['OMRS Form Version'] === 'v4-2025'\n    )\n    .map(form => form['OMRS form.uuid']);\n  rest.formUuids = formMetadata\n    .filter(form => isValidUUID(form['OMRS form.uuid']) &&\n      form['Workflow'] === 'WF2')\n    .map(form => form['OMRS form.uuid']);\n\n  \n  rest.patientProgramStage = \"vN61drMkGqO\"\n\n// rest.orgUnit = \"sUpt0j2GmBD\"\n  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n    'dhis2 attribute id'\n  ];\n  // rest.program = \"dWdzxMuKa8Z\"\n  rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[\n    'dhis2 attribute id'\n  ];\n  // rest.patientProgramStage = state.formMaps.patient.programStage;\n\n  rest.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  return rest;\n});\n\nfn(state => {\n  state.genderOptions = state.optsMap\n    .filter(o => o['OptionSet name'] === 'Sex - Patient')\n    .reduce((acc, value) => {\n      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n",
           "adaptor": "@openfn/language-common@2.1.1",
           "project_credential_id": "90cddfa1-9b77-4625-a812-2a04d061522c"
         },
