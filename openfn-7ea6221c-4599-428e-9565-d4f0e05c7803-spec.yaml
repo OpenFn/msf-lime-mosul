@@ -41,7 +41,7 @@ workflows:
             format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
           });
 
-          searchPatient({ q: "IQ", v: "full", includeVoided: true, limit: "100" });
+          searchPatient({ q: "IQ", v: "full", limit: "100" });
           fn((state) => {
             const { cursor, data } = state;
             console.log("Filtering patients since cursor:", cursor);
@@ -583,15 +583,33 @@ workflows:
             return state?.teisToCreate ? Object.entries(state?.teisToCreate) : []
           }, create('trackedEntityInstances', state => {
             const payload = state.data[1]
-            console.log({ payload })
             return payload
           }).then(state => {
             const [patient, payload] = state.references.at(-1)
             const trackedEntity = state.data?.response?.importSummaries[0]?.reference
             state.childTeis ??= {}
+            state.createdTeis ??= []
+            state.createdTeis.push(trackedEntity)
             state.childTeis[patient] = { trackedEntity }
             return state
           }))
+
+          each($?.createdTeis || [], get(`tracker/trackedEntities/${$.data}`, { fields: 'attributes[*],enrollments,trackedEntity' }).then(state => {
+            const { trackedEntity, enrollments, attributes } = state.data || {};
+            console.log(state.data)
+            const patientUuid = attributes.find(a => a.attribute === 'AYbfTPYMNJH').value
+
+            console.log('Fetched Teis', state.data)
+            state.childTeis ??= {};
+            state.childTeis[patientUuid] = {
+              trackedEntity,
+              events: enrollments?.[0]?.events,
+              enrollment: enrollments?.[0]?.enrollment,
+            };
+
+            return state
+          }))
+
 
           fnIf($.childTeis && $.parentTeis, state => {
             const { childTeis, parentTeis } = state
