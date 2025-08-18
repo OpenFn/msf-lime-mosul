@@ -26,6 +26,561 @@ credentials:
     name: mtuchi-github-token
     owner: mtuchi@openfn.org
 workflows:
+  129-wf1-dhis2-omrs-migration:
+    name: 129-wf1-dhis2-omrs-migration
+    jobs:
+      Fetch-Metadata:
+        name: Fetch Metadata
+        adaptor: '@openfn/language-common@2.1.1'
+        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        body: |
+          cursor($.manualCursor || $.lastRunDateTime).then((state) => {
+            console.log("Date cursor to filter TEI extract ::", state.cursor);
+            return state;
+          });
+
+          cursor("now", {
+            key: "lastRunDateTime",
+            format: (c) => {
+              const offset = 2; // GMT+2 (Geneva time)
+              c.setHours(c.getHours() + offset);
+              return c.toISOString().replace("Z", "");
+            },
+          }).then((state) => {
+            console.log("Next sync start date:", state.lastRunDateTime);
+            return state;
+          });
+
+          collections.get("mosul-metadata-mappings-staging").then((state) => {
+            state.optsMap = state.data
+              .filter((i) => i.key.includes("optsMap-value-"))
+              .map((i) => i.value);
+
+            state.identifiers = state.data
+              .filter((i) => i.key.includes("identifiers-value-"))
+              .map((i) => i.value);
+
+            state.fileDateModified = state.data.filter(
+              (i) => i.key === "fileDateModified"
+            )?.[0]?.value;
+
+            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
+
+            delete state.data;
+            delete state.references;
+            return state;
+          });
+
+          fn(({ identifiers, optsMap, formMaps, ...state }) => {
+            state.genderOptions = {
+              male: "M",
+              female: "F",
+              unknown: "U",
+              transgender_female: "O",
+              transgender_male: "O",
+              prefer_not_to_answer: "O",
+              gender_variant_non_conforming: "O",
+            };
+            state.orgUnit = identifiers.find((i) => i.type === "ORG_UNIT")?.[
+              "dhis2 attribute id"
+            ];
+            state.program = identifiers.find((i) => i.type === "PROGRAM")?.[
+              "dhis2 attribute id"
+            ];
+            state.nationalityMap = optsMap
+              .filter((o) => o["DHIS2 DE full name"] === "Nationality")
+              .reduce((acc, value) => {
+                acc[value["DHIS2 Option Code"]] = value["value.uuid - External ID"];
+                return acc;
+              }, {});
+
+            state.statusMap = optsMap
+              .filter((o) => {
+                const fullName = o["DHIS2 DE full name"];
+                return fullName && fullName.includes(" status");
+              })
+              .reduce((acc, value) => {
+                acc[value["DHIS2 Option Code"]] = value["value.uuid - External ID"];
+                return acc;
+              }, {});
+
+            state.patientAttributes = formMaps.patient.dataValueMap;
+
+            state.dhis2PatientNumber = identifiers.find(
+              (i) => i.type === "DHIS2_PATIENT_NUMBER"
+            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
+
+            state.dhis2PatientNumberAttributeId = identifiers.find(
+              (i) => i.type === "DHIS2_PATIENT_NUMBER"
+            )?.["dhis2 attribute id"]; //DHIS2 ID or DHIS2 Patient Number
+
+            state.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
+              "omrs identifierType"
+            ]; //MSF ID or OpenMRS Patient Number
+
+            state.openmrsAutoIdAttributeId = identifiers.find(
+              (i) => i.type === "OPENMRS_AUTO_ID"
+            )?.["dhis2 attribute id"]; //MSF ID or OpenMRS Patient Number
+
+            return state;
+          });
+
+      Get-Teis-and-Locations:
+        name: Get Teis and Locations
+        adaptor: '@openfn/language-dhis2@5.0.1'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          const findDuplicatePatient = teis => {
+            const seen = new Map();
+            const duplicates = new Set();
+
+            teis.forEach(tei => {
+              const patientNumber = tei.attributes.find(
+                attr => attr.code === 'patient_number'
+              )?.value;
+
+              if (seen.get(patientNumber)) {
+                duplicates.add(patientNumber);
+              } else {
+                seen.set(patientNumber, tei);
+              }
+            });
+
+            return duplicates;
+          };
+          // Get teis that are "active" in the target program
+          get('tracker/trackedEntities', {
+            orgUnit: $.orgUnit,
+            program: $.program,
+            programStatus: 'ACTIVE',
+            updatedAfter: $.cursor,
+            skipPaging: true,
+          });
+
+          fn(state => {
+            console.log('# of TEIs found before filter ::', state.data.instances.length);
+            const uniqueTeis = [];
+            const duplicatePatients = [];
+            const missingPatientNumber = [];
+            const teisWithOMRSID = [];
+
+            const filteredTeis = state.data.instances.filter(
+              tei => tei.updatedAt >= state.cursor
+            );
+
+            console.log('Filtered TEIs ::', filteredTeis.length);
+            const duplicateIds = findDuplicatePatient(filteredTeis);
+
+            filteredTeis.forEach(tei => {
+              const patientNumber = tei.attributes.find(
+                attr => attr.code === 'patient_number'
+              )?.value;
+              const patientUid = tei.attributes.find(
+                attr => attr.code === 'patient_uid'
+              )?.value;
+
+              if (patientUid) {
+                console.log(
+                  `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
+                );
+                teisWithOMRSID.push(tei)
+              }
+
+              if (!patientNumber) {
+                missingPatientNumber.push(tei);
+              } else if (duplicateIds.has(patientNumber)) {
+                duplicatePatients.push(tei);
+              } else {
+                uniqueTeis.push(tei);
+              }
+            });
+
+            console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
+            console.log('# Duplicate Patients found::', duplicatePatients.length);
+
+            // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
+            return {
+              ...state,
+              // data: {},
+              // references: [],
+              uniqueTeis,
+              teisWithOMRSID,
+              duplicatePatients,
+              missingPatientNumber,
+            };
+          });
+
+          get('optionGroups/kdef7pUey9f', {
+            fields: 'id,displayName,options[id,displayName,code]',
+          });
+
+          // fn(({ data, ...state }) => {
+          //   state.locations = data;
+          //   return state;
+          // });
+
+      Create-Patients:
+        name: Create Patients
+        adaptor: '@openfn/language-openmrs@4.2.0'
+        credential: mtuchi@openfn.org-OpenMRS-Demo
+        body: |
+          //Define gender options and prepare newPatientUuid and identifiers
+          fn(state => {
+            const { uniqueTeis } = state;
+            if (uniqueTeis.length > 0)
+              console.log('# of TEIs to send to OpenMRS: ', uniqueTeis.length);
+            if (uniqueTeis.length === 0)
+              console.log('No data fetched in step prior to sync.');
+
+            return state;
+          });
+
+          //First we generate a unique OpenMRS ID for each patient
+          each(
+            $.uniqueTeis,
+            post(
+              'idgen/identifiersource/8549f706-7e85-4c1d-9424-217d50a2988b/identifier'
+            ).then(state => {
+              state.identifiers ??= [];
+              state.identifiers.push(state.data.identifier);
+              return state;
+            })
+          );
+
+          // Then we map uniqueTeis to openMRS data model
+          fn(state => {
+            const {
+              uniqueTeis,
+              nationalityMap,
+              genderOptions,
+              identifiers,
+              statusMap,
+              locations,
+            } = state;
+
+            const getValueForCode = (attributes, code) => {
+              const result = attributes.find(attribute => attribute.code === code);
+              return result ? result.value : undefined;
+            };
+
+            const calculateDOB = age => {
+              if (!age) return age;
+              const currentDate = new Date();
+              const currentYear = currentDate.getFullYear();
+              const birthYear = currentYear - age;
+
+              const birthday = new Date(
+                birthYear,
+                currentDate.getMonth(),
+                currentDate.getDay()
+              );
+
+              return birthday.toISOString().replace(/\.\d+Z$/, '+0000');
+            };
+
+            state.patients = uniqueTeis.map((d, i) => {
+              const patientNumber =
+                getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()
+
+              const lonlat = d.attributes.find(a => a.attribute === 'rBtrjV1Mqkz')?.value;
+              const location = lonlat
+                ? locations.options.find(o => o.code === lonlat)?.displayName
+                : undefined;
+
+              let countyDistrict, cityVillage;
+
+              if (location) {
+                const match = location.match(/^(.*?)\s*\((.*?)\)/);
+                if (match) {
+                  [, countyDistrict, cityVillage] = match;
+                  cityVillage = cityVillage.split('-')[0].trim(); // Remove country code and trim
+                }
+              }
+
+              const attributes = d.attributes
+                .filter(a => a.attribute in state.patientAttributes)
+                .map(a => {
+                  let value = a.value;
+
+                  if (a.displayName === 'Nationality') {
+                    value = nationalityMap[a.value];
+                  } else if (a.displayName.includes(' status')) {
+                    value = statusMap[a.value];
+                  }
+
+                  if (value) {
+                    return {
+                      attributeType: state.patientAttributes[a.attribute].trim(),
+                      value,
+                    };
+                  }
+                })
+                .filter(Boolean);
+
+              return {
+                patientNumber,
+                person: {
+                  age: getValueForCode(d.attributes, 'age'),
+                  gender: genderOptions[getValueForCode(d.attributes, 'sex')] ?? 'U',
+                  birthdate:
+                    d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ??
+                    calculateDOB(getValueForCode(d.attributes, 'age')),
+                  // d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ?
+                  // calculateDOB(getValueForCode(d.attributes, 'age')) : '1900-01-01',
+                  birthdateEstimated: d.attributes.find(
+                    a => a.attribute === 'WDp4nVor9Z7'
+                  )
+                    ? true
+                    : false,
+                  names: [
+                    {
+                      familyName:
+                        d.attributes.find(a => a.attribute === 'fa7uwpCKIwa')?.value ??
+                        'unknown',
+                      givenName:
+                        d.attributes.find(a => a.attribute === 'Jt9BhFZkvP2')?.value ??
+                        'unknown',
+                    },
+                  ],
+                  addresses: [
+                    {
+                      country: 'Iraq',
+                      stateProvince: 'Ninewa',
+                      countyDistrict,
+                      cityVillage,
+                    },
+                  ],
+                  attributes,
+                },
+                identifiers: [
+                  {
+                    identifier: identifiers[i], //OMRS-generated identifier - see above
+                    identifierType: '05a29f94-c0ed-11e2-94be-8c13b969e334',
+                    location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location old:44c3efb0-2583-4c80-a79e-1f756a03c0a1
+                    preferred: true,
+                  },
+                  {
+                    uuid: d.trackedEntity,
+                    identifier: patientNumber, //Patient Number from DHIS2
+                    identifierType: '8d79403a-c2cc-11de-8d13-0010c6dffd0f', //Old Identification number
+                    location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location
+                    preferred: false, //default value for this identifiertype
+                  },
+                ],
+              };
+            });
+
+            return state;
+          });
+
+          // Creating patients in openMRS
+          each(
+            $.patients,
+            upsert(
+              'patient',
+              {
+                q: $.data.patientNumber,
+                limit: 1,
+                startIndex: 0
+              },
+              state => {
+                const { patientNumber, ...patient } = state.data;
+                console.log(
+                  'Upserting patient record...',
+                  JSON.stringify(patient, null, 2)
+                );
+                return patient;
+              },
+              state => {
+                state.newPatientUuid ??= [];
+                //console.log('state.references ::', state.references)
+                state.newPatientUuid.push({
+                  patient_number: state.references.at(-1)?.patientNumber,
+                  omrs_patient_number: state.references
+                    .at(-1)
+                    ?.identifiers.find(
+                      i => (i.identifierType === `${state.openmrsAutoId}`)
+                    ),
+                  uuid: state.data.uuid,
+                });
+                return state;
+              }
+            )
+          );
+
+          // Clean up state
+          fn(({ data, references, ...state }) => state);
+
+      Update-Teis:
+        name: Update Teis
+        adaptor: '@openfn/language-dhis2@5.0.1'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          fn(state => {
+            if (state.newPatientUuid.length === 0) {
+              console.log('No data fetched in step prior to sync.');
+            }
+
+            console.log(
+              'newPatientUuid ::',
+              JSON.stringify(state.newPatientUuid, null, 2)
+            );
+            return state;
+          });
+
+          // Update TEI on DHIS2
+          each(
+            $.newPatientUuid,
+            upsert(
+              'trackedEntityInstances',
+              {
+                ou: $.orgUnit,
+                program: $.program,
+                filter: [`${$.dhis2PatientNumberAttributeId}:Eq:${$.data.patient_number}`],
+              },
+              state => {
+                const payload = {
+                  orgUnit: state.orgUnit,
+                  program: state.program,
+                  trackedEntityType: 'cHlzCA2MuEF',
+                  attributes: [
+                    {
+                      attribute: `${state.dhis2PatientNumberAttributeId}`,
+                      value: `${state.data.patient_number}`,
+                    }, //DHIS2 patient number to use as lookup key
+                    { attribute: 'AYbfTPYMNJH', value: `${state.data.uuid}` }, //OMRS patient uuid
+                    {
+                      attribute: `${state.openmrsAutoIdAttributeId}`,
+                      value: `${state.data.omrs_patient_number.identifier}`,
+                    }, //id generated in wf1-2 e.g., "IQ146-24-000-027"
+                  ],
+                }
+
+                console.log('final payload to send to dhis2:', payload)
+                return payload;
+              }
+            )
+            // {
+            //   orgUnit: $.orgUnit,
+            //   program: $.program,
+            //   trackedEntityType: 'cHlzCA2MuEF',
+            //   attributes: [
+            //     {
+            //       attribute: `${$.dhis2PatientNumberAttributeId}`,
+            //       value: `${state.data.patient_number}`,
+            //     }, //DHIS2 patient number to use as lookup key
+            //     { attribute: 'AYbfTPYMNJH', value: `${state.data.uuid}` }, //OMRS patient uuid
+            //     {
+            //       attribute: `${state.openmrsAutoIdAttributeId}`,
+            //       value: `${state.data.omrs_patient_number.identifier}`,
+            //     }, //id generated in wf1-2 e.g., "IQ146-24-000-027"
+            //   ],
+            // },
+          );
+
+      Alert-Admin-of-Duplicate-TEIs:
+        name: Alert Admin of Duplicate TEIs
+        adaptor: '@openfn/language-common@2.1.1'
+        credential: null
+        body: |
+          fn(state => {
+            const code = 'DUPLICATE_PATIENT_NUMBERS';
+            const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;
+            const message = `${code}: ${description}`;
+            const patientNumbers = state.duplicatePatients.map(
+              patient =>
+                patient.attributes.find(attr => attr.code === 'patient_number').value
+            );
+
+            const details = {
+              code,
+              description,
+              duplicatePatientNumbers: patientNumbers,
+            };
+            const e = new Error(message);
+            e.details = details;
+            console.error(e.details);
+            throw e;
+          });
+
+      Validate-TEIs-with-OMRS-Id:
+        name: Validate TEIs with OMRS Id
+        adaptor: '@openfn/language-openmrs@5.3.0'
+        credential: mtuchi@openfn.org-OpenMRS-Demo
+        body: |
+          each($.teisWithOMRSID, get(state => `patient/${state.data.attributes.find(attr => attr.code === 'patient_uid')?.value}`).catch((state, error) => {
+            if (error) {
+              tei.attributes.find(attr => attr.code === 'patient_uid')?.value
+            }
+            return state
+          }))
+          // fn(state => {
+          //   const code = 'DUPLICATE_PATIENT_NUMBERS';
+          //   const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;
+          //   const message = `${code}: ${description}`;
+          //   const patientNumbers = state.duplicatePatients.map(
+          //     patient =>
+          //       patient.attributes.find(attr => attr.code === 'patient_number').value
+          //   );
+
+          //   const details = {
+          //     code,
+          //     description,
+          //     duplicatePatientNumbers: patientNumbers,
+          //   };
+          //   const e = new Error(message);
+          //   e.details = details;
+          //   console.error(e.details);
+          //   throw e;
+          // });
+
+    triggers:
+      cron:
+        type: cron
+        cron_expression: '0 0 * * *'
+        enabled: false
+    edges:
+      Fetch-Metadata->Get-Teis-and-Locations:
+        source_job: Fetch-Metadata
+        target_job: Get-Teis-and-Locations
+        condition_type: on_job_success
+        enabled: true
+      cron->Fetch-Metadata:
+        source_trigger: cron
+        target_job: Fetch-Metadata
+        condition_type: always
+        enabled: true
+      Get-Teis-and-Locations->Create-Patients:
+        source_job: Get-Teis-and-Locations
+        target_job: Create-Patients
+        condition_type: js_expression
+        condition_label: has-teis
+        condition_expression: |
+          state.uniqueTeis.length > 0 && !state.errors
+
+        enabled: false
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
+        condition_type: on_job_success
+        enabled: true
+      Get-Teis-and-Locations->Alert-Admin-of-Duplicate-TEIs:
+        source_job: Get-Teis-and-Locations
+        target_job: Alert-Admin-of-Duplicate-TEIs
+        condition_type: js_expression
+        condition_label: has-duplicate-patients
+        condition_expression: |
+          state.duplicatePatients.length > 0 && !state.errors
+
+        enabled: true
+      Get-Teis-and-Locations->Validate-TEIs-with-OMRS-Id:
+        source_job: Get-Teis-and-Locations
+        target_job: Validate-TEIs-with-OMRS-Id
+        condition_type: js_expression
+        condition_label: has-teisWithOMRSID
+        condition_expression: |
+          !state.errors & state. teisWithOMRSID
+        enabled: true
   130-wf2-omrs-dhis2-new:
     name: 130-wf2-omrs-dhis2-new
     jobs:
