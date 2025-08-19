@@ -590,7 +590,7 @@ workflows:
         condition_type: js_expression
         condition_label: has-teisWithOMRSID
         condition_expression: |
-          !state.errors & state. teisWithOMRSID
+          !state.errors && state. teisWithOMRSID.length > 0
         enabled: true
   130-wf2-omrs-dhis2-new:
     name: 130-wf2-omrs-dhis2-new

@@ -5,7 +5,6 @@
   "concurrency": null,
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-07-29T10:00:24Z",
-  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -43,6 +42,7 @@
       "owner": "mtuchi@openfn.org"
     }
   },
+  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": 365,
   "retention_policy": "retain_all",
@@ -643,8 +643,8 @@
     "129-wf1-dhis2-omrs-migration": {
       "id": "8453f347-9b3c-4a64-ac3e-33f5befbcc62",
       "name": "129-wf1-dhis2-omrs-migration",
-      "inserted_at": "2025-08-19T08:39:45.893103Z",
-      "lock_version": 4,
+      "inserted_at": "2025-08-19T08:40:18.022252Z",
+      "lock_version": 5,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -744,7 +744,7 @@
           "source_job_id": "5de31362-18b7-4af6-8346-5a6aced833b3",
           "condition_type": "js_expression",
           "condition_label": "has-teisWithOMRSID",
-          "condition_expression": "!state.errors & state. teisWithOMRSID"
+          "condition_expression": "!state.errors && state. teisWithOMRSID.length > 0"
         }
       }
     }
