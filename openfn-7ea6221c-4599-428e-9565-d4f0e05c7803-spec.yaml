@@ -508,31 +508,42 @@ workflows:
         adaptor: '@openfn/language-openmrs@5.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
-          each($.teisWithOMRSID, get(state => `patient/${state.data.attributes.find(attr => attr.code === 'patient_uid')?.value}`).catch((state, error) => {
-            if (error) {
-              tei.attributes.find(attr => attr.code === 'patient_uid')?.value
-            }
-            return state
-          }))
-          // fn(state => {
-          //   const code = 'DUPLICATE_PATIENT_NUMBERS';
-          //   const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;
-          //   const message = `${code}: ${description}`;
-          //   const patientNumbers = state.duplicatePatients.map(
-          //     patient =>
-          //       patient.attributes.find(attr => attr.code === 'patient_number').value
-          //   );
+          fn((state) => {
+            state.patientUuids = state.teisWithOMRSID.map((patient) => {
+              return patient.attributes.find(
+                (attr) => attr.displayName === "OpenMRS patient UID"
+              )?.value;
+            });
+            state.notFound ??= [];
+            return state;
+          });
 
-          //   const details = {
-          //     code,
-          //     description,
-          //     duplicatePatientNumbers: patientNumbers,
-          //   };
-          //   const e = new Error(message);
-          //   e.details = details;
-          //   console.error(e.details);
-          //   throw e;
-          // });
+          each(
+            $.patientUuids,
+            get(`patient/${$.data}`).catch((error, state) => {
+              if (error) {
+                const tei = state.teisWithOMRSID.find(
+                  (tei) =>
+                    tei.attributes.find(
+                      (attr) => attr.displayName === "OpenMRS patient UID"
+                    )?.value === state.data
+                );
+                state.notFound.push({ patient: state.data, tei: tei.trackedEntity });
+              }
+              return state;
+            })
+          );
+
+          fnIf($.notFound.length > 0, (state) => {
+            const details = state.notFound
+              .map(
+                ({ patient, tei }) =>
+                  `Patient not found in OMRS for TEI:${tei} with OMRS ID: ${patient}.`
+              )
+              .join("\n");
+            const e = new Error(details);
+            throw e;
+          });
 
     triggers:
       cron:

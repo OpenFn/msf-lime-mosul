@@ -5,6 +5,7 @@
   "concurrency": null,
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-07-29T10:00:24Z",
+  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -42,7 +43,6 @@
       "owner": "mtuchi@openfn.org"
     }
   },
-  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": 365,
   "retention_policy": "retain_all",
@@ -643,8 +643,8 @@
     "129-wf1-dhis2-omrs-migration": {
       "id": "8453f347-9b3c-4a64-ac3e-33f5befbcc62",
       "name": "129-wf1-dhis2-omrs-migration",
-      "inserted_at": "2025-08-18T13:22:05.852556Z",
-      "lock_version": 2,
+      "inserted_at": "2025-08-19T08:39:45.893103Z",
+      "lock_version": 4,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -692,7 +692,7 @@
         "Validate-TEIs-with-OMRS-Id": {
           "id": "406d15fc-b60c-40e7-8fee-585cbb99f182",
           "name": "Validate TEIs with OMRS Id",
-          "body": "each($.teisWithOMRSID, get(state => `patient/${state.data.attributes.find(attr => attr.code === 'patient_uid')?.value}`).catch((state, error) => {\n  if (error) {\n    tei.attributes.find(attr => attr.code === 'patient_uid')?.value\n  }\n  return state\n}))\n// fn(state => {\n//   const code = 'DUPLICATE_PATIENT_NUMBERS';\n//   const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;\n//   const message = `${code}: ${description}`;\n//   const patientNumbers = state.duplicatePatients.map(\n//     patient =>\n//       patient.attributes.find(attr => attr.code === 'patient_number').value\n//   );\n\n//   const details = {\n//     code,\n//     description,\n//     duplicatePatientNumbers: patientNumbers,\n//   };\n//   const e = new Error(message);\n//   e.details = details;\n//   console.error(e.details);\n//   throw e;\n// });\n",
+          "body": "fn((state) => {\n  state.patientUuids = state.teisWithOMRSID.map((patient) => {\n    return patient.attributes.find(\n      (attr) => attr.displayName === \"OpenMRS patient UID\"\n    )?.value;\n  });\n  state.notFound ??= [];\n  return state;\n});\n\neach(\n  $.patientUuids,\n  get(`patient/${$.data}`).catch((error, state) => {\n    if (error) {\n      const tei = state.teisWithOMRSID.find(\n        (tei) =>\n          tei.attributes.find(\n            (attr) => attr.displayName === \"OpenMRS patient UID\"\n          )?.value === state.data\n      );\n      state.notFound.push({ patient: state.data, tei: tei.trackedEntity });\n    }\n    return state;\n  })\n);\n\nfnIf($.notFound.length > 0, (state) => {\n  const details = state.notFound\n    .map(\n      ({ patient, tei }) =>\n        `Patient not found in OMRS for TEI:${tei} with OMRS ID: ${patient}.`\n    )\n    .join(\"\\n\");\n  const e = new Error(details);\n  throw e;\n});\n",
           "adaptor": "@openfn/language-openmrs@5.3.0",
           "project_credential_id": "efd2a233-caf8-4346-bc0c-6a25c24e1a08"
         }
