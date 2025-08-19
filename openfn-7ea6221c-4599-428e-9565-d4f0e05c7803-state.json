@@ -5,6 +5,7 @@
   "concurrency": null,
   "inserted_at": "2025-01-30T11:16:04Z",
   "updated_at": "2025-07-29T10:00:24Z",
+  "scheduled_deletion": null,
   "project_credentials": {
     "mtuchi@openfn.org-mtuchi-github-token": {
       "id": "0fa0d3d1-0caa-4f8f-8952-f0b2e2ce51ea",
@@ -42,7 +43,6 @@
       "owner": "mtuchi@openfn.org"
     }
   },
-  "scheduled_deletion": null,
   "history_retention_period": 365,
   "dataclip_retention_period": 365,
   "retention_policy": "retain_all",
@@ -643,8 +643,8 @@
     "129-wf1-dhis2-omrs-migration": {
       "id": "8453f347-9b3c-4a64-ac3e-33f5befbcc62",
       "name": "129-wf1-dhis2-omrs-migration",
-      "inserted_at": "2025-08-19T08:40:18.022252Z",
-      "lock_version": 5,
+      "inserted_at": "2025-08-19T08:40:59.275187Z",
+      "lock_version": 6,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -664,7 +664,7 @@
         "Get-Teis-and-Locations": {
           "id": "5de31362-18b7-4af6-8346-5a6aced833b3",
           "name": "Get Teis and Locations",
-          "body": "const findDuplicatePatient = teis => {\n  const seen = new Map();\n  const duplicates = new Set();\n\n  teis.forEach(tei => {\n    const patientNumber = tei.attributes.find(\n      attr => attr.code === 'patient_number'\n    )?.value;\n\n    if (seen.get(patientNumber)) {\n      duplicates.add(patientNumber);\n    } else {\n      seen.set(patientNumber, tei);\n    }\n  });\n\n  return duplicates;\n};\n// Get teis that are \"active\" in the target program\nget('tracker/trackedEntities', {\n  orgUnit: $.orgUnit,\n  program: $.program,\n  programStatus: 'ACTIVE',\n  updatedAfter: $.cursor,\n  skipPaging: true,\n});\n\nfn(state => {\n  console.log('# of TEIs found before filter ::', state.data.instances.length);\n  const uniqueTeis = [];\n  const duplicatePatients = [];\n  const missingPatientNumber = [];\n  const teisWithOMRSID = [];\n\n  const filteredTeis = state.data.instances.filter(\n    tei => tei.updatedAt >= state.cursor\n  );\n\n  console.log('Filtered TEIs ::', filteredTeis.length);\n  const duplicateIds = findDuplicatePatient(filteredTeis);\n\n  filteredTeis.forEach(tei => {\n    const patientNumber = tei.attributes.find(\n      attr => attr.code === 'patient_number'\n    )?.value;\n    const patientUid = tei.attributes.find(\n      attr => attr.code === 'patient_uid'\n    )?.value;\n\n    if (patientUid) {\n      console.log(\n        `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`\n      );\n      teisWithOMRSID.push(tei)\n    }\n\n    if (!patientNumber) {\n      missingPatientNumber.push(tei);\n    } else if (duplicateIds.has(patientNumber)) {\n      duplicatePatients.push(tei);\n    } else {\n      uniqueTeis.push(tei);\n    }\n  });\n\n  console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);\n  console.log('# Duplicate Patients found::', duplicatePatients.length);\n\n  // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };\n  return {\n    ...state,\n    // data: {},\n    // references: [],\n    uniqueTeis,\n    teisWithOMRSID,\n    duplicatePatients,\n    missingPatientNumber,\n  };\n});\n\nget('optionGroups/kdef7pUey9f', {\n  fields: 'id,displayName,options[id,displayName,code]',\n});\n\n// fn(({ data, ...state }) => {\n//   state.locations = data;\n//   return state;\n// });\n",
+          "body": "const findDuplicatePatient = teis => {\n  const seen = new Map();\n  const duplicates = new Set();\n\n  teis.forEach(tei => {\n    const patientNumber = tei.attributes.find(\n      attr => attr.code === 'patient_number'\n    )?.value;\n\n    if (seen.get(patientNumber)) {\n      duplicates.add(patientNumber);\n    } else {\n      seen.set(patientNumber, tei);\n    }\n  });\n\n  return duplicates;\n};\n// Get teis that are \"active\" in the target program\nget('tracker/trackedEntities', {\n  orgUnit: $.orgUnit,\n  program: $.program,\n  programStatus: 'ACTIVE',\n  updatedAfter: $.cursor,\n  skipPaging: true,\n});\n\nfn(state => {\n  console.log('# of TEIs found before filter ::', state.data.instances.length);\n  const uniqueTeis = [];\n  const duplicatePatients = [];\n  const missingPatientNumber = [];\n  const teisWithOMRSID = [];\n\n  const filteredTeis = state.data.instances.filter(\n    tei => tei.updatedAt >= state.cursor\n  );\n\n  console.log('Filtered TEIs ::', filteredTeis.length);\n  const duplicateIds = findDuplicatePatient(filteredTeis);\n\n  filteredTeis.forEach(tei => {\n    const patientNumber = tei.attributes.find(\n      attr => attr.code === 'patient_number'\n    )?.value;\n    const patientUid = tei.attributes.find(\n      attr => attr.code === 'patient_uid' || attr.displayName === 'OpenMRS patient UID'\n    )?.value;\n\n    if (patientUid) {\n      console.log(\n        `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`\n      );\n      teisWithOMRSID.push(tei)\n    }\n\n    if (!patientNumber) {\n      missingPatientNumber.push(tei);\n    } else if (duplicateIds.has(patientNumber)) {\n      duplicatePatients.push(tei);\n    } else {\n      uniqueTeis.push(tei);\n    }\n  });\n\n  console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);\n  console.log('# Duplicate Patients found::', duplicatePatients.length);\n\n  // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };\n  return {\n    ...state,\n    data: {},\n    references: [],\n    uniqueTeis,\n    teisWithOMRSID,\n    duplicatePatients,\n    missingPatientNumber,\n  };\n});\n\nget('optionGroups/kdef7pUey9f', {\n  fields: 'id,displayName,options[id,displayName,code]',\n});\n\nfn(({ data, ...state }) => {\n  state.locations = data;\n  return state;\n});\n",
           "adaptor": "@openfn/language-dhis2@5.0.1",
           "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f"
         },
