@@ -2169,6 +2169,25 @@ workflows:
         body:
           path: workflows/wf2/events-mapping.js
 
+      Create-TEIs-Relationship:
+        name: Create TEIs Relationship
+        adaptor: '@openfn/language-dhis2@5.0.1'
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        body: |
+          // Check if relationship exist
+          each($.relationshipsMapping, get('tracker/relationships', { trackedEntity: $.data.from.trackedEntityInstance.trackedEntityInstance }).then(state => {
+            const relationship = state.references.at(-1)
+            const toTei = relationship.to.trackedEntityInstance.trackedEntityInstance
+            const hasRelationship = state.data.instances.find(r => r.to.trackedEntity.trackedEntity === toTei)
+            state.relationshipsToCreate ??= []
+            if (!hasRelationship) {
+              state.relationshipsToCreate.push(relationship)
+            }
+            return state
+          }))
+
+          // Creating relationship between parent and child tei
+          each($.relationshipsToCreate, create('relationships', $.data))
     triggers:
       cron:
         type: cron
@@ -2230,15 +2249,6 @@ workflows:
         target_job: Mappings
         condition_type: on_job_success
         enabled: true
-      Get-TEIs-and-Map-Answers->Event-Mappings:
-        source_job: Get-TEIs-and-Map-Answers
-        target_job: Event-Mappings
-        condition_type: js_expression
-        condition_label: has-teis
-        condition_expression: |
-          state.TEIs && !state.errors
-
-        enabled: true
       Event-Mappings->Create-Events:
         source_job: Event-Mappings
         target_job: Create-Events
@@ -2247,6 +2257,22 @@ workflows:
         condition_expression: |
           state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
 
+        enabled: true
+      Get-TEIs-and-Map-Answers->Create-TEIs-Relationship:
+        source_job: Get-TEIs-and-Map-Answers
+        target_job: Create-TEIs-Relationship
+        condition_type: js_expression
+        condition_label: relationship-mapping
+        condition_expression: |
+          state?.relationshipsMapping?.length > 0
+        enabled: true
+      Create-TEIs-Relationship->Event-Mappings:
+        source_job: Create-TEIs-Relationship
+        target_job: Event-Mappings
+        condition_type: js_expression
+        condition_label: has-child-teis
+        condition_expression: |
+          state.childTeis && !state.errors
         enabled: true
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
