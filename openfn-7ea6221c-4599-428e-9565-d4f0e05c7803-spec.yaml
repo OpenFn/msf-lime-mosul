@@ -2255,7 +2255,7 @@ workflows:
         condition_type: js_expression
         condition_label: has-events
         condition_expression: |
-          state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
+          state?.eventsMapping?.length > 0 && !state.errors
 
         enabled: true
       Get-TEIs-and-Map-Answers->Create-TEIs-Relationship:

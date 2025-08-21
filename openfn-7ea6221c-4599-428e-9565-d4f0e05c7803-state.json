@@ -600,8 +600,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-08-21T11:35:26.487624Z",
-      "lock_version": 129,
+      "inserted_at": "2025-08-21T11:35:59.895113Z",
+      "lock_version": 130,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -742,7 +742,7 @@
           "source_job_id": "e62747ec-9cdf-4613-8400-780605fb569e",
           "condition_type": "js_expression",
           "condition_label": "has-events",
-          "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors && !state.testMode\n"
+          "condition_expression": "state?.eventsMapping?.length > 0 && !state.errors\n"
         },
         "Get-TEIs-and-Map-Answers->Create-TEIs-Relationship": {
           "enabled": true,
