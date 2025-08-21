@@ -7,9 +7,6 @@ credentials:
   aisha@openfn.org-MSF-OMRS-admin:
     name: MSF OMRS admin
     owner: aisha@openfn.org
-  "mtuchi@openfn.org-Collections-Config[Mtuchi]":
-    name: 'Collections Config[Mtuchi]'
-    owner: mtuchi@openfn.org
   mtuchi@openfn.org-MSF-DHIS2-UAT:
     name: MSF DHIS2 UAT
     owner: mtuchi@openfn.org
@@ -19,8 +16,8 @@ credentials:
   mtuchi@openfn.org-OpenMRS-Demo:
     name: OpenMRS Demo
     owner: mtuchi@openfn.org
-  mtuchi@openfn.org-mtuchi-api-token:
-    name: mtuchi-api-token
+  mtuchi@openfn.org-mtuchi-collections-config:
+    name: mtuchi-collections-config
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-github-token:
     name: mtuchi-github-token
@@ -32,7 +29,7 @@ workflows:
       Fetch-Metadata:
         name: Fetch Metadata
         adaptor: '@openfn/language-common@2.1.1'
-        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body: |
           cursor($.manualCursor || $.lastRunDateTime).then((state) => {
             console.log("Date cursor to filter TEI extract ::", state.cursor);
@@ -699,7 +696,7 @@ workflows:
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
-        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body: |
           const isValidUUID = id => {
             if (!id || typeof id !== 'string') return false;
@@ -2006,7 +2003,7 @@ workflows:
       Get-and-set-metadata-collections:
         name: Get and set metadata collections
         adaptor: '@openfn/language-common@2.1.1'
-        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body: |
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
@@ -2123,7 +2120,7 @@ workflows:
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
-        credential: mtuchi@openfn.org-mtuchi-api-token
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body:
           path: workflows/wf2/2-mappings.js
 
@@ -2226,15 +2223,6 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
-      Get-Encounters->Get-TEIs-and-Map-Answers:
-        source_job: Get-Encounters
-        target_job: Get-TEIs-and-Map-Answers
-        condition_type: js_expression
-        condition_label: has-encounters
-        condition_expression: |
-          !state.errors && state.encounters.length > 0
-
-        enabled: true
       Create-Events->Update-TEIs:
         source_job: Create-Events
         target_job: Update-TEIs
@@ -2242,6 +2230,15 @@ workflows:
         condition_label: has-gender-updated
         condition_expression: |
           state?.teisToUpdate?.length > 0
+
+        enabled: true
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state.encounters.length > 0
 
         enabled: true
       Get-Patients->Mappings:
@@ -2280,7 +2277,7 @@ workflows:
       Get-Mappings-from-Collection:
         name: Get Mappings from Collection
         adaptor: '@openfn/language-common@2.3.0'
-        credential: 'mtuchi@openfn.org-Collections-Config[Mtuchi]'
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body: |
           const isValidUUID = id => {
             if (!id || typeof id !== 'string') return false;

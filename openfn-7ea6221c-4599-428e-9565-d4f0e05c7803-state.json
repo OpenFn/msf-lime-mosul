@@ -26,20 +26,15 @@
       "name": "MSF DHIS2 UAT",
       "owner": "mtuchi@openfn.org"
     },
-    "mtuchi@openfn.org-Collections-Config[Mtuchi]": {
+    "mtuchi@openfn.org-mtuchi-collections-config": {
       "id": "90cddfa1-9b77-4625-a812-2a04d061522c",
-      "name": "Collections Config[Mtuchi]",
+      "name": "mtuchi-collections-config",
       "owner": "mtuchi@openfn.org"
     },
     "aisha@openfn.org-MSF-OMRS-admin": {
       "id": "d2c62b09-c071-4cbe-95e5-b703aba863f3",
       "name": "MSF OMRS admin",
       "owner": "aisha@openfn.org"
-    },
-    "mtuchi@openfn.org-mtuchi-api-token": {
-      "id": "97973103-5dca-457d-a893-bb280ff66962",
-      "name": "mtuchi-api-token",
-      "owner": "mtuchi@openfn.org"
     }
   },
   "scheduled_deletion": null,
@@ -600,8 +595,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-08-21T11:36:25.944643Z",
-      "lock_version": 131,
+      "inserted_at": "2025-08-21T11:40:21.740881Z",
+      "lock_version": 132,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -623,7 +618,7 @@
           "name": "Mappings",
           "body": "const isValidUUID = id => {\n  if (!id || typeof id !== 'string') return false;\n\n  const UUID_PATTERN =\n    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;\n  return UUID_PATTERN.test(id);\n};\n\ncollections.get('mosul-metadata-mappings-staging').then(state => {\n  state.optsMap = state.data\n    .filter(i => i.key.includes('optsMap-value-'))\n    .map(i => i.value);\n\n  state.identifiers = state.data\n    .filter(i => i.key.includes('identifiers-value-'))\n    .map(i => i.value);\n  state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;\n  state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;\n  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;\n  state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;\n  state.fileDateModified = state.data.filter(\n    i => i.key === 'fileDateModified'\n  )?.[0]?.value;\n  state.optionSetKey = state.data.filter(\n    i => i.key === 'optionSetKey'\n  )?.[0]?.value;\n  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;\n\n  delete state.data\n  delete state.references\n  return state;\n});\n\nfn(state => {\n  const { formMetadata, identifiers, ...rest } = state;\n\n  rest.v2FormUuids = formMetadata\n    .filter(\n      form =>\n        isValidUUID(form['OMRS form.uuid']) &&\n        form['OMRS Form Version'] === 'v4-2025'\n    )\n    .map(form => form['OMRS form.uuid']);\n  rest.formUuids = formMetadata\n    .filter(form => isValidUUID(form['OMRS form.uuid']) &&\n      form['Workflow'] === 'WF2')\n    .map(form => form['OMRS form.uuid']);\n\n  \n  rest.patientProgramStage = \"vN61drMkGqO\"\n\n// rest.orgUnit = \"sUpt0j2GmBD\"\n  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[\n    'dhis2 attribute id'\n  ];\n  // rest.program = \"dWdzxMuKa8Z\"\n  rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[\n    'dhis2 attribute id'\n  ];\n  // rest.patientProgramStage = state.formMaps.patient.programStage;\n\n  rest.dhis2PatientNumber = identifiers.find(\n    i => i.type === 'DHIS2_PATIENT_NUMBER'\n  )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number\n\n  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[\n    'omrs identifierType'\n  ]; //MSF ID or OpenMRS Patient Number\n\n  return rest;\n});\n\nfn(state => {\n  state.genderOptions = state.optsMap\n    .filter(o => o['OptionSet name'] === 'Sex - Patient')\n    .reduce((acc, value) => {\n      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n",
           "adaptor": "@openfn/language-common@2.1.1",
-          "project_credential_id": "97973103-5dca-457d-a893-bb280ff66962"
+          "project_credential_id": "90cddfa1-9b77-4625-a812-2a04d061522c"
         },
         "Upsert-TEIs": {
           "id": "788df7f4-5ed3-46bd-8479-778e18c08235",
@@ -710,15 +705,6 @@
           "condition_label": "has-no-patients",
           "condition_expression": "!state.errors && state.patients.length === 0\n"
         },
-        "Get-Encounters->Get-TEIs-and-Map-Answers": {
-          "enabled": true,
-          "id": "33cdeb8c-524d-4a9a-8530-647907096741",
-          "target_job_id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",
-          "source_job_id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
-          "condition_type": "js_expression",
-          "condition_label": "has-encounters",
-          "condition_expression": "!state.errors && state.encounters.length > 0\n"
-        },
         "Create-Events->Update-TEIs": {
           "enabled": true,
           "id": "457fb90b-4b2d-4090-8a95-8539e781044c",
@@ -727,6 +713,15 @@
           "condition_type": "js_expression",
           "condition_label": "has-gender-updated",
           "condition_expression": "state?.teisToUpdate?.length > 0\n"
+        },
+        "Get-Encounters->Get-TEIs-and-Map-Answers": {
+          "enabled": true,
+          "id": "33cdeb8c-524d-4a9a-8530-647907096741",
+          "target_job_id": "e9d6d118-ef3c-43a7-844e-1cb6bdf29823",
+          "source_job_id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
+          "condition_type": "js_expression",
+          "condition_label": "has-encounters",
+          "condition_expression": "!state.errors && state.encounters.length > 0\n"
         },
         "Get-Patients->Mappings": {
           "enabled": true,
