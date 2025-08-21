@@ -569,7 +569,7 @@ workflows:
         condition_expression: |
           state.uniqueTeis.length > 0 && !state.errors
 
-        enabled: false
+        enabled: true
       Create-Patients->Update-Teis:
         source_job: Create-Patients
         target_job: Update-Teis
