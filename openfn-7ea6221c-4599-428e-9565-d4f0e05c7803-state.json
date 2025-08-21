@@ -600,8 +600,8 @@
     "wf2-omrs-dhis2": {
       "id": "24c5c1d4-a07a-4d5a-a6c7-649825bf7e7a",
       "name": "wf2-omrs-dhis2",
-      "inserted_at": "2025-08-21T11:29:32.536617Z",
-      "lock_version": 123,
+      "inserted_at": "2025-08-21T11:30:05.207160Z",
+      "lock_version": 124,
       "triggers": {
         "cron": {
           "enabled": false,
@@ -710,7 +710,7 @@
           "source_job_id": "91bf81d1-e0f1-49c4-88c6-7a01344b3917",
           "condition_type": "js_expression",
           "condition_label": "has-encounters",
-          "condition_expression": "!state.errors && state.encounters\n"
+          "condition_expression": "!state.errors && state.encounters.length > 0\n"
         },
         "Create-Events->Update-TEIs": {
           "enabled": true,
