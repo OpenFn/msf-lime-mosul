@@ -6,21 +6,6 @@ const isValidUUID = id => {
   return UUID_PATTERN.test(id);
 };
 
-// get(
-//   'https://raw.githubusercontent.com/OpenFn/msf-lime-metadata/refs/heads/collections/metadata/collections.json',
-//   { parseAs: 'json' },
-//   state => {
-//     const { cursor, lastRunDateTime, patients, data } = state;
-
-//     return {
-//       ...data,
-//       cursor,
-//       patients,
-//       lastRunDateTime,
-//     };
-//   }
-// );
-
 collections.get('mosul-metadata-mappings-staging').then(state => {
   state.optsMap = state.data
     .filter(i => i.key.includes('optsMap-value-'))
@@ -61,20 +46,19 @@ fn(state => {
       form['Workflow'] === 'WF2')
     .map(form => form['OMRS form.uuid']);
 
-  // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-  //   'dhis2 attribute id'
-  // ];
+  
+  rest.patientProgramStage = "vN61drMkGqO"
 
-  rest.orgUnit = "sUpt0j2GmBD"
-  //   rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
-  //   'dhis2 attribute id'
-  // ];
-
-  rest.program = "dWdzxMuKa8Z"
-
+// rest.orgUnit = "sUpt0j2GmBD"
+  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+    'dhis2 attribute id'
+  ];
+  // rest.program = "dWdzxMuKa8Z"
+  rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
+    'dhis2 attribute id'
+  ];
   // rest.patientProgramStage = state.formMaps.patient.programStage;
 
-  rest.patientProgramStage = "vN61drMkGqO"
   rest.dhis2PatientNumber = identifiers.find(
     i => i.type === 'DHIS2_PATIENT_NUMBER'
   )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number
