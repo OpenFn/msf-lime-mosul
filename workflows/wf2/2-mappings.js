@@ -21,10 +21,14 @@ collections.get('mosul-metadata-mappings-staging').then(state => {
   state.fileDateModified = state.data.filter(
     i => i.key === 'fileDateModified'
   )?.[0]?.value;
+  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
+
+  // TODO: Remove state.optionSetKey, when needed 
+  // Build from state.formMaps
   state.optionSetKey = state.data.filter(
     i => i.key === 'optionSetKey'
   )?.[0]?.value;
-  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
+
 
   delete state.data
   delete state.references
@@ -46,10 +50,10 @@ fn(state => {
       form['Workflow'] === 'WF2')
     .map(form => form['OMRS form.uuid']);
 
-  
+
   rest.patientProgramStage = "vN61drMkGqO"
 
-// rest.orgUnit = "sUpt0j2GmBD"
+  // rest.orgUnit = "sUpt0j2GmBD"
   rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
     'dhis2 attribute id'
   ];
