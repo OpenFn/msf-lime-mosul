@@ -1,10 +1,3 @@
-const getRangePhq = input => {
-  if (input >= 20) return '>20';
-  if (input >= 15) return '15_19';
-  if (input >= 10) return '10_14';
-  if (input >= 5) return '5_9';
-  return '0_4';
-};
 const processAnswer = (
   answer,
   conceptUuid,
@@ -37,8 +30,7 @@ const processAnswer = (
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       o =>
-        o['value.uuid - External ID'] === answer.value.uuid &&
-        // o['value.uuid - External ID'] === answer.value.uuid + "-" + answer.formFieldPath &&
+        o['value.uuid - External ID'] === `${answer.value.uuid}` &&
         o['DHIS2 Option Set UID'] === matchingOptionSet
     );
     const matchingOption =
@@ -66,16 +58,8 @@ const processAnswer = (
     return matchingOption || '';
   }
 
-  const PHQ9_CONCEPT_UUIDS = [
-    '5f3d618e-5c89-43bd-8c79-07e4e98c2f23',
-    '6545b874-f44d-4d18-9ab1-7a8bb21c0a15',
-  ];
-  const isPhq9Score =
-    typeof answer.value === 'number' &&
-    PHQ9_CONCEPT_UUIDS.includes(conceptUuid);
-  if (isPhq9Score) {
-    return getRangePhq(answer.value);
-  }
+
+
   return answer.value;
 };
 
@@ -94,13 +78,16 @@ const processNoAnswer = (encounter, conceptUuid, dataElement) => {
 };
 
 const findAnswerByConcept = (encounter, conceptUuid) => {
-  const answer = encounter.obs.find(o => o.concept.uuid === conceptUuid);
+  const answer = findObsByConcept(encounter, conceptUuid)
   return answer?.value?.display;
 };
 
 // Helper functions for finding observations
-const findObsByConcept = (encounter, conceptUuid) =>
-  encounter.obs.find(o => o.concept.uuid === conceptUuid);
+const findObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split('-rfe-')
+  const answer = encounter.obs.find(o => o.concept.uuid === conceptId && (questionId ? o.formFieldPath === `rfe-${questionId}` : true));
+  return answer
+}
 
 // Concept UUIDs
 const CONCEPTS = {
@@ -157,21 +144,21 @@ fn(state => {
       }
       let formDataValues = Object.keys(form.dataValueMap)
         .map(dataElement => {
-          const conceptUuid = form.dataValueMap[dataElement];
+          const [conceptUuid, questionId] = form.dataValueMap[dataElement]?.split('-rfe-');
           const obsAnswer = encounter.obs.find(
-            o => o.concept.uuid === conceptUuid //add a step to extract external id because now we will have external_id-question_id
-            //add another filter that matches the question with o.formFieldPath == question_id
+            o => o.concept.uuid === conceptUuid &&
+              (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
           );
           const answer = obsAnswer;
           const value = answer
             ? processAnswer(
-                answer,
-                conceptUuid,
-                dataElement,
-                state.optsMap,
-                state.optionSetKey,
-                encounter.form.uuid
-              )
+              answer,
+              conceptUuid,
+              dataElement,
+              state.optsMap,
+              state.optionSetKey,
+              encounter.form.uuid
+            )
             : processNoAnswer(encounter, conceptUuid, dataElement);
 
           if (value) {
@@ -194,7 +181,7 @@ fn(state => {
         if (priority1 && priority1?.value?.display === 'Other') {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRIORITY_1_OTHER,
-            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
           });
         }
 
@@ -202,7 +189,7 @@ fn(state => {
         if (priority2 && priority2?.value?.display === 'Other') {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRIORITY_2_OTHER,
-            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
           });
         }
 
@@ -210,7 +197,7 @@ fn(state => {
         if (priority3 && priority3?.value?.display === 'Other') {
           customMapping.push({
             dataElement: DATA_ELEMENTS.PRIORITY_3_OTHER,
-            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+            value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
           });
         }
 
@@ -230,10 +217,10 @@ fn(state => {
             o =>
               o['value.uuid - External ID'] === otherValue?.value?.uuid
           );
-         
-            customMapping.push({
-              dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
-              value: opt?.['DHIS2 Option Code']
+
+          customMapping.push({
+            dataElement: DATA_ELEMENTS.PRECIPITATING_EVENT_1_OTHER,
+            value: opt?.['DHIS2 Option Code']
           })
         }
 
@@ -246,7 +233,7 @@ fn(state => {
           precipitatingEvent2 &&
           precipitatingEvent2?.value?.uuid === otherValue?.uuid
         ) {
-           const opt = state.optsMap.find(
+          const opt = state.optsMap.find(
             o =>
               o['value.uuid - External ID'] === otherValue?.value?.uuid
           );
@@ -285,13 +272,13 @@ fn(state => {
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
-          const lastFollowupEncounter = state.allEncounters.find(e => 
+          const lastFollowupEncounter = state.allEncounters.find(e =>
             e.form.description.includes('F30-MHPSS Follow-up v2') &&
             e.patient.uuid === encounter.patient.uuid &&
             e.uuid !== encounter.uuid &&
-              e.obs.find(
-                o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'No'
+            e.obs.find(
+              o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+            )?.value?.display === 'No'
           );
 
           if (lastFollowupEncounter) {
@@ -324,13 +311,13 @@ fn(state => {
           ) {
             return encounter.encounterDatetime.replace('+0000', '');
           }
-          const lastFollowupEncounter = state.allEncounters.find(e => 
+          const lastFollowupEncounter = state.allEncounters.find(e =>
             e.form.description.includes('F32-mhGAP Follow-up v2') &&
             e.patient.uuid === encounter.patient.uuid &&
             e.uuid !== encounter.uuid &&
-              e.obs.find(
-                o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
-              )?.value?.display === 'No'
+            e.obs.find(
+              o => o.concept.uuid === '54e8c1b6-6397-4822-89a4-cf81fbc68ce9'
+            )?.value?.display === 'No'
           );
 
           if (lastFollowupEncounter) {
@@ -416,7 +403,7 @@ fn(state => {
         });
       }
       formDataValues = formDataValues.filter(item => item.dataElement !== DATA_ELEMENTS.PRIORITY_1_OTHER &&
-            item.dataElement !== 'KjgDauY9v4J');
+        item.dataElement !== 'KjgDauY9v4J');
 
       return {
         event: events.find(e => e.programStage === form.programStage)?.event,
