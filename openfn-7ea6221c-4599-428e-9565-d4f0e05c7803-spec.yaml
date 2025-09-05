@@ -16,11 +16,17 @@ credentials:
   mtuchi@openfn.org-OpenMRS-Demo:
     name: OpenMRS Demo
     owner: mtuchi@openfn.org
+  mtuchi@openfn.org-dhis2-with-collections:
+    name: dhis2-with-collections
+    owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-collections-config:
     name: mtuchi-collections-config
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-github-token:
     name: mtuchi-github-token
+    owner: mtuchi@openfn.org
+  mtuchi@openfn.org-omrs-with-collections:
+    name: omrs-with-collections
     owner: mtuchi@openfn.org
 workflows:
   129-wf1-dhis2-omrs-migration:
@@ -2025,7 +2031,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
           cursor($.lastRunDateTime || "2025-03-20T06:01:24.000Z");
 
@@ -2145,7 +2151,7 @@ workflows:
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           const buildPatientsUpsert = (globals, dhis2Config, patient) => {
             const { placeOflivingMap, genderOptions, formMaps, optsMap } = globals;
@@ -2328,7 +2334,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
           // Fetch all encounters
           http
@@ -2501,7 +2507,7 @@ workflows:
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -2643,7 +2649,7 @@ workflows:
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           // Create or update events for each encounter
           create(
@@ -2819,7 +2825,7 @@ workflows:
       Update-TEIs:
         name: Update TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           // Update TEIs
           create(
@@ -3331,7 +3337,7 @@ workflows:
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           // Check if relationship exist
           each($.relationshipsMapping, get('tracker/relationships', { trackedEntity: $.data.from.trackedEntityInstance.trackedEntityInstance }).then(state => {
@@ -3430,7 +3436,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: mtuchi@openfn.org-omrs-with-collections
         body: |
           cursor($.lastRunDateTime || "2025-03-20T06:01:24.000Z");
 
@@ -3733,8 +3739,29 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: mtuchi@openfn.org-omrs-with-collections
         body: |
+          collections.get("mosul-metadata-mappings-staging").then((state) => {
+            const formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
+            state.v2FormUuids = formMetadata
+              .filter(
+                (form) =>
+                  isValidUUID(form["OMRS form.uuid"]) &&
+                  form["OMRS Form Version"] === "v4-2025"
+              )
+              .map((form) => form["OMRS form.uuid"]);
+            state.formUuids = formMetadata
+              .filter(
+                (form) =>
+                  isValidUUID(form["OMRS form.uuid"]) && form["Workflow"] === "WF2"
+              )
+              .map((form) => form["OMRS form.uuid"]);
+
+            delete state.data;
+            delete state.references;
+            return state;
+          });
+
           // Fetch all encounters
           http
             .get("/ws/fhir2/R4/Encounter", {
@@ -3800,10 +3827,10 @@ workflows:
             );
             const patientUuids = [...new Set(searchPatientUuids, encounterPatientUuids)];
 
-            console.log('inbothResults', inbothResults.length)
-            console.log('patient-search-array', onlyInSearchPatient.length)
-            console.log('r4-encounter-array', onlyInR4Encounter.length)
-            console.log('combined uuids', patientUuids.length)
+            console.log("inbothResults", inbothResults.length);
+            console.log("patient-search-array", onlyInSearchPatient.length);
+            console.log("r4-encounter-array", onlyInR4Encounter.length);
+            console.log("combined uuids", patientUuids.length);
 
             return { ...state, cursor, lastRunDateTime, patients, patientUuids };
           });
@@ -3813,23 +3840,23 @@ workflows:
           // Fetch patient encounters
           each(
             $.patientUuids,
-            get('encounter', { patient: $.data, v: 'full' }).then(state => {
+            get("encounter", { patient: $.data, v: "full" }).then((state) => {
               state.allEncounters ??= [];
               state.allEncounters.push(
                 // v2FormsUuids are for mental health forms
                 // ...state.data.results.filter(e =>
                 //   state.v2FormUuids.includes(e?.form?.uuid)
                 // )
-                ...state.data.results.filter(e =>
+                ...state.data.results.filter((e) =>
                   state.formUuids.includes(e?.form?.uuid)
                 )
               );
 
               const patientUuid = state.references.at(-1);
-              const filteredEncounters = state.formUuids.map(formUuid =>
+              const filteredEncounters = state.formUuids.map((formUuid) =>
                 state.data.results
                   .filter(
-                    e =>
+                    (e) =>
                       e.auditInfo.dateCreated >= state.cursor &&
                       e?.form?.uuid === formUuid
                   )
@@ -3840,17 +3867,21 @@ workflows:
                   )
               );
 
-              const encounters = filteredEncounters.map(pe => {
-                const isLatestForm = pe.find(e => {
-                  return state.formMaps[e?.form?.uuid]?.syncType === 'latest'
+              const encounters = filteredEncounters
+                .map((pe) => {
+                  const isLatestForm = pe.find((e) => {
+                    return state.formMaps[e?.form?.uuid]?.syncType === "latest";
+                  });
+                  if (isLatestForm) {
+                    return [isLatestForm];
+                  } else {
+                    const allPatientEncounter = pe.filter(
+                      (e) => state.formMaps[e?.form?.uuid]?.syncType === "all"
+                    );
+                    return allPatientEncounter;
+                  }
                 })
-                if (isLatestForm) {
-                  return [isLatestForm]
-                } else {
-                  const allPatientEncounter = pe.filter(e => state.formMaps[e?.form?.uuid]?.syncType === 'all')
-                  return allPatientEncounter
-                }
-              }).flat()
+                .flat();
 
               state.encounters ??= [];
               state.encounters.push(...encounters);
@@ -3864,7 +3895,7 @@ workflows:
             })
           );
 
-          fn(state => {
+          fn((state) => {
             const {
               data,
               index,
@@ -3885,10 +3916,10 @@ workflows:
                   form,
                   encounterDatetime,
                 })
-              )
-              console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+              );
+              console.log(next.encounters.length, "# of new encounters to sync to dhis2");
             } else {
-              console.log('No encounters found for cursor: ', next.cursor);
+              console.log("No encounters found for cursor: ", next.cursor);
             }
             next.allEncounters = next.allEncounters?.map(
               ({ uuid, patient, obs, form, encounterDatetime }) => ({
