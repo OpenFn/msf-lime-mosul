@@ -1,5 +1,3 @@
-# OpenFn Workflow Development Issue Template
-
 ## Context
 
 [Brief description of the project and what needs to be accomplished]
