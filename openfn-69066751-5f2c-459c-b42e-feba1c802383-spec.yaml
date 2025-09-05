@@ -30,9 +30,6 @@ credentials:
   michael.bontyes@geneva.msf.org-openmrs:
     name: openmrs
     owner: michael.bontyes@geneva.msf.org
-  "mtuchi@openfn.org-Collections-Config[Mtuchi]":
-    name: 'Collections Config[Mtuchi]'
-    owner: mtuchi@openfn.org
   mtuchi@openfn.org-MSF-DHIS2-UAT:
     name: MSF DHIS2 UAT
     owner: mtuchi@openfn.org
@@ -41,6 +38,9 @@ credentials:
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-OpenMRS-Demo:
     name: OpenMRS Demo
+    owner: mtuchi@openfn.org
+  mtuchi@openfn.org-mtuchi-collections-config:
+    name: mtuchi-collections-config
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-github-token:
     name: mtuchi-github-token
@@ -129,14 +129,14 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2/1-get-patients.js
 
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: michael.bontyes@geneva.msf.org-dhis2
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/2-upsert-teis.js
 
@@ -157,7 +157,7 @@ workflows:
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: michael.bontyes@geneva.msf.org-dhis2
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/6-create-events.js
 
@@ -171,7 +171,7 @@ workflows:
       Update-TEIs:
         name: Update TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: michael.bontyes@geneva.msf.org-dhis2
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2/7-update-teis.js
 

@@ -38,6 +38,7 @@ const processAnswer = (
     const opt = optsMap.find(
       o =>
         o['value.uuid - External ID'] === answer.value.uuid &&
+        // o['value.uuid - External ID'] === answer.value.uuid + "-" + answer.formFieldPath &&
         o['DHIS2 Option Set UID'] === matchingOptionSet
     );
     const matchingOption =
@@ -158,7 +159,8 @@ fn(state => {
         .map(dataElement => {
           const conceptUuid = form.dataValueMap[dataElement];
           const obsAnswer = encounter.obs.find(
-            o => o.concept.uuid === conceptUuid
+            o => o.concept.uuid === conceptUuid //add a step to extract external id because now we will have external_id-question_id
+            //add another filter that matches the question with o.formFieldPath == question_id
           );
           const answer = obsAnswer;
           const value = answer
