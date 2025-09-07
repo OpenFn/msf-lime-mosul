@@ -4,7 +4,8 @@ const processAnswer = (
   dataElement,
   optsMap,
   optionSetKey,
-  formUuid
+  formUuid,
+  questionId
 ) => {
   if (typeof answer.value === 'object') {
     const isDiagnosisByPsychologist =
@@ -26,7 +27,7 @@ const processAnswer = (
         : undefined;
     }
 
-    const optionKey = `${formUuid}-${answer.concept.uuid}`;
+    const optionKey = `${formUuid}-${answer.concept.uuid}-rfe-${questionId}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       o =>
@@ -157,7 +158,8 @@ fn(state => {
               dataElement,
               state.optsMap,
               state.optionSetKey,
-              encounter.form.uuid
+              encounter.form.uuid,
+              questionId
             )
             : processNoAnswer(encounter, conceptUuid, dataElement);
 

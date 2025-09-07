@@ -8,6 +8,7 @@
 //   )
 //   .then(({ data }) => ({ data }));
 // Fetch all encounters
+
 http
   .get('/ws/fhir2/R4/Encounter', {
     query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
@@ -135,14 +136,14 @@ fn(state => {
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
   }
-  next.allEncounters = next.allEncounters?.map(
-    ({ uuid, patient, obs, form, encounterDatetime }) => ({
-      uuid,
-      patient,
-      obs,
-      form,
-      encounterDatetime,
-    })
-  );
+  // next.allEncounters = next.allEncounters?.map(
+  //   ({ uuid, patient, obs, form, encounterDatetime }) => ({
+  //     uuid,
+  //     patient,
+  //     obs,
+  //     form,
+  //     encounterDatetime,
+  //   })
+  // );
   return next;
 });
