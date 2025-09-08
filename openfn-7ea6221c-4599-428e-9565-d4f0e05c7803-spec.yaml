@@ -3741,6 +3741,14 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-omrs-with-collections
         body: |
+          const isValidUUID = id => {
+            if (!id || typeof id !== 'string') return false;
+
+            const UUID_PATTERN =
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            return UUID_PATTERN.test(id);
+          };
+
           collections.get("mosul-metadata-mappings-staging").then((state) => {
             const formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
             state.v2FormUuids = formMetadata
@@ -3757,6 +3765,7 @@ workflows:
               )
               .map((form) => form["OMRS form.uuid"]);
 
+            state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
             delete state.data;
             delete state.references;
             return state;
