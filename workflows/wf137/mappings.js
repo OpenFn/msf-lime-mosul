@@ -1,9 +1,120 @@
-const isValidUUID = id => {
-  if (!id || typeof id !== 'string') return false;
+const patientMapping = (omrsPatient, mappingConfig) => {
+  const genderMap = {
+    M: 'male',
+    O: 'unknown',
+    F: 'female',
+    U: 'unknown',
+  };
+  const {
+    orgUnit,
+    program,
+    optsMap,
+    formMaps,
+    placeOflivingMap,
+    patientProgramStage,
+    dhis2PatientNumber,
+    openmrsAutoId,
+  } = mappingConfig;
 
-  const UUID_PATTERN =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return UUID_PATTERN.test(id);
+  const dateCreated = omrsPatient.auditInfo.dateCreated.substring(0, 10);
+  const findIdentifierByUuid = (identifiers, targetUuid) =>
+    identifiers.find(i => i.identifierType.uuid === targetUuid)?.identifier;
+
+  const enrollments = [
+    {
+      orgUnit,
+      program,
+      programStage: patientProgramStage, //'MdTtRixaC1B',
+      enrollmentDate: dateCreated,
+    },
+  ];
+
+  const findOptsUuid = uuid =>
+    omrsPatient.person.attributes.find(a => a.attributeType.uuid === uuid)
+      ?.value?.uuid ||
+    omrsPatient.person.attributes.find(a => a.attributeType.uuid === uuid)
+      ?.value;
+
+  const findOptCode = optUuid =>
+    optsMap.find(o => o['value.uuid - External ID'] === optUuid)?.[
+      'DHIS2 Option Code'
+    ];
+
+  const patientMap = formMaps.patient.dataValueMap;
+  const statusAttrMaps = Object.keys(patientMap).map(d => {
+    const optUid = findOptsUuid(patientMap[d]);
+    return {
+      attribute: d,
+      value: findOptCode(optUid) || optUid,
+    };
+  });
+
+  const standardAttr = [
+    {
+      attribute: 'fa7uwpCKIwa',
+      value: omrsPatient.person?.names[0]?.givenName,
+    },
+    {
+      attribute: 'Jt9BhFZkvP2',
+      value: omrsPatient.person?.names[0]?.familyName,
+    },
+    {
+      attribute: 'P4wdYGkldeG', //DHIS2 ID ==> "Patient Number"
+      value:
+        findIdentifierByUuid(omrsPatient.identifiers, dhis2PatientNumber) ||
+        findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId), //map OMRS ID if no DHIS2 id
+    },
+    {
+      attribute: 'ZBoxuExmxcZ', //MSF ID ==> "OpenMRS Patient Number"
+      value: findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId),
+    },
+    {
+      attribute: 'AYbfTPYMNJH', //"OpenMRS Patient UID"
+      value: omrsPatient.uuid,
+    },
+
+    {
+      attribute: 'T1iX2NuPyqS',
+      value: omrsPatient.person.age,
+    },
+    {
+      attribute: 'WDp4nVor9Z7',
+      value: omrsPatient.person.birthdate?.slice(0, 10),
+    },
+    {
+      attribute: 'rBtrjV1Mqkz', //Place of living
+      value: placeOflivingMap[omrsPatient.person?.addresses[0]?.cityVillage],
+    },
+  ];
+
+  //filter out attributes that don't have a value from dhis2
+  const filteredAttr = standardAttr.filter(a => a.value);
+  const filteredStatusAttr = statusAttrMaps.filter(a => a.value);
+
+  const payload = {
+    uuid: omrsPatient.uuid,
+    query: {
+      ou: orgUnit,
+      program,
+      filter: [`AYbfTPYMNJH:Eq:${omrsPatient.uuid}`], //upsert on omrs.patient.uid
+    },
+    data: {
+      program,
+      orgUnit,
+      trackedEntityType: 'cHlzCA2MuEF',
+      attributes: [...filteredAttr, ...filteredStatusAttr],
+    },
+  };
+  payload.data.attributes.push({
+    attribute: 'qptKDiv9uPl',
+    value: genderMap[omrsPatient.person.gender],
+  });
+
+  payload.data.enrollments = enrollments;
+
+  // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
+
+  return payload;
 };
 
 collections.get('mosul-metadata-mappings-staging').then(state => {
@@ -25,63 +136,81 @@ collections.get('mosul-metadata-mappings-staging').then(state => {
   )?.[0]?.value;
   state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
 
-  // TODO: Remove state.optionSetKey, when needed
-  // Build from state.formMaps
-  state.optionSetKey = state.data.filter(
-    i => i.key === 'optionSetKey'
-  )?.[0]?.value;
-
   delete state.data;
   delete state.references;
   return state;
 });
 
 fn(state => {
-  const { formMetadata, identifiers, ...rest } = state;
+  const isValidUUID = id => {
+    if (!id || typeof id !== 'string') return false;
 
-  rest.v2FormUuids = formMetadata
+    const UUID_PATTERN =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    return UUID_PATTERN.test(id);
+  };
+
+  const { formMetadata, identifiers, ...next } = state;
+
+  next.v2FormUuids = formMetadata
     .filter(
       form =>
         isValidUUID(form['OMRS form.uuid']) &&
         form['OMRS Form Version'] === 'v4-2025'
     )
     .map(form => form['OMRS form.uuid']);
-  rest.formUuids = formMetadata
+  next.formUuids = formMetadata
     .filter(
       form => isValidUUID(form['OMRS form.uuid']) && form['Workflow'] === 'WF2'
     )
     .map(form => form['OMRS form.uuid']);
 
-  rest.patientProgramStage = 'vN61drMkGqO';
+  next.patientProgramStage = 'vN61drMkGqO';
 
-  // rest.orgUnit = "sUpt0j2GmBD"
-  rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+  next.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
     'dhis2 attribute id'
   ];
-  // rest.program = "dWdzxMuKa8Z"
-  rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
+
+  next.program = identifiers.find(i => i.type === 'PROGRAM')?.[
     'dhis2 attribute id'
   ];
-  // rest.patientProgramStage = state.formMaps.patient.programStage;
+  // next.patientProgramStage = state.formMaps.patient.programStage;
 
-  rest.dhis2PatientNumber = identifiers.find(
+  next.dhis2PatientNumber = identifiers.find(
     i => i.type === 'DHIS2_PATIENT_NUMBER'
   )?.['omrs identifierType']; //DHIS2 ID or DHIS2 Patient Number
 
-  rest.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[
+  next.openmrsAutoId = identifiers.find(i => i.type === 'OPENMRS_AUTO_ID')?.[
     'omrs identifierType'
   ]; //MSF ID or OpenMRS Patient Number
 
-  return rest;
+  return next;
 });
 
 fn(state => {
-  state.genderOptions = state.optsMap
-    .filter(o => o['OptionSet name'] === 'Sex - Patient')
-    .reduce((acc, value) => {
-      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];
-      return acc;
-    }, {});
+  const {
+    patients,
+    optsMap,
+    formMaps,
+    placeOflivingMap,
+    patientProgramStage,
+    dhis2PatientNumber,
+    openmrsAutoId,
+    ...next
+  } = state;
 
-  return state;
+  next.patients = patients.map(patient =>
+    patientMapping(patient, {
+      orgUnit: next.orgUnit,
+      program: next.program,
+      optsMap,
+      formMaps,
+      placeOflivingMap,
+      patientProgramStage,
+      dhis2PatientNumber,
+      openmrsAutoId,
+    })
+  );
+
+  return next;
 });

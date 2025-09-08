@@ -1,32 +1,3 @@
-const isValidUUID = id => {
-  if (!id || typeof id !== 'string') return false;
-
-  const UUID_PATTERN =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  return UUID_PATTERN.test(id);
-};
-
-collections.get('mosul-metadata-mappings-staging').then(state => {
-  const formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;
-  state.v2FormUuids = formMetadata
-    .filter(
-      form =>
-        isValidUUID(form['OMRS form.uuid']) &&
-        form['OMRS Form Version'] === 'v4-2025'
-    )
-    .map(form => form['OMRS form.uuid']);
-  state.formUuids = formMetadata
-    .filter(
-      form => isValidUUID(form['OMRS form.uuid']) && form['Workflow'] === 'WF2'
-    )
-    .map(form => form['OMRS form.uuid']);
-
-  state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
-  delete state.data;
-  delete state.references;
-  return state;
-});
-
 // Fetch all encounters
 http
   .get('/ws/fhir2/R4/Encounter', {
@@ -161,28 +132,24 @@ fn(state => {
   } = state;
 
   if (next.encounters?.length) {
-    next.encounters = next.encounters.map(
-      ({ uuid, patient, obs, form, encounterDatetime }) => ({
-        uuid,
-        patient,
-        obs,
-        form,
-        encounterDatetime,
-      })
-    );
+    next.encounters = next.encounters.map(encounter => ({
+      uuid: encounter.uuid,
+      patient: encounter.patient,
+      obs: encounter.obs,
+      form: encounter.form,
+      encounterDatetime: encounter.encounterDatetime,
+    }));
     console.log(next.encounters.length, '# of new encounters to sync to dhis2');
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
   }
-  next.allEncounters = next.allEncounters?.map(
-    ({ uuid, patient, obs, form, encounterDatetime }) => ({
-      uuid,
-      patient,
-      obs,
-      form,
-      encounterDatetime,
-    })
-  );
+  next.allEncounters = next.allEncounters?.map(encounter => ({
+    uuid: encounter.uuid,
+    patient: encounter.patient,
+    obs: encounter.obs,
+    form: encounter.form,
+    encounterDatetime: encounter.encounterDatetime,
+  }));
 
   return next;
 });

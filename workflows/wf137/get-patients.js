@@ -6,6 +6,7 @@ cursor('today', {
 });
 
 searchPatient({ q: 'IQ', v: 'full', limit: '100' });
+
 fn(state => {
   const { cursor, data } = state;
   console.log('Filtering patients since cursor:', cursor);
@@ -17,6 +18,15 @@ fn(state => {
   });
   state.searchPatientUuids = patients.map(p => p.uuid);
   console.log('# of patients to sync to dhis2 ::', patients.length);
+
+  state.patients = patients.map(p => {
+    return {
+      auditInfo: p.auditInfo,
+      uuid: p.uuid,
+      identifiers: p.identifiers,
+      person: p.person,
+    };
+  });
 
   delete state.data;
   delete state.references;

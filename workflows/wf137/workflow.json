@@ -7,8 +7,26 @@
                 "configuration": "../tmp/openmrs-creds.json",
                 "expression": "get-patients.js",
                 "next": {
-                    "get-encounters": "!state.errors"
+                    "mappings": "!state.errors"
                 }
+            },
+            {
+                "id": "mappings",
+                "adaptors": [
+                    "collections",
+                    "common@2.1.1"
+                ],
+                "configuration": "../tmp/mtuchi-fn-creds.json",
+                "expression": "mappings.js",
+                "next": {
+                    "upsert-teis": "state.patients.length > 0 && !state.errors"
+                }
+            },
+            {
+                "id": "upsert-teis",
+                "adaptor": "dhis2@5.0.1",
+                "configuration": "../tmp/dhis2-creds.json",
+                "expression": "upsert-teis.js"
             },
             {
                 "id": "get-encounters",
@@ -18,27 +36,6 @@
                 ],
                 "configuration": "../tmp/openmrs-creds.json",
                 "expression": "get-encounters.js"
-            },
-            {
-                "id": "mappings",
-                "adaptors": [
-                    "collections",
-                    "http@6.5.1"
-                ],
-                "expression": "mappings.js",
-                "next": {
-                    "upsert-teis": "state.patients.length > 0 && !state.errors",
-                    "get-encounters": "!state.errors && state.patients.length === 0"
-                }
-            },
-            {
-                "id": "upsert-teis",
-                "adaptor": "dhis2@5.0.1",
-                "configuration": "../tmp/dhis2-creds.json",
-                "expression": "upsert-teis.js",
-                "next": {
-                    "get-encounters": "state.patientUuids.length > 0 && !state.errors"
-                }
             },
             {
                 "id": "get-teis",
