@@ -26,8 +26,7 @@ const processAnswer = (
         ? 'true'
         : undefined;
     }
-
-    const optionKey = `${formUuid}-${answer.concept.uuid}-rfe-${questionId}`;
+    const optionKey = questionId? `${formUuid}-${answer.concept.uuid}-rfe-${questionId}` : `${formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       o =>
