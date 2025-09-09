@@ -136,7 +136,7 @@ fn(state => {
         return null;
       }
       const { trackedEntity, enrollment, events } =
-        state.TEIs[encounter.patient.uuid] || {};
+        state.childTeis[encounter.patient.uuid] || {};
 
       if (!trackedEntity || !enrollment) {
         handleMissingRecord(encounter, state);
