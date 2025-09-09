@@ -1,11 +1,11 @@
-cursor($.lastRunDateTime || '2025-05-20T06:01:24.000Z');
+cursor($.lastRunDateTime || '2025-03-20T06:01:24.000Z');
 
 cursor('today', {
   key: 'lastRunDateTime',
   format: c => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: 'IQ', v: 'full', limit: '100' });
+searchPatient({ q: 'IQ146-25-000-029', v: 'full', limit: '100' });
 
 fn(state => {
   const { cursor, data } = state;

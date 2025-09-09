@@ -7,21 +7,20 @@ function chunk(array, size) {
   }
   return result;
 }
-each(
-  state => chunk(state.patients, 50),
-  get('tracker/trackedEntities', {
-    orgUnit: $.orgUnit,
-    program: $.program,
-    filter: state => [
-      `AYbfTPYMNJH:IN:${state.data.map(p => p.uuid).join(';')}`,
-    ],
-  }).then(state => {
-    // console.log(state.data);
-    state.foundTeis ??= [];
-    state.foundTeis.push(...state.data.instances);
-    return state;
-  })
-);
+
+get('tracker/trackedEntities', {
+  orgUnit: $.orgUnit,
+  program: $.program,
+  filter: state => [
+    `AYbfTPYMNJH:Eq:47d5c786-c5e2-4824-9403-409b9faadadb}`,
+  ],
+}).then(state => {
+  // console.log(state.data);
+  state.foundTeis ??= [];
+  state.foundTeis.push(...state.data.instances);
+  return state;
+})
+
 
 fn(state => {
   const { foundTeis, patients, ...next } = state;
@@ -37,10 +36,10 @@ fn(state => {
   next.patientsToUpsert = patients.map(patient => {
     if (foundTeisByPatient[patient.uuid]) {
       delete patient.data.enrollments;
-      const attritutes = patient.data.attributes.filter(
+      const attributes = patient.data.attributes.filter(
         a => a.attribute !== 'qptKDiv9uPl'
       );
-      patient.data.attributes = attritutes;
+      patient.data.attributes = attributes;
     }
     return patient;
   });
