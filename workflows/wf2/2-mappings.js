@@ -16,22 +16,23 @@ collections.get('mosul-metadata-mappings-staging').then(state => {
     .map(i => i.value);
   state.syncedAt = state.data.find(i => i.key === 'syncedAt')?.value;
   state.formMetadata = state.data.find(i => i.key === 'formMetadata')?.value;
-  state.placeOflivingMap = state.data.find(i => i.key === 'placeOflivingMap')?.value;
+  state.placeOflivingMap = state.data.find(
+    i => i.key === 'placeOflivingMap'
+  )?.value;
   state.sourceFile = state.data.filter(i => i.key === 'sourceFile')?.[0]?.value;
   state.fileDateModified = state.data.filter(
     i => i.key === 'fileDateModified'
   )?.[0]?.value;
   state.formMaps = state.data.find(i => i.key === 'formMaps')?.value;
 
-  // TODO: Remove state.optionSetKey, when needed 
+  // TODO: Remove state.optionSetKey, when needed
   // Build from state.formMaps
   state.optionSetKey = state.data.filter(
     i => i.key === 'optionSetKey'
   )?.[0]?.value;
 
-
-  delete state.data
-  delete state.references
+  delete state.data;
+  delete state.references;
   return state;
 });
 
@@ -46,12 +47,14 @@ fn(state => {
     )
     .map(form => form['OMRS form.uuid']);
   rest.formUuids = formMetadata
-    .filter(form => isValidUUID(form['OMRS form.uuid']) &&
-      form['Workflow'] === 'WF2')
+    .filter(
+      form =>
+        isValidUUID(form['OMRS form.uuid']) &&
+        ['WF1', 'WF2'].includes(form['Workflow'])
+    )
     .map(form => form['OMRS form.uuid']);
 
-
-  rest.patientProgramStage = "vN61drMkGqO"
+  rest.patientProgramStage = 'vN61drMkGqO';
 
   // rest.orgUnit = "sUpt0j2GmBD"
   rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
@@ -72,15 +75,4 @@ fn(state => {
   ]; //MSF ID or OpenMRS Patient Number
 
   return rest;
-});
-
-fn(state => {
-  state.genderOptions = state.optsMap
-    .filter(o => o['OptionSet name'] === 'Sex - Patient')
-    .reduce((acc, value) => {
-      acc[value['value.uuid - External ID']] = value['DHIS2 Option Code'];
-      return acc;
-    }, {});
-
-  return state;
 });
