@@ -38,16 +38,6 @@ const processAnswer = (
       opt?.['DHIS2 Option name'] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    // console.log(`matchingOption value: "${matchingOption}" for`);
-    // console.log({
-    //   optionKey,
-    //   conceptUid: answer.concept.uuid,
-    //   'answer.value.uid': answer.value.uuid,
-    //   'answer.value.display': answer.value.display,
-    //   matchingOption,
-    //   matchingOptionSet,
-    // });
-
     if (matchingOption === 'FALSE' || matchingOption === 'No') {
       return 'false';
     }
@@ -67,6 +57,7 @@ const processNoAnswer = (encounter, conceptUuid, dataElement) => {
     ['CXS4qAJH2qD', 'I7phgLmRWQq', 'yUT7HyjWurN', 'EOFi7nk2vNM'].includes(
       dataElement
     );
+
   // These are data elements for encounter date in DHIS2
   // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
   if (isEncounterDate) {
@@ -113,7 +104,7 @@ fn(state => {
   const handleMissingRecord = (data, state) => {
     const { uuid, display } = data.patient;
 
-    console.log(uuid, 'Patient is missing trackedEntity && enrollment');
+    console.log(uuid, 'Patient is missing trackedEntity or enrollment');
 
     state.missingRecords ??= {};
     state.missingRecords[uuid] ??= {
@@ -459,7 +450,7 @@ fn(state => {
       );
 
       return {
-        event: events.find(e => e.programStage === form.programStage)?.event,
+        event: events?.find(e => e.programStage === form.programStage)?.event,
         program: state.formMaps[encounter.form.uuid]?.programId,
         orgUnit: state.formMaps[encounter.form.uuid]?.orgUnit,
         trackedEntity,
