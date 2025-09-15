@@ -768,21 +768,8 @@ workflows:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body: |
-          // Check if relationship exist
-          each($.relationshipsMapping, get('tracker/relationships', { trackedEntity: $.data.from.trackedEntityInstance.trackedEntityInstance }).then(state => {
-            const relationship = state.references.at(-1)
-            const toTei = relationship.to.trackedEntityInstance.trackedEntityInstance
-            const hasRelationship = state.data.instances.find(r => r.to.trackedEntity.trackedEntity === toTei)
-            state.relationshipsToCreate ??= []
-            if (!hasRelationship) {
-              state.relationshipsToCreate.push(relationship)
-            }
-            return state
-          }))
-
-          // Creating relationship between parent and child tei
-          each($.relationshipsToCreate, create('relationships', $.data))
+        body: 
+          path: workflows/wf2/teis-relationships.js
     triggers:
       cron:
         type: cron
