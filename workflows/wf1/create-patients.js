@@ -71,25 +71,25 @@ fn(state => {
       }
     }
 
-    const attributes = d.attributes
-      .filter(a => a.attribute in state.patientAttributes)
-      .map(a => {
-        let value = a.value;
+    // const attributes = d.attributes
+    //   .filter(a => a.attribute in state.patientAttributes)
+    //   .map(a => {
+    //     let value = a.value;
 
-        if (a.displayName === 'Nationality') {
-          value = nationalityMap[a.value];
-        } else if (a.displayName.includes(' status')) {
-          value = statusMap[a.value];
-        }
+    //     if (a.displayName === 'Nationality') {
+    //       value = nationalityMap[a.value];
+    //     } else if (a.displayName.includes(' status')) {
+    //       value = statusMap[a.value];
+    //     }
 
-        if (value) {
-          return {
-            attributeType: state.patientAttributes[a.attribute].trim(),
-            value,
-          };
-        }
-      })
-      .filter(Boolean);
+    //     if (value) {
+    //       return {
+    //         attributeType: state.patientAttributes[a.attribute].trim(),
+    //         value,
+    //       };
+    //     }
+    //   })
+    //   .filter(Boolean);
 
     return {
       patientNumber,
@@ -124,7 +124,7 @@ fn(state => {
             cityVillage,
           },
         ],
-        attributes,
+        // attributes,
       },
       identifiers: [
         {
@@ -134,7 +134,7 @@ fn(state => {
           preferred: true,
         },
         {
-          uuid: d.trackedEntity,
+          // uuid: d.trackedEntity,
           identifier: patientNumber, //Patient Number from DHIS2
           identifierType: '8d79403a-c2cc-11de-8d13-0010c6dffd0f', //Old Identification number
           location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location
