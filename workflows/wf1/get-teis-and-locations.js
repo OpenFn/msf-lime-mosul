@@ -18,8 +18,8 @@ const findDuplicatePatient = teis => {
 };
 // Get teis that are "active" in the target program
 get('tracker/trackedEntities', {
-  orgUnit: $.orgUnit, //'OPjuJMZFLop',
-  program: $.program, //'w9MSPn5oSqp',
+  orgUnit: $.orgUnit,
+  program: $.program,
   programStatus: 'ACTIVE',
   updatedAfter: $.cursor,
   skipPaging: true,
@@ -30,6 +30,7 @@ fn(state => {
   const uniqueTeis = [];
   const duplicatePatients = [];
   const missingPatientNumber = [];
+  const teisWithOMRSID = [];
 
   const filteredTeis = state.data.instances.filter(
     tei => tei.updatedAt >= state.cursor
@@ -43,15 +44,16 @@ fn(state => {
       attr => attr.code === 'patient_number'
     )?.value;
     const patientUid = tei.attributes.find(
-      attr => attr.code === 'patient_uid'
+      attr => attr.code === 'patient_uid' || attr.displayName === 'OpenMRS patient UID'
     )?.value;
 
     if (patientUid) {
       console.log(
         `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
       );
-      return;
+      teisWithOMRSID.push(tei)
     }
+
     if (!patientNumber) {
       missingPatientNumber.push(tei);
     } else if (duplicateIds.has(patientNumber)) {
@@ -70,6 +72,7 @@ fn(state => {
     data: {},
     references: [],
     uniqueTeis,
+    teisWithOMRSID,
     duplicatePatients,
     missingPatientNumber,
   };
