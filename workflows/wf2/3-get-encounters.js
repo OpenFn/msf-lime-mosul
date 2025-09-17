@@ -211,6 +211,7 @@ fn((state) => {
   //         display: o.display,
   //         formFieldPath: o.formFieldPath,
   //         value: o.value,
+  //         person: o.person,
   //       };
   //     }),
   //     form: {
