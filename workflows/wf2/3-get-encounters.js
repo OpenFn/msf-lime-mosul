@@ -193,35 +193,35 @@ fn((state) => {
   } else {
     console.log("No encounters found for cursor: ", next.cursor);
   }
-  // next.allEncounters = next.allEncounters?.map((encounter) => {
-  //   const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
-  //     removeNulls(encounter)
-  //   );
+  next.allEncounters = next.allEncounters?.map((encounter) => {
+    const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+      removeNulls(encounter)
+    );
 
-  //   return {
-  //     uuid,
-  //     patient: {
-  //       uuid: patient.uuid,
-  //       display: patient.display,
-  //     },
-  //     obs: obs.map((o) => {
-  //       return {
-  //         uuid: o.uuid,
-  //         concept: o.concept,
-  //         display: o.display,
-  //         formFieldPath: o.formFieldPath,
-  //         value: o.value,
-  //         person: o.person,
-  //       };
-  //     }),
-  //     form: {
-  //       uuid: form.uuid,
-  //       display: form.display,
-  //       description: form.description,
-  //       name: form.name,
-  //     },
-  //     encounterDatetime,
-  //   };
-  // });
+    return {
+      uuid,
+      patient: {
+        uuid: patient.uuid,
+        display: patient.display,
+      },
+      obs: obs.map((o) => {
+        return {
+          uuid: o.uuid,
+          concept: o.concept,
+          display: o.display,
+          formFieldPath: o.formFieldPath,
+          value: o.value,
+          person: o.person,
+        };
+      }),
+      form: {
+        uuid: form.uuid,
+        display: form.display,
+        description: form.description,
+        name: form.name,
+      },
+      encounterDatetime,
+    };
+  });
   return next;
 });
