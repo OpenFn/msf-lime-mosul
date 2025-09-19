@@ -464,3 +464,8 @@ fn(state => {
 
   return state;
 });
+
+fn(state => {
+  const { eventsMapping } = state;
+  return { eventsMapping };
+});

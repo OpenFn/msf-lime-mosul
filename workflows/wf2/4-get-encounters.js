@@ -1,3 +1,35 @@
+function removeLinks(data) {
+  if (Array.isArray(data)) {
+    return data.map(removeLinks);
+  }
+
+  if (typeof data === 'object' && data !== null) {
+    const { links, ...rest } = data;
+    return Object.fromEntries(
+      Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
+    );
+  }
+
+  return data;
+}
+
+function removeNulls(data) {
+  if (Array.isArray(data)) {
+    return data.filter(item => item !== null).map(removeNulls);
+  }
+
+  if (typeof data === 'object' && data !== null) {
+    const result = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== null) {
+        result[key] = removeNulls(value);
+      }
+    }
+    return result;
+  }
+
+  return data;
+}
 // Fetch patient encounters
 each(
   $.patientUuids,
@@ -8,9 +40,7 @@ each(
       // ...state.data.results.filter(e =>
       //   state.v2FormUuids.includes(e?.form?.uuid)
       // )
-      ...state.data.results.filter(e =>
-        state.formUuids.includes(e?.form?.uuid)
-      )
+      ...state.data.results.filter(e => state.formUuids.includes(e?.form?.uuid))
     );
 
     const patientUuid = state.references.at(-1);
@@ -28,17 +58,21 @@ each(
         )
     );
 
-    const encounters = filteredEncounters.map(pe => {
-      const isLatestForm = pe.find(e => {
-        return state.formMaps[e?.form?.uuid]?.syncType === 'latest'
+    const encounters = filteredEncounters
+      .map(pe => {
+        const isLatestForm = pe.find(e => {
+          return state.formMaps[e?.form?.uuid]?.syncType === 'latest';
+        });
+        if (isLatestForm) {
+          return [isLatestForm];
+        } else {
+          const allPatientEncounter = pe.filter(
+            e => state.formMaps[e?.form?.uuid]?.syncType === 'all'
+          );
+          return allPatientEncounter;
+        }
       })
-      if (isLatestForm) {
-        return [isLatestForm]
-      } else {
-        const allPatientEncounter = pe.filter(e => state.formMaps[e?.form?.uuid]?.syncType === 'all')
-        return allPatientEncounter
-      }
-    }).flat()
+      .flat();
 
     state.encounters ??= [];
     state.encounters.push(...encounters);
@@ -65,28 +99,68 @@ fn(state => {
   } = state;
 
   if (next.encounters?.length) {
-    next.encounters = next.encounters.map(
-      ({ uuid, patient, obs, form, encounterDatetime }) => ({
+    next.encounters = next.encounters.map(encounter => {
+      const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+        removeNulls(encounter)
+      );
+
+      return {
         uuid,
-        patient,
-        obs,
-        form,
+        patient: {
+          uuid: patient.uuid,
+          display: patient.display,
+        },
+        obs: obs.map(o => {
+          return {
+            uuid: o.uuid,
+            concept: o.concept,
+            display: o.display,
+            formFieldPath: o.formFieldPath,
+            value: o.value,
+          };
+        }),
+        form: {
+          uuid: form.uuid,
+          display: form.display,
+          description: form.description,
+          name: form.name,
+        },
         encounterDatetime,
-      })
-    )
+      };
+    });
     console.log(next.encounters.length, '# of new encounters to sync to dhis2');
   } else {
     console.log('No encounters found for cursor: ', next.cursor);
   }
-  next.allEncounters = next.allEncounters?.map(
-    ({ uuid, patient, obs, form, encounterDatetime }) => ({
+  next.allEncounters = next.allEncounters?.map(encounter => {
+    const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+      removeNulls(encounter)
+    );
+
+    return {
       uuid,
-      patient,
-      obs,
-      form,
+      patient: {
+        uuid: patient.uuid,
+        display: patient.display,
+      },
+      obs: obs.map(o => {
+        return {
+          uuid: o.uuid,
+          concept: o.concept,
+          display: o.display,
+          formFieldPath: o.formFieldPath,
+          value: o.value,
+        };
+      }),
+      form: {
+        uuid: form.uuid,
+        display: form.display,
+        description: form.description,
+        name: form.name,
+      },
       encounterDatetime,
-    })
-  );
+    };
+  });
 
   return next;
 });
