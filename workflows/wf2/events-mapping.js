@@ -4,7 +4,8 @@ const processAnswer = (
   dataElement,
   optsMap,
   optionSetKey,
-  formUuid
+  formUuid,
+  questionId
 ) => {
   if (typeof answer.value === "object") {
     const isDiagnosisByPsychologist =
@@ -26,7 +27,7 @@ const processAnswer = (
         : undefined;
     }
 
-    const optionKey = `${formUuid}-${answer.concept.uuid}`;
+    const optionKey = questionId ? `${formUuid}-${answer.concept.uuid}-rfe-${questionId}` : `${formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       (o) =>
@@ -81,8 +82,11 @@ const findAnswerByConcept = (encounter, conceptUuid) => {
 };
 
 // Helper functions for finding observations
-const findObsByConcept = (encounter, conceptUuid) =>
-  encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+const findObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split('-rfe-')
+  const answer = encounter.obs.find(o => o.concept.uuid === conceptId && (questionId ? o.formFieldPath === `rfe-${questionId}` : true));
+  return answer
+}
 
 // Concept UUIDs
 const CONCEPTS = {
@@ -138,27 +142,30 @@ fn((state) => {
         return null;
       }
       let formDataValues = Object.keys(form.dataValueMap)
-        .map((dataElement) => {
-          const conceptUuid = form.dataValueMap[dataElement];
+        .map(dataElement => {
+          const [conceptUuid, questionId] = form.dataValueMap[dataElement]?.split('-rfe-');
           const obsAnswer = encounter.obs.find(
-            (o) => o.concept.uuid === conceptUuid
+            o => o.concept.uuid === conceptUuid &&
+              (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
           );
           const answer = obsAnswer;
           const value = answer
             ? processAnswer(
-                answer,
-                conceptUuid,
-                dataElement,
-                state.optsMap,
-                state.optionSetKey,
-                encounter.form.uuid
-              )
+              answer,
+              conceptUuid,
+              dataElement,
+              state.optsMap,
+              state.optionSetKey,
+              encounter.form.uuid,
+              questionId
+            )
             : processNoAnswer(encounter, conceptUuid, dataElement);
+
           if (value) {
             return { dataElement, value };
           }
         })
-        .filter((d) => d);
+        .filter(d => d);
 
       let customMapping = [];
 
