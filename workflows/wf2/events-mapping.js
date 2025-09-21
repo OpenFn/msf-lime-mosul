@@ -123,6 +123,7 @@ fn(state => {
       }
       const { trackedEntity, enrollment, events } =
         state.childTeis[encounter.patient.uuid] || {};
+      console.log({ trackedEntity, enrollment, events });
 
       if (!trackedEntity || !enrollment) {
         handleMissingRecord(encounter, state);
