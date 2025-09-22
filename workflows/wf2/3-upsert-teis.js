@@ -1,4 +1,4 @@
-const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
+const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   const genderMap = {
     M: "male",
     O: "unknown",
@@ -16,19 +16,9 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
     openmrsAutoId,
   } = mappingConfig;
 
-  const isNewPatient = teiData.length === 0;
-  const dateCreated = omrsPatient.auditInfo.dateCreated.substring(0, 10);
+  const enrolledAt = omrsPatient.auditInfo.dateCreated.substring(0, 10);
   const findIdentifierByUuid = (identifiers, targetUuid) =>
     identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
-
-  const enrollments = [
-    {
-      orgUnit,
-      program,
-      programStage: patientProgramStage, //'MdTtRixaC1B',
-      enrollmentDate: dateCreated,
-    },
-  ];
 
   const findOptsUuid = (uuid) =>
     omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
@@ -93,28 +83,31 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
   const filteredStatusAttr = statusAttrMaps.filter((a) => a.value);
 
   const payload = {
-    query: {
-      ou: orgUnit,
-      program,
-      filter: [`AYbfTPYMNJH:Eq:${omrsPatient.uuid}`], //upsert on omrs.patient.uid
-    },
-    data: {
-      program,
-      orgUnit,
-      trackedEntityType: "cHlzCA2MuEF",
-      attributes: [...filteredAttr, ...filteredStatusAttr],
-    },
+    program,
+    orgUnit,
+    attributes: [...filteredAttr, ...filteredStatusAttr],
   };
-
   // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
 
-  if (isNewPatient) {
-    payload.data.attributes.push({
+  if (!patientTei) {
+    payload.trackedEntityType = "cHlzCA2MuEF";
+    const enrollments = [
+      {
+        orgUnit,
+        program,
+        enrolledAt,
+        programStage: patientProgramStage, //'MdTtRixaC1B',
+      },
+    ];
+    payload.attributes.push({
       attribute: "qptKDiv9uPl",
       value: genderMap[omrsPatient.person.gender],
     });
     console.log("create enrollment");
-    payload.data.enrollments = enrollments;
+    payload.enrollments = enrollments;
+  } else {
+    payload.trackedEntity = patientTei.trackedEntity;
+    payload.trackedEntityType = patientTei.trackedEntityType;
   }
 
   return payload;
@@ -122,17 +115,29 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-each(
-  $.patients,
-  get("tracker/trackedEntities", {
-    orgUnit: $.orgUnit,
-    filter: [`AYbfTPYMNJH:Eq:${$.data?.uuid}`],
-    program: $.program,
-  }).then(async (state) => {
-    const patient = state.references.at(-1);
-    console.log(patient.uuid, "patient uuid");
+get("tracker/trackedEntities", {
+  orgUnit: $.orgUnit,
+  filter: (state) => [
+    `AYbfTPYMNJH:IN:${state.patients.map((patient) => patient.uuid).join(";")}`,
+  ],
+  program: $.program,
+});
 
-    const patientMapping = buildPatientsUpsert(patient, state.data.instances, {
+fn((state) => {
+  const findTeiByUuid = (patientUuid) => {
+    return state.data.instances.find((tei) => {
+      return (
+        tei.attributes.find(
+          (attribute) => attribute.attribute === "AYbfTPYMNJH"
+        )?.value === patientUuid
+      );
+    });
+  };
+
+  state.patientsMapping = state.patients.map((patient) => {
+    const patientTei = findTeiByUuid(patient.uuid);
+
+    return buildTeiMapping(patient, patientTei, {
       placeOflivingMap: state.placeOflivingMap,
       orgUnit: state.orgUnit,
       program: state.program,
@@ -142,22 +147,23 @@ each(
       dhis2PatientNumber: state.dhis2PatientNumber,
       openmrsAutoId: state.openmrsAutoId,
     });
-    state.patientsUpsert ??= [];
-    state.patientsUpsert.push(patientMapping);
+  });
 
-    await delay(2000);
-    return state;
-  })
+  return state;
+});
+
+// Bulk upsert
+create(
+  "tracker",
+  { trackedEntities: $.patientsMapping },
+  {
+    params: {
+      atomicMode: "ALL",
+      async: false,
+    },
+  }
 );
 
-// Upsert TEIs to DHIS2
-each(
-  $.patientsUpsert,
-  upsert("trackedEntityInstances", $.data.query, (state) => {
-    console.log(state.data.data);
-    return state.data.data;
-  })
-);
 fn((state) => {
   const {
     data,
