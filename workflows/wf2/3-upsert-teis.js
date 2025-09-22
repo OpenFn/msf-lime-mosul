@@ -1,9 +1,9 @@
 const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
   const genderMap = {
-    M: 'male',
-    O: 'unknown',
-    F: 'female',
-    U: 'unknown',
+    M: "male",
+    O: "unknown",
+    F: "female",
+    U: "unknown",
   };
   const {
     orgUnit,
@@ -19,7 +19,7 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
   const isNewPatient = teiData.length === 0;
   const dateCreated = omrsPatient.auditInfo.dateCreated.substring(0, 10);
   const findIdentifierByUuid = (identifiers, targetUuid) =>
-    identifiers.find(i => i.identifierType.uuid === targetUuid)?.identifier;
+    identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
 
   const enrollments = [
     {
@@ -30,19 +30,19 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
     },
   ];
 
-  const findOptsUuid = uuid =>
-    omrsPatient.person.attributes.find(a => a.attributeType.uuid === uuid)
+  const findOptsUuid = (uuid) =>
+    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
       ?.value?.uuid ||
-    omrsPatient.person.attributes.find(a => a.attributeType.uuid === uuid)
+    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
       ?.value;
 
-  const findOptCode = optUuid =>
-    optsMap.find(o => o['value.uuid - External ID'] === optUuid)?.[
-      'DHIS2 Option Code'
+  const findOptCode = (optUuid) =>
+    optsMap.find((o) => o["value.uuid - External ID"] === optUuid)?.[
+      "DHIS2 Option Code"
     ];
 
   const patientMap = formMaps.patient.dataValueMap;
-  const statusAttrMaps = Object.keys(patientMap).map(d => {
+  const statusAttrMaps = Object.keys(patientMap).map((d) => {
     const optUid = findOptsUuid(patientMap[d]);
     return {
       attribute: d,
@@ -52,45 +52,45 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
 
   const standardAttr = [
     {
-      attribute: 'fa7uwpCKIwa',
+      attribute: "fa7uwpCKIwa",
       value: omrsPatient.person?.names[0]?.givenName,
     },
     {
-      attribute: 'Jt9BhFZkvP2',
+      attribute: "Jt9BhFZkvP2",
       value: omrsPatient.person?.names[0]?.familyName,
     },
     {
-      attribute: 'P4wdYGkldeG', //DHIS2 ID ==> "Patient Number"
+      attribute: "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
       value:
         findIdentifierByUuid(omrsPatient.identifiers, dhis2PatientNumber) ||
         findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId), //map OMRS ID if no DHIS2 id
     },
     {
-      attribute: 'ZBoxuExmxcZ', //MSF ID ==> "OpenMRS Patient Number"
+      attribute: "ZBoxuExmxcZ", //MSF ID ==> "OpenMRS Patient Number"
       value: findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId),
     },
     {
-      attribute: 'AYbfTPYMNJH', //"OpenMRS Patient UID"
+      attribute: "AYbfTPYMNJH", //"OpenMRS Patient UID"
       value: omrsPatient.uuid,
     },
 
     {
-      attribute: 'T1iX2NuPyqS',
+      attribute: "T1iX2NuPyqS",
       value: omrsPatient.person.age,
     },
     {
-      attribute: 'WDp4nVor9Z7',
+      attribute: "WDp4nVor9Z7",
       value: omrsPatient.person.birthdate?.slice(0, 10),
     },
     {
-      attribute: 'rBtrjV1Mqkz', //Place of living
+      attribute: "rBtrjV1Mqkz", //Place of living
       value: placeOflivingMap[omrsPatient.person?.addresses[0]?.cityVillage],
     },
   ];
 
   //filter out attributes that don't have a value from dhis2
-  const filteredAttr = standardAttr.filter(a => a.value);
-  const filteredStatusAttr = statusAttrMaps.filter(a => a.value);
+  const filteredAttr = standardAttr.filter((a) => a.value);
+  const filteredStatusAttr = statusAttrMaps.filter((a) => a.value);
 
   const payload = {
     query: {
@@ -101,7 +101,7 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
     data: {
       program,
       orgUnit,
-      trackedEntityType: 'cHlzCA2MuEF',
+      trackedEntityType: "cHlzCA2MuEF",
       attributes: [...filteredAttr, ...filteredStatusAttr],
     },
   };
@@ -110,27 +110,27 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
 
   if (isNewPatient) {
     payload.data.attributes.push({
-      attribute: 'qptKDiv9uPl',
+      attribute: "qptKDiv9uPl",
       value: genderMap[omrsPatient.person.gender],
     });
-    console.log('create enrollment');
+    console.log("create enrollment");
     payload.data.enrollments = enrollments;
   }
 
   return payload;
 };
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 each(
   $.patients,
-  get('tracker/trackedEntities', {
+  get("tracker/trackedEntities", {
     orgUnit: $.orgUnit,
     filter: [`AYbfTPYMNJH:Eq:${$.data?.uuid}`],
     program: $.program,
-  }).then(async state => {
+  }).then(async (state) => {
     const patient = state.references.at(-1);
-    console.log(patient.uuid, 'patient uuid');
+    console.log(patient.uuid, "patient uuid");
 
     const patientMapping = buildPatientsUpsert(patient, state.data.instances, {
       placeOflivingMap: state.placeOflivingMap,
@@ -153,12 +153,12 @@ each(
 // Upsert TEIs to DHIS2
 each(
   $.patientsUpsert,
-  upsert('trackedEntityInstances', $.data.query, state => {
+  upsert("trackedEntityInstances", $.data.query, (state) => {
     console.log(state.data.data);
     return state.data.data;
   })
 );
-fn(state => {
+fn((state) => {
   const {
     data,
     response,
@@ -169,6 +169,6 @@ fn(state => {
     identifiers,
     ...next
   } = state;
-  next.patientUuids = patients.map(p => p.uuid);
+  next.patientUuids = patients.map((p) => p.uuid);
   return next;
 });

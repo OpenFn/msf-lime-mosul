@@ -1,6 +1,6 @@
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-fn(state => {
+fn((state) => {
   // Group encounters by patient UUID
   state.encountersByPatient = state.encounters.reduce((acc, obj) => {
     const key = obj.patient.uuid;
@@ -15,21 +15,21 @@ fn(state => {
 });
 
 each(
-  state => Object.keys(state.encountersByPatient),
-  get('tracker/trackedEntities', {
+  (state) => Object.keys(state.encountersByPatient),
+  get("tracker/trackedEntities", {
     orgUnit: $.orgUnit,
     program: $.program,
     filter: [`AYbfTPYMNJH:Eq:${$.data}`],
-  }).then(state => {
+  }).then((state) => {
     const patientUid = state.references.at(-1);
 
     const tei = state.data?.instances?.[0];
     if (tei?.trackedEntity) {
-      console.log('Parent TEI found:', tei.trackedEntity);
+      console.log("Parent TEI found:", tei.trackedEntity);
       state.parentTeis ??= {};
       state.parentTeis[patientUid] = tei;
     } else {
-      console.log('Parent TEI Not Found for Patient:', patientUid);
+      console.log("Parent TEI Not Found for Patient:", patientUid);
       state.missingParentTeis ??= {};
       state.missingParentTeis[patientUid] =
         state.encountersByPatient[patientUid];
@@ -40,14 +40,14 @@ each(
 
 each(
   $.encounters,
-  get('tracker/trackedEntities', state => ({
+  get("tracker/trackedEntities", (state) => ({
     orgUnit: state.formMaps[state.data.form.uuid].orgUnit,
     program: state.formMaps[state.data.form.uuid].programId,
     filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
-    fields: '*,enrollments[*],enrollments[events[*]], relationships[*]',
-  })).then(async state => {
+    fields: "*,enrollments[*],enrollments[events[*]], relationships[*]",
+  })).then(async (state) => {
     const encounter = state.references.at(-1);
-    console.log(encounter.patient.uuid, 'Encounter patient uuid');
+    console.log(encounter.patient.uuid, "Encounter patient uuid");
 
     const { trackedEntity, enrollments } = state.data?.instances?.[0] || {};
     if (trackedEntity) {
@@ -70,7 +70,7 @@ each(
           {
             orgUnit,
             program,
-            enrollmentDate: new Date().toISOString().split('T')[0],
+            enrollmentDate: new Date().toISOString().split("T")[0],
           },
         ],
         attributes,
@@ -85,13 +85,13 @@ each(
 );
 
 each(
-  state => {
+  (state) => {
     return state?.teisToCreate ? Object.entries(state?.teisToCreate) : [];
   },
-  create('trackedEntityInstances', state => {
+  create("trackedEntityInstances", (state) => {
     const payload = state.data[1];
     return payload;
-  }).then(state => {
+  }).then((state) => {
     const [patient, payload] = state.references.at(-1);
     const trackedEntity = state.data?.response?.importSummaries[0]?.reference;
     state.childTeis ??= {};
@@ -105,15 +105,15 @@ each(
 each(
   $?.createdTeis || [],
   get(`tracker/trackedEntities/${$.data}`, {
-    fields: 'attributes[*],enrollments,trackedEntity',
-  }).then(state => {
+    fields: "attributes[*],enrollments,trackedEntity",
+  }).then((state) => {
     const { trackedEntity, enrollments, attributes } = state.data || {};
     console.log(state.data);
     const patientUuid = attributes.find(
-      a => a.attribute === 'AYbfTPYMNJH'
+      (a) => a.attribute === "AYbfTPYMNJH"
     ).value;
 
-    console.log('Fetched Teis', state.data);
+    console.log("Fetched Teis", state.data);
     state.childTeis ??= {};
     state.childTeis[patientUuid] = {
       trackedEntity,
@@ -125,10 +125,10 @@ each(
   })
 );
 
-fnIf($.childTeis && $.parentTeis, state => {
+fnIf($.childTeis && $.parentTeis, (state) => {
   const { childTeis, parentTeis } = state;
   state.relationshipsMapping = Object.keys(childTeis)
-    .map(uuid => {
+    .map((uuid) => {
       const childTei = childTeis[uuid].trackedEntity;
       const parentTei = parentTeis[uuid].trackedEntity;
 
@@ -144,7 +144,7 @@ fnIf($.childTeis && $.parentTeis, state => {
               trackedEntityInstance: childTei,
             },
           },
-          relationshipType: 'cJJTZ51EK24',
+          relationshipType: "cJJTZ51EK24", //TODO: Need to change this hardcoded id, because it will be different for d/t programs
         };
       }
     })

@@ -3,7 +3,7 @@ function removeLinks(data) {
     return data.map(removeLinks);
   }
 
-  if (typeof data === 'object' && data !== null) {
+  if (typeof data === "object" && data !== null) {
     const { links, ...rest } = data;
     return Object.fromEntries(
       Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
@@ -15,10 +15,10 @@ function removeLinks(data) {
 
 function removeNulls(data) {
   if (Array.isArray(data)) {
-    return data.filter(item => item !== null).map(removeNulls);
+    return data.filter((item) => item !== null).map(removeNulls);
   }
 
-  if (typeof data === 'object' && data !== null) {
+  if (typeof data === "object" && data !== null) {
     const result = {};
     for (const [key, value] of Object.entries(data)) {
       if (value !== null) {
@@ -33,21 +33,23 @@ function removeNulls(data) {
 // Fetch patient encounters
 each(
   $.patientUuids,
-  get('encounter', { patient: $.data, v: 'full' }).then(state => {
+  get("encounter", { patient: $.data, v: "full" }).then((state) => {
     state.allEncounters ??= [];
     state.allEncounters.push(
       // v2FormsUuids are for mental health forms
       // ...state.data.results.filter(e =>
       //   state.v2FormUuids.includes(e?.form?.uuid)
       // )
-      ...state.data.results.filter(e => state.formUuids.includes(e?.form?.uuid))
+      ...state.data.results.filter((e) =>
+        state.formUuids.includes(e?.form?.uuid)
+      )
     );
 
     const patientUuid = state.references.at(-1);
-    const filteredEncounters = state.formUuids.map(formUuid =>
+    const filteredEncounters = state.formUuids.map((formUuid) =>
       state.data.results
         .filter(
-          e =>
+          (e) =>
             e.auditInfo.dateCreated >= state.cursor &&
             e?.form?.uuid === formUuid
         )
@@ -59,15 +61,15 @@ each(
     );
 
     const encounters = filteredEncounters
-      .map(pe => {
-        const isLatestForm = pe.find(e => {
-          return state.formMaps[e?.form?.uuid]?.syncType === 'latest';
+      .map((pe) => {
+        const isLatestForm = pe.find((e) => {
+          return state.formMaps[e?.form?.uuid]?.syncType === "latest";
         });
         if (isLatestForm) {
           return [isLatestForm];
         } else {
           const allPatientEncounter = pe.filter(
-            e => state.formMaps[e?.form?.uuid]?.syncType === 'all'
+            (e) => state.formMaps[e?.form?.uuid]?.syncType === "all"
           );
           return allPatientEncounter;
         }
@@ -86,7 +88,7 @@ each(
   })
 );
 
-fn(state => {
+fn((state) => {
   const {
     data,
     index,
@@ -99,7 +101,7 @@ fn(state => {
   } = state;
 
   if (next.encounters?.length) {
-    next.encounters = next.encounters.map(encounter => {
+    next.encounters = next.encounters.map((encounter) => {
       const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
         removeNulls(encounter)
       );
@@ -110,7 +112,7 @@ fn(state => {
           uuid: patient.uuid,
           display: patient.display,
         },
-        obs: obs.map(o => {
+        obs: obs.map((o) => {
           return {
             uuid: o.uuid,
             concept: o.concept,
@@ -128,11 +130,11 @@ fn(state => {
         encounterDatetime,
       };
     });
-    console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+    console.log(next.encounters.length, "# of new encounters to sync to dhis2");
   } else {
-    console.log('No encounters found for cursor: ', next.cursor);
+    console.log("No encounters found for cursor: ", next.cursor);
   }
-  next.allEncounters = next.allEncounters?.map(encounter => {
+  next.allEncounters = next.allEncounters?.map((encounter) => {
     const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
       removeNulls(encounter)
     );
@@ -143,7 +145,7 @@ fn(state => {
         uuid: patient.uuid,
         display: patient.display,
       },
-      obs: obs.map(o => {
+      obs: obs.map((o) => {
         return {
           uuid: o.uuid,
           concept: o.concept,
