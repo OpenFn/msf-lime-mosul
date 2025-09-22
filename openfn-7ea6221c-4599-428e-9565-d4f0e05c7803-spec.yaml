@@ -779,6 +779,38 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
+          function removeLinks(data) {
+            if (Array.isArray(data)) {
+              return data.map(removeLinks);
+            }
+
+            if (typeof data === 'object' && data !== null) {
+              const { links, ...rest } = data;
+              return Object.fromEntries(
+                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
+              );
+            }
+
+            return data;
+          }
+
+          function removeNulls(data) {
+            if (Array.isArray(data)) {
+              return data.filter(item => item !== null).map(removeNulls);
+            }
+
+            if (typeof data === 'object' && data !== null) {
+              const result = {};
+              for (const [key, value] of Object.entries(data)) {
+                if (value !== null) {
+                  result[key] = removeNulls(value);
+                }
+              }
+              return result;
+            }
+
+            return data;
+          }
           // Fetch patient encounters
           each(
             $.patientUuids,
@@ -789,9 +821,7 @@ workflows:
                 // ...state.data.results.filter(e =>
                 //   state.v2FormUuids.includes(e?.form?.uuid)
                 // )
-                ...state.data.results.filter(e =>
-                  state.formUuids.includes(e?.form?.uuid)
-                )
+                ...state.data.results.filter(e => state.formUuids.includes(e?.form?.uuid))
               );
 
               const patientUuid = state.references.at(-1);
@@ -809,17 +839,21 @@ workflows:
                   )
               );
 
-              const encounters = filteredEncounters.map(pe => {
-                const isLatestForm = pe.find(e => {
-                  return state.formMaps[e?.form?.uuid]?.syncType === 'latest'
+              const encounters = filteredEncounters
+                .map(pe => {
+                  const isLatestForm = pe.find(e => {
+                    return state.formMaps[e?.form?.uuid]?.syncType === 'latest';
+                  });
+                  if (isLatestForm) {
+                    return [isLatestForm];
+                  } else {
+                    const allPatientEncounter = pe.filter(
+                      e => state.formMaps[e?.form?.uuid]?.syncType === 'all'
+                    );
+                    return allPatientEncounter;
+                  }
                 })
-                if (isLatestForm) {
-                  return [isLatestForm]
-                } else {
-                  const allPatientEncounter = pe.filter(e => state.formMaps[e?.form?.uuid]?.syncType === 'all')
-                  return allPatientEncounter
-                }
-              }).flat()
+                .flat();
 
               state.encounters ??= [];
               state.encounters.push(...encounters);
@@ -846,28 +880,68 @@ workflows:
             } = state;
 
             if (next.encounters?.length) {
-              next.encounters = next.encounters.map(
-                ({ uuid, patient, obs, form, encounterDatetime }) => ({
+              next.encounters = next.encounters.map(encounter => {
+                const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+                  removeNulls(encounter)
+                );
+
+                return {
                   uuid,
-                  patient,
-                  obs,
-                  form,
+                  patient: {
+                    uuid: patient.uuid,
+                    display: patient.display,
+                  },
+                  obs: obs.map(o => {
+                    return {
+                      uuid: o.uuid,
+                      concept: o.concept,
+                      display: o.display,
+                      formFieldPath: o.formFieldPath,
+                      value: o.value,
+                    };
+                  }),
+                  form: {
+                    uuid: form.uuid,
+                    display: form.display,
+                    description: form.description,
+                    name: form.name,
+                  },
                   encounterDatetime,
-                })
-              )
+                };
+              });
               console.log(next.encounters.length, '# of new encounters to sync to dhis2');
             } else {
               console.log('No encounters found for cursor: ', next.cursor);
             }
-            next.allEncounters = next.allEncounters?.map(
-              ({ uuid, patient, obs, form, encounterDatetime }) => ({
+            next.allEncounters = next.allEncounters?.map(encounter => {
+              const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+                removeNulls(encounter)
+              );
+
+              return {
                 uuid,
-                patient,
-                obs,
-                form,
+                patient: {
+                  uuid: patient.uuid,
+                  display: patient.display,
+                },
+                obs: obs.map(o => {
+                  return {
+                    uuid: o.uuid,
+                    concept: o.concept,
+                    display: o.display,
+                    formFieldPath: o.formFieldPath,
+                    value: o.value,
+                  };
+                }),
+                form: {
+                  uuid: form.uuid,
+                  display: form.display,
+                  description: form.description,
+                  name: form.name,
+                },
                 encounterDatetime,
-              })
-            );
+              };
+            });
 
             return next;
           });
@@ -891,27 +965,31 @@ workflows:
             }, {});
 
             return state;
-          })
+          });
 
-          each(state => Object.keys(state.encountersByPatient), get('tracker/trackedEntities', {
-            orgUnit: $.orgUnit,
-            program: $.program,
-            filter: [`AYbfTPYMNJH:Eq:${$.data}`]
-          }).then(state => {
-            const patientUid = state.references.at(-1)
+          each(
+            state => Object.keys(state.encountersByPatient),
+            get('tracker/trackedEntities', {
+              orgUnit: $.orgUnit,
+              program: $.program,
+              filter: [`AYbfTPYMNJH:Eq:${$.data}`],
+            }).then(state => {
+              const patientUid = state.references.at(-1);
 
-            const tei = state.data?.instances?.[0];
-            if (tei?.trackedEntity) {
-              console.log('Parent TEI found:', tei.trackedEntity)
-              state.parentTeis ??= {};
-              state.parentTeis[patientUid] = tei;
-            } else {
-              console.log('Parent TEI Not Found for Patient:', patientUid)
-              state.missingParentTeis ??= {}
-              state.missingParentTeis[patientUid] = state.encountersByPatient[patientUid]
-            }
-            return state
-          }))
+              const tei = state.data?.instances?.[0];
+              if (tei?.trackedEntity) {
+                console.log('Parent TEI found:', tei.trackedEntity);
+                state.parentTeis ??= {};
+                state.parentTeis[patientUid] = tei;
+              } else {
+                console.log('Parent TEI Not Found for Patient:', patientUid);
+                state.missingParentTeis ??= {};
+                state.missingParentTeis[patientUid] =
+                  state.encountersByPatient[patientUid];
+              }
+              return state;
+            })
+          );
 
           each(
             $.encounters,
@@ -933,22 +1011,25 @@ workflows:
                   enrollment: enrollments?.[0]?.enrollment,
                 };
               } else {
-                state.teisToCreate ??= {}
-                const { attributes, trackedEntityType } = state.parentTeis[encounter.patient.uuid]
-                const program = state.formMaps[encounter.form.uuid].programId
-                const orgUnit = state.formMaps[encounter.form.uuid].orgUnit
+                state.teisToCreate ??= {};
+                const { attributes, trackedEntityType } =
+                  state.parentTeis[encounter.patient.uuid];
+                const program = state.formMaps[encounter.form.uuid].programId;
+                const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
 
                 state.teisToCreate[encounter.patient.uuid] = {
                   trackedEntityType,
-                  enrollments: [{
-                    orgUnit,
-                    program,
-                    enrollmentDate: new Date().toISOString().split('T')[0],
-                  }],
+                  enrollments: [
+                    {
+                      orgUnit,
+                      program,
+                      enrollmentDate: new Date().toISOString().split('T')[0],
+                    },
+                  ],
                   attributes,
                   orgUnit,
-                  program
-                }
+                  program,
+                };
               }
 
               await delay(2000);
@@ -956,63 +1037,73 @@ workflows:
             })
           );
 
-          each(state => {
-            return state?.teisToCreate ? Object.entries(state?.teisToCreate) : []
-          }, create('trackedEntityInstances', state => {
-            const payload = state.data[1]
-            return payload
-          }).then(state => {
-            const [patient, payload] = state.references.at(-1)
-            const trackedEntity = state.data?.response?.importSummaries[0]?.reference
-            state.childTeis ??= {}
-            state.createdTeis ??= []
-            state.createdTeis.push(trackedEntity)
-            state.childTeis[patient] = { trackedEntity }
-            return state
-          }))
+          each(
+            state => {
+              return state?.teisToCreate ? Object.entries(state?.teisToCreate) : [];
+            },
+            create('trackedEntityInstances', state => {
+              const payload = state.data[1];
+              return payload;
+            }).then(state => {
+              const [patient, payload] = state.references.at(-1);
+              const trackedEntity = state.data?.response?.importSummaries[0]?.reference;
+              state.childTeis ??= {};
+              state.createdTeis ??= [];
+              state.createdTeis.push(trackedEntity);
+              state.childTeis[patient] = { trackedEntity };
+              return state;
+            })
+          );
 
-          each($?.createdTeis || [], get(`tracker/trackedEntities/${$.data}`, { fields: 'attributes[*],enrollments,trackedEntity' }).then(state => {
-            const { trackedEntity, enrollments, attributes } = state.data || {};
-            console.log(state.data)
-            const patientUuid = attributes.find(a => a.attribute === 'AYbfTPYMNJH').value
+          each(
+            $?.createdTeis || [],
+            get(`tracker/trackedEntities/${$.data}`, {
+              fields: 'attributes[*],enrollments,trackedEntity',
+            }).then(state => {
+              const { trackedEntity, enrollments, attributes } = state.data || {};
+              console.log(state.data);
+              const patientUuid = attributes.find(
+                a => a.attribute === 'AYbfTPYMNJH'
+              ).value;
 
-            console.log('Fetched Teis', state.data)
-            state.childTeis ??= {};
-            state.childTeis[patientUuid] = {
-              trackedEntity,
-              events: enrollments?.[0]?.events,
-              enrollment: enrollments?.[0]?.enrollment,
-            };
+              console.log('Fetched Teis', state.data);
+              state.childTeis ??= {};
+              state.childTeis[patientUuid] = {
+                trackedEntity,
+                events: enrollments?.[0]?.events,
+                enrollment: enrollments?.[0]?.enrollment,
+              };
 
-            return state
-          }))
-
+              return state;
+            })
+          );
 
           fnIf($.childTeis && $.parentTeis, state => {
-            const { childTeis, parentTeis } = state
-            state.relationshipsMapping = Object.keys(childTeis).map(uuid => {
-              const childTei = childTeis[uuid].trackedEntity
-              const parentTei = parentTeis[uuid].trackedEntity
+            const { childTeis, parentTeis } = state;
+            state.relationshipsMapping = Object.keys(childTeis)
+              .map(uuid => {
+                const childTei = childTeis[uuid].trackedEntity;
+                const parentTei = parentTeis[uuid].trackedEntity;
 
-              if (childTei != parentTei) {
-                return {
-                  "from": {
-                    "trackedEntityInstance": {
-                      "trackedEntityInstance": parentTei
-                    }
-                  },
-                  "to": {
-                    "trackedEntityInstance": {
-                      "trackedEntityInstance": childTei
-                    }
-                  },
-                  "relationshipType": "cJJTZ51EK24"
+                if (childTei != parentTei) {
+                  return {
+                    from: {
+                      trackedEntityInstance: {
+                        trackedEntityInstance: parentTei,
+                      },
+                    },
+                    to: {
+                      trackedEntityInstance: {
+                        trackedEntityInstance: childTei,
+                      },
+                    },
+                    relationshipType: 'cJJTZ51EK24',
+                  };
                 }
-              }
-
-            }).filter(Boolean)
-            return state
-          })
+              })
+              .filter(Boolean);
+            return state;
+          });
 
       Create-Events:
         name: Create Events
