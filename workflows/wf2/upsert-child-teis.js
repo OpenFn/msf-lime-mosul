@@ -9,46 +9,30 @@ create(
   }
 );
 
-// each(
-//   (state) => {
-//     return state?.teisToCreate ? Object.entries(state?.teisToCreate) : [];
-//   },
-//   create("trackedEntityInstances", (state) => {
-//     const payload = state.data[1];
-//     return payload;
-//   }).then((state) => {
-//     const [patient, payload] = state.references.at(-1);
-//     const trackedEntity = state.data?.response?.importSummaries[0]?.reference;
-//     state.childTeis ??= {};
-//     state.createdTeis ??= [];
-//     state.createdTeis.push(trackedEntity);
-//     state.childTeis[patient] = { trackedEntity };
-//     return state;
-//   })
-// );
+fn((state) => {
+  state.upsertedTeis =
+    state.data.bundleReport.typeReportMap.TRACKED_ENTITY.objectReports.map(
+      (report) => report.uid
+    );
+  return state;
+});
 
-// each(
-//   $?.createdTeis || [],
-//   get(`tracker/trackedEntities/${$.data}`, {
-//     fields: "attributes[*],enrollments,trackedEntity",
-//   }).then((state) => {
-//     const { trackedEntity, enrollments, attributes } = state.data || {};
-//     console.log(state.data);
-//     const patientUuid = attributes.find(
-//       (a) => a.attribute === "AYbfTPYMNJH"
-//     ).value;
+fn((state) => {
+  // Reduce childTeis to only the trackedEntity, events, and enrollment
+  state.childTeis = Object.entries(state.childTeis).reduce(
+    (acc, [patientUuid, tei]) => {
+      acc[patientUuid] = {
+        trackedEntity: tei.trackedEntity,
+        events: tei.enrollments[0]?.events,
+        enrollment: tei.enrollments[0]?.enrollment,
+      };
+      return acc;
+    },
+    {}
+  );
 
-//     console.log("Fetched Teis", state.data);
-//     state.childTeis ??= {};
-//     state.childTeis[patientUuid] = {
-//       trackedEntity,
-//       events: enrollments?.[0]?.events,
-//       enrollment: enrollments?.[0]?.enrollment,
-//     };
-
-//     return state;
-//   })
-// );
+  return state;
+});
 
 // fnIf($.childTeis && $.parentTeis, (state) => {
 //   const { childTeis, parentTeis } = state;
