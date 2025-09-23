@@ -28,7 +28,7 @@
             },
             {
                 "id": "upsert-teis",
-                "adaptor": "dhis2@6.3.1",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "3-upsert-teis.js",
                 "next": {
@@ -46,7 +46,7 @@
             },
             {
                 "id": "get-teis",
-                "adaptor": "dhis2@6.3.1",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "5-get-teis.js",
                 "next": {
@@ -55,20 +55,20 @@
             },
             {
                 "id": "upsert-child-teis",
-                "adaptor": "dhis2@6.3.1",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "upsert-child-teis.js",
                 "next": {
-                    "teis-relationships": "state?.relationshipsMapping?.length > 0"
+                    "teis-relationships": "Object.keys(state?.childTeis)?.length > 0 && Object.keys(state?.parentTeis)?.length > 0"
                 }
             },
             {
                 "id": "teis-relationships",
-                "adaptor": "dhis2@6.3.1",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "teis-relationships.js",
                 "next": {
-                    "events-mapping": "state.childTeis && !state.errors"
+                    "events-mapping": "!state.errors"
                 }
             },
             {
@@ -81,7 +81,7 @@
             },
             {
                 "id": "create-events",
-                "adaptor": "dhis2@6.3.1",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "6-create-events.js",
                 "next": {
@@ -90,7 +90,7 @@
             },
             {
                 "id": "update-teis",
-                "adaptor": "dhis2@6.3.1",
+                "adaptor": "dhis2@5.0.1",
                 "configuration": "../tmp/dhis2-creds.json",
                 "expression": "7-update-teis.js"
             }
