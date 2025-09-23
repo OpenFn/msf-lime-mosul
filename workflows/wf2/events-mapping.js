@@ -4,8 +4,15 @@ const findAnswerByConcept = (encounter, conceptUuid) => {
 };
 
 // Helper functions for finding observations
-const findObsByConcept = (encounter, conceptUuid) =>
-  encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+const findObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+  );
+  return answer;
+};
 
 function f11(encounter, optsMap) {
   if (encounter.form.description.includes("F11-Family Planning Assessment")) {
@@ -407,7 +414,8 @@ function f33f34(encounter, allEncounters) {
 
 const findDataValue = (encounter, dataElement, metadataMap) => {
   const { optsMap, optionSetKey, form } = metadataMap;
-  const conceptUuid = form.dataValueMap[dataElement];
+  const [conceptUuid, questionId] =
+    form.dataValueMap[dataElement]?.split("-rfe-");
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
@@ -437,7 +445,9 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   }
 
   if (isObjectAnswer) {
-    const optionKey = `${encounter.form.uuid}-${answer.concept.uuid}`;
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       (o) =>
