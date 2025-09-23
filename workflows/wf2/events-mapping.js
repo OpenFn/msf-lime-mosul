@@ -521,7 +521,7 @@ fn((state) => {
 
       const f16Mapping = f16(encounter);
       const f17Mapping = f17(encounter);
-      const f18Mapping = f18(encounter, encounters);
+      const f18Mapping = f18(encounter, state.encounters);
       const f13Mapping = f13(encounter, state.optsMap);
       const f11Mapping = f11(encounter, state.optsMap);
       const f29Mapping = f29(encounter, state.optsMap);
@@ -530,15 +530,18 @@ fn((state) => {
       const f33f34Mapping = f33f34(encounter, state.allEncounters);
 
       const customMapping = [
-        ...f11Mapping,
-        ...f13Mapping,
-        ...f16Mapping,
-        ...f17Mapping,
-        ...f29Mapping,
-        ...f30f29Mapping,
-        ...f32f31Mapping,
-        ...f33f34Mapping,
-      ];
+        f11Mapping,
+        f13Mapping,
+        f18Mapping,
+        f16Mapping,
+        f17Mapping,
+        f29Mapping,
+        f30f29Mapping,
+        f32f31Mapping,
+        f33f34Mapping,
+      ]
+        .filter(Boolean) // Only include non-empty mappings
+        .flat(); // flattening the array
 
       return {
         event: events?.find((e) => e.programStage === form.programStage)?.event,
