@@ -1,0 +1,72 @@
+{
+    "workflow": {
+        "steps": [
+            {
+                "id": "get-patients",
+                "adaptor": "openmrs@4.3.0",
+                "configuration": "../tmp/openmrs-creds.json",
+                "expression": "get-patients.js",
+                "state": {
+                    "lastRunDateTime": "2025-09-23T06:01:24.000Z"
+                },
+                "next": {
+                    "mappings": "!state.errors"
+                }
+            },
+            {
+                "id": "mappings",
+                "adaptors": [
+                    "collections",
+                    "common@2.1.1"
+                ],
+                "expression": "get-mappings.js",
+                "configuration": "../tmp/collections-creds.json",
+                "next": {
+                    "upsert-teis": "state.patients.length > 0 && !state.errors",
+                    "get-encounters": "!state.errors && state.patients.length === 0"
+                }
+            },
+            {
+                "id": "upsert-teis",
+                "adaptor": "dhis2@5.0.1",
+                "configuration": "../tmp/dhis2-creds.json",
+                "expression": "upsert-teis.js",
+                "next": {
+                    "get-encounters": "state.patientUuids.length > 0 && !state.errors"
+                }
+            },
+            {
+                "id": "get-encounters",
+                "adaptor": "openmrs@4.3.0",
+                "configuration": "../tmp/openmrs-creds.json",
+                "expression": "get-encounters.js",
+                "next": {
+                    "get-teis": "!state.errors && state.encounters"
+                }
+            },
+            {
+                "id": "get-teis",
+                "adaptor": "dhis2@5.0.1",
+                "configuration": "../tmp/dhis2-creds.json",
+                "expression": "get-teis.js",
+                "next": {
+                    "events-mapping": "state.TEIs && !state.errors"
+                }
+            },
+            {
+                "id": "events-mapping",
+                "adaptor": "common@2.1.1",
+                "expression": "events-mapping.js",
+                "next": {
+                    "create-events": "state?.eventsMapping?.length > 0 && !state.errors"
+                }
+            },
+            {
+                "id": "create-events",
+                "adaptor": "dhis2@5.0.1",
+                "configuration": "../tmp/dhis2-creds.json",
+                "expression": "create-events.js"
+            }
+        ]
+    }
+}

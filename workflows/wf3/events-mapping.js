@@ -83,12 +83,12 @@ function processEncounterDataValues(encounter, form, state) {
       };
       const value = answer
         ? processAnswer(
-          answer,
-          conceptUuid,
-          dataElement,
-          state.optsMap,
-          state.optionSetKey
-        )
+            answer,
+            conceptUuid,
+            dataElement,
+            state.optsMap,
+            state.optionSetKey
+          )
         : processNoAnswer(encounter, conceptUuid, dataElement);
 
       return { dataElement, value };
@@ -102,50 +102,53 @@ fn((state) => {
       // Skip if we don't have exactly 2 encounters
       if (encounters.length !== 2) return null;
 
-
       // Get the forms for both encounters
       const form1 = state.formMaps[encounters[0].form.uuid];
       const form2 = state.formMaps[encounters[1].form.uuid];
 
       // Skip if either form doesn't have dataValueMap
       if (!form1?.dataValueMap || !form2?.dataValueMap) return null;
-      const f8Encounter = encounters.find(e => e.form.uuid === f08Form)
-      const obsDatetime = findObsByConcept(f8Encounter, '7f00c65d-de60-467a-8964-fe80c7a85ef0')?.obsDatetime
+      const f8Encounter = encounters.find((e) => e.form.uuid === f08Form);
+      const obsDatetime = findObsByConcept(
+        f8Encounter,
+        "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+      )?.obsDatetime;
 
       const datePart = obsDatetime.substring(0, 10);
       const timePart = obsDatetime.substring(11, 19);
       const f8Mapping = [
         {
           dataElement: "yprMS34o8s3",
-          value: f8Encounter.encounterDatetime
+          value: f8Encounter.encounterDatetime,
         },
         {
           dataElement: "iQio7NYSA3m",
-          value: datePart
+          value: datePart,
         },
         {
           dataElement: "yprMS34o8s3",
-          value: timePart
-        }
-      ]
-
+          value: timePart,
+        },
+      ];
 
       const tei = state.TEIs[patientUuid];
-      console.log({ tei, patientUuid })
+      console.log({ tei, patientUuid });
 
       const attributeMap = {
-        "Lg1LrNf9LQR": "qptKDiv9uPl",
-        "OVo3FxLURtH": "k26cdlS78i9",
-        "f3n6kIB9IbI": "Rv8WM2mTuS5",
-        "oc9zlhOoWmP": "YUIQIA2ClN6",
-        "DbyD9bbGIvE": "Qq6xQ2s6LO8",
-        "fiPFww1viBB": "rBtrjV1Mqkz",
-        "FsL5BjQocuo": "Xvzc9e0JJmp"
+        Lg1LrNf9LQR: "qptKDiv9uPl",
+        OVo3FxLURtH: "k26cdlS78i9",
+        f3n6kIB9IbI: "Rv8WM2mTuS5",
+        oc9zlhOoWmP: "YUIQIA2ClN6",
+        DbyD9bbGIvE: "Qq6xQ2s6LO8",
+        fiPFww1viBB: "rBtrjV1Mqkz",
+        FsL5BjQocuo: "Xvzc9e0JJmp",
       };
 
       const f9Mapping = Object.entries(attributeMap)
         .map(([dataElement, attributeId]) => {
-          const value = tei?.attributes?.find(attr => attr.attribute === attributeId)?.value;
+          const value = tei?.attributes?.find(
+            (attr) => attr.attribute === attributeId
+          )?.value;
 
           return { dataElement, value };
         })
@@ -157,7 +160,7 @@ fn((state) => {
         ...f9Mapping,
         ...processEncounterDataValues(encounters[0], form1, state),
         ...processEncounterDataValues(encounters[1], form2, state),
-      ].filter(d => d.value)
+      ].filter((d) => d.value);
 
       // Use properties from the first encounter for the event metadata
       // (or choose which encounter to use for each field)

@@ -1,10 +1,10 @@
 // Create or update events for each encounter create(
 create(
-  'tracker',
+  "tracker",
   {
-    events: state => {
+    events: (state) => {
       console.log(
-        'Creating events for: ',
+        "Creating events for: ",
         JSON.stringify(state.eventsMapping, null, 2)
       );
       return state.eventsMapping;
@@ -13,8 +13,8 @@ create(
   {
     params: {
       async: false,
-      dataElementIdScheme: 'UID',
-      importStrategy: 'CREATE_AND_UPDATE',
+      dataElementIdScheme: "UID",
+      importStrategy: "CREATE_AND_UPDATE",
     },
   }
 );
