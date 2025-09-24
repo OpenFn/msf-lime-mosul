@@ -1,4 +1,4 @@
-name: wf3-omrs-dhis2-143
+name: wf3-omrs-dhis2
 jobs:
   Get-Mappings-from-Collection:
     name: Get Mappings from Collection
@@ -11,6 +11,7 @@ jobs:
           /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
         return UUID_PATTERN.test(id);
       };
+
 
       collections.get("mosul-metadata-mappings-staging").then((state) => {
         state.optsMap = state.data
@@ -44,6 +45,7 @@ jobs:
         delete state.references;
         return state;
       });
+
 
       fn((state) => {
         const { formMetadata, identifiers, ...rest } = state;
@@ -83,7 +85,6 @@ jobs:
 
         return rest;
       });
-
   Get-Encounters:
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -104,6 +105,7 @@ jobs:
         return data;
       }
 
+
       function removeNulls(data) {
         if (Array.isArray(data)) {
           return data.filter((item) => item !== null).map(removeNulls);
@@ -120,8 +122,13 @@ jobs:
         }
 
         return data;
-      } const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-      // Fetch patient encounters each(
+      }
+
+      const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+      // Fetch patient encounters
+
+      each(
         $.patientUuids,
         get("encounter", { patient: $.data, v: "full" }).then((state) => {
           const patientUuid = state.references.at(-1);
@@ -154,6 +161,7 @@ jobs:
           return state;
         })
       );
+
 
       fn((state) => {
         const {
@@ -205,13 +213,13 @@ jobs:
 
         return next;
       });
-
   Create-Events:
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
     body: |
       // Create or update events for each encounter create(
-      create("tracker",
+      create(
+        "tracker",
         {
           events: (state) => {
             console.log(
@@ -229,6 +237,7 @@ jobs:
           },
         }
       );
+
       fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
   Custom-Logic-for-Events:
     name: Custom Logic for Events
@@ -238,16 +247,48 @@ jobs:
 
       const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261";
 
+      const f27Form = "ac97ec76-5647-3153-b4e1-2eceae121e50";
 
-      const processAnswer = (
-        answer,
-        conceptUuid,
-        dataElement,
-        optsMap,
-        optionSetKey
-      ) => {
-        if (typeof answer.value === "object") {
-          const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
+      const f28Form = "893ef4b7-5ad1-39e7-8515-eab308ccd636";
+
+
+      const findAnswerByConcept = (encounter, conceptUuid) => {
+        const answer = encounter.obs.find((o) => o.concept.uuid ===
+      conceptUuid);
+        return answer?.value?.display;
+      };
+
+
+      // Helper functions for finding observations
+
+      const findObsByConcept = (encounter, conceptUuid) => {
+        const [conceptId, questionId] = conceptUuid.split("-rfe-");
+        const answer = encounter.obs.find(
+          (o) =>
+            o.concept.uuid === conceptId &&
+            (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+        );
+        return answer;
+      };
+
+
+      const findDataValue = (encounter, dataElement, metadataMap) => {
+        const { optsMap, optionSetKey, form } = metadataMap;
+        const [conceptUuid, questionId] =
+          form.dataValueMap[dataElement]?.split("-rfe-");
+        const answer = encounter.obs.find((o) => o.concept.uuid ===
+      conceptUuid);
+        const isObjectAnswer = answer && typeof answer.value === "object";
+        const isStringAnswer = answer && typeof answer.value === "string";
+
+        if (isStringAnswer) {
+          return answer.value;
+        }
+
+        if (isObjectAnswer) {
+          const optionKey = questionId
+            ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
+            : `${encounter.form.uuid}-${answer.concept.uuid}`;
           const matchingOptionSet = optionSetKey[optionKey];
           const opt = optsMap.find(
             (o) =>
@@ -261,82 +302,38 @@ jobs:
             answer?.value?.display; //TODO: revisit this logic if optionSet not
       found
 
-          // console.log(`matchingOption value: "${matchingOption}" for`);
-          // console.log({
-          //   optionKey,
-          //   conceptUid: answer.concept.uuid,
-          //   'answer.value.uid': answer.value.uuid,
-          //   'answer.value.display': answer.value.display,
-          //   matchingOption,
-          //   matchingOptionSet,
-          // });
+          if (["FALSE", "No"].includes(matchingOption)) return "false";
+          if (["TRUE", "Yes"].includes(matchingOption)) return "true";
 
-          if (matchingOption === "FALSE" || matchingOption === "No") {
-            return "false";
-          }
-          if (matchingOption === "TRUE" || matchingOption === "Yes") {
-            return "true";
-          }
-
-          return matchingOption || "";
+          return matchingOption;
         }
 
-        return answer.value;
-      };
-
-
-      const processNoAnswer = (encounter, conceptUuid, dataElement) => {
         const isEncounterDate =
           conceptUuid === "encounter-date" &&
           ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
             dataElement
           );
+
         // These are data elements for encounter date in DHIS2
         // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2,
       F32-mhGAp Follow-up v2
-
         if (isEncounterDate) {
           return encounter.encounterDatetime.replace("+0000", "");
         }
+
         return "";
       };
-
-
-      const findAnswerByConcept = (encounter, conceptUuid) => {
-        const answer = encounter.obs.find((o) => o.concept.uuid ===
-      conceptUuid);
-        return answer?.value?.display;
-      };
-
-
-      // Helper functions for finding observations
-
-      const findObsByConcept = (encounter, conceptUuid) =>
-        encounter.obs.find((o) => o.concept.uuid === conceptUuid);
 
       // Helper function to process dataValues from an encounter
 
       function processEncounterDataValues(encounter, form, state) {
         return Object.keys(form.dataValueMap)
           .map((dataElement) => {
-            const conceptUuid = form.dataValueMap[dataElement];
-            const obsAnswer = encounter.obs.find(
-              (o) => o.concept.uuid === conceptUuid
-            );
-
-            const answer = {
-              ...obsAnswer,
-              formUuid: encounter.form.uuid,
-            };
-            const value = answer
-              ? processAnswer(
-                answer,
-                conceptUuid,
-                dataElement,
-                state.optsMap,
-                state.optionSetKey
-              )
-              : processNoAnswer(encounter, conceptUuid, dataElement);
+            const value = findDataValue(encounter, dataElement, {
+              optsMap: state.optsMap,
+              optionSetKey: state.optionSetKey,
+              form,
+            });
 
             return { dataElement, value };
           })
@@ -344,70 +341,136 @@ jobs:
       }
 
 
+      const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+
+      const calculateAge = (dob) =>
+        Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
+
       fn((state) => {
-        state.eventsMapping = Object.entries(state.encountersByPatient)
+        // Group encounters by patient UUID
+        const encountersByPatient = state.encounters?.reduce((acc, obj) => {
+          const key = obj.patient.uuid;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(obj);
+          return acc;
+        }, {});
+
+        state.eventsMapping = Object.entries(encountersByPatient)
           .map(([patientUuid, encounters]) => {
             // Skip if we don't have exactly 2 encounters
             if (encounters.length !== 2) return null;
-
 
             // Get the forms for both encounters
             const form1 = state.formMaps[encounters[0].form.uuid];
             const form2 = state.formMaps[encounters[1].form.uuid];
 
             // Skip if either form doesn't have dataValueMap
-            if (!form1?.dataValueMap || !form2?.dataValueMap) return null;
-            const f8Encounter = encounters.find(e => e.form.uuid === f08Form)
-            const obsDatetime = findObsByConcept(f8Encounter,
-      '7f00c65d-de60-467a-8964-fe80c7a85ef0')?.obsDatetime
 
-            const datePart = obsDatetime.substring(0, 10);
-            const timePart = obsDatetime.substring(11, 19);
-            const f8Mapping = [
-              {
-                dataElement: "yprMS34o8s3",
-                value: f8Encounter.encounterDatetime
-              },
-              {
-                dataElement: "iQio7NYSA3m",
-                value: datePart
-              },
-              {
-                dataElement: "yprMS34o8s3",
-                value: timePart
-              }
-            ]
+            if (!form1?.dataValueMap || !form2?.dataValueMap) {
+              return null;
+            }
+            let encountersMapping = [];
+            const f8Encounter = encounters.find((e) => e.form.uuid === f08Form);
 
+            if (f8Encounter) {
+              const obsDatetime = findObsByConcept(
+                f8Encounter,
+                "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+              )?.obsDatetime;
+
+              const datePart = obsDatetime.substring(0, 10);
+              const timePart = obsDatetime.substring(11, 19);
+              const f8Mapping = [
+                {
+                  dataElement: "yprMS34o8s3",
+                  value: f8Encounter.encounterDatetime,
+                },
+                {
+                  dataElement: "iQio7NYSA3m",
+                  value: datePart,
+                },
+                {
+                  dataElement: "yprMS34o8s3",
+                  value: timePart,
+                },
+              ];
+              encountersMapping.push(...f8Mapping);
+            }
+
+            const f27Encounter = encounters.find((e) => e.form.uuid ===
+      f27Form);
+
+            if (f27Encounter) {
+              const admissionDate = findObsByConcept(
+                f27Encounter,
+                "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+              )?.value;
+
+              const f27Mapping = [
+                {
+                  dataElement: "eYvDzr2m8f5",
+                  value: admissionDate,
+                },
+              ];
+              encountersMapping.push(...f27Mapping);
+            }
 
             const tei = state.TEIs[patientUuid];
-            console.log({ tei, patientUuid })
+            if (tei) {
+              const attributeMap = {
+                Lg1LrNf9LQR: "qptKDiv9uPl",
+                OVo3FxLURtH: "k26cdlS78i9",
+                f3n6kIB9IbI: "Rv8WM2mTuS5",
+                oc9zlhOoWmP: "YUIQIA2ClN6",
+                DbyD9bbGIvE: "Qq6xQ2s6LO8",
+                fiPFww1viBB: "rBtrjV1Mqkz",
+                FsL5BjQocuo: "Xvzc9e0JJmp",
+                //F28 DSHI2 UID
+                WP5vr8KB2lH: "qptKDiv9uPl",
+                Y7qzoa4Qaiz: "YUIQIA2ClN6",
+                XCUd9xOGXkn: "Qq6xQ2s6LO8",
+                onKT21rxH6Z: "rBtrjV1Mqkz",
+                sCKCNreiqEA: "Xvzc9e0JJmp",
+              };
 
-            const attributeMap = {
-              "Lg1LrNf9LQR": "qptKDiv9uPl",
-              "OVo3FxLURtH": "k26cdlS78i9",
-              "f3n6kIB9IbI": "Rv8WM2mTuS5",
-              "oc9zlhOoWmP": "YUIQIA2ClN6",
-              "DbyD9bbGIvE": "Qq6xQ2s6LO8",
-              "fiPFww1viBB": "rBtrjV1Mqkz",
-              "FsL5BjQocuo": "Xvzc9e0JJmp"
-            };
+              const attributeMapping = Object.entries(attributeMap)
+                .map(([dataElement, attributeId]) => {
+                  const value = tei?.attributes?.find(
+                    (attr) => attr.attribute === attributeId
+                  )?.value;
 
-            const f9Mapping = Object.entries(attributeMap)
-              .map(([dataElement, attributeId]) => {
-                const value = tei?.attributes?.find(attr => attr.attribute ===
-      attributeId)?.value;
+                  return { dataElement, value };
+                })
+                .filter(Boolean);
 
-                return { dataElement, value };
-              })
-              .filter(Boolean);
+              let age = tei?.attributes?.find(
+                (attr) => attr.attribute === "T1iX2NuPyqS"
+              )?.value;
+
+              if (!age) {
+                const birthdate = tei?.attributes?.find(
+                  (attr) => attr.attribute === "WDp4nVor9Z7"
+                )?.value;
+                age = calculateAge(birthdate);
+              }
+
+              const f28Mapping = [
+                {
+                  dataElement: "NWOnMq8h4w1",
+                  value: age,
+                },
+              ];
+              encountersMapping.push(...attributeMapping, ...f28Mapping);
+            }
 
             // Combine dataValues from both encounters
             const formDataValues = [
-              ...f8Mapping,
-              ...f9Mapping,
+              ...encountersMapping,
               ...processEncounterDataValues(encounters[0], form1, state),
               ...processEncounterDataValues(encounters[1], form2, state),
-            ].filter(d => d.value)
+            ].filter((d) => d.value);
 
             // Use properties from the first encounter for the event metadata
             // (or choose which encounter to use for each field)
@@ -423,6 +486,13 @@ jobs:
           .filter(Boolean);
 
         return state;
+      });
+
+
+      fn((state) => {
+        return {
+          eventsMapping: state.eventsMapping,
+        };
       });
   Get-Patients:
     name: Get Patients
@@ -444,6 +514,7 @@ jobs:
         return data;
       }
 
+
       function removeNulls(data) {
         if (Array.isArray(data)) {
           return data.filter((item) => item !== null).map(removeNulls);
@@ -460,13 +531,17 @@ jobs:
         }
 
         return data;
-      } cursor($.lastRunDateTime || $.manualCursor ||
-      "2025-03-20T06:01:24.000Z");
+      }
+
+      cursor($.lastRunDateTime || $.manualCursor || "2025-03-20T06:01:24.000Z");
+
 
       cursor("today", {
         key: "lastRunDateTime",
         format: (c) => dateFns.format(new Date(c),
-      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"), });
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+      });
+
 
       searchPatient({
         q: "IQ146-25-012-289",
@@ -474,6 +549,7 @@ jobs:
         includeVoide: true,
         limit: "100",
       });
+
 
       fn((state) => {
         const { cursor, data, lastRunDateTime } = state;
@@ -513,7 +589,10 @@ jobs:
         return state;
       });
 
-      // Fetch all encounters http
+
+      // Fetch all encounters
+
+      http
         .get("/ws/fhir2/R4/Encounter", {
           query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
         })
@@ -539,6 +618,7 @@ jobs:
         })
       );
 
+
       fn((state) => {
         console.log(
           "Total # of encounters fetched: ",
@@ -556,6 +636,7 @@ jobs:
 
         return state;
       });
+
 
       fn((state) => {
         const {
@@ -586,7 +667,6 @@ jobs:
 
         return { cursor, lastRunDateTime, patients, patientUuids };
       });
-
   Upsert-TEIs:
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
@@ -713,7 +793,9 @@ jobs:
         return payload;
       };
 
+
       const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 
       get("tracker/trackedEntities", {
         orgUnit: $.orgUnit,
@@ -723,6 +805,7 @@ jobs:
         ],
         program: $.program,
       });
+
 
       fn((state) => {
         const findTeiByUuid = (patientUuid) => {
@@ -753,7 +836,10 @@ jobs:
         return state;
       });
 
-      // Bulk upsert create(
+
+      // Bulk upsert
+
+      create(
         "tracker",
         { trackedEntities: $.patientsMapping },
         {
@@ -763,6 +849,7 @@ jobs:
           },
         }
       );
+
 
       fn((state) => {
         const {
@@ -778,15 +865,17 @@ jobs:
         next.patientUuids = patients.map((p) => p.uuid);
         return next;
       });
-
   Get-TEIs-and-Map-Answers:
     name: Get TEIs and Map Answers
     adaptor: "@openfn/language-dhis2@5.0.1"
     body: >
       const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+
       //TODO: Group the encounters by patient and then get the TEI for each
-      patient each(
+      patient
+
+      each(
         $.encounters,
         get("tracker/trackedEntities", (state) => ({
           orgUnit: $.orgUnit,
@@ -819,7 +908,6 @@ jobs:
           return state;
         })
       );
-
   Get-Tie:
     name: Get Tie
     adaptor: "@openfn/language-dhis2@7.1.3"
