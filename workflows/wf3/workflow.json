@@ -19,7 +19,7 @@
                     "collections",
                     "common@2.1.1"
                 ],
-                "expression": "get-mappings.js",
+                "expression": "metadata-mappings.js",
                 "configuration": "../tmp/collections-creds.json",
                 "next": {
                     "upsert-teis": "state.patients.length > 0 && !state.errors",
