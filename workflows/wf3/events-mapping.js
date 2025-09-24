@@ -3,9 +3,38 @@ const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261";
 const f27Form = "ac97ec76-5647-3153-b4e1-2eceae121e50";
 const f28Form = "893ef4b7-5ad1-39e7-8515-eab308ccd636";
 
-const processAnswer = (answer, optsMap, optionSetKey) => {
-  if (typeof answer.value === "object") {
-    const optionKey = `${answer.formUuid}-${answer.concept.uuid}`;
+const findAnswerByConcept = (encounter, conceptUuid) => {
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  return answer?.value?.display;
+};
+
+// Helper functions for finding observations
+const findObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+  );
+  return answer;
+};
+
+const findDataValue = (encounter, dataElement, metadataMap) => {
+  const { optsMap, optionSetKey, form } = metadataMap;
+  const [conceptUuid, questionId] =
+    form.dataValueMap[dataElement]?.split("-rfe-");
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const isObjectAnswer = answer && typeof answer.value === "object";
+  const isStringAnswer = answer && typeof answer.value === "string";
+
+  if (isStringAnswer) {
+    return answer.value;
+  }
+
+  if (isObjectAnswer) {
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
       (o) =>
@@ -17,59 +46,35 @@ const processAnswer = (answer, optsMap, optionSetKey) => {
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    if (matchingOption === "FALSE" || matchingOption === "No") {
-      return "false";
-    }
-    if (matchingOption === "TRUE" || matchingOption === "Yes") {
-      return "true";
-    }
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
 
-    return matchingOption || "";
+    return matchingOption;
   }
 
-  return answer.value;
-};
-
-const processNoAnswer = (encounter, conceptUuid, dataElement) => {
   const isEncounterDate =
     conceptUuid === "encounter-date" &&
     ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
       dataElement
     );
+
   // These are data elements for encounter date in DHIS2
   // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
-
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace("+0000", "");
   }
+
   return "";
 };
-
-const findAnswerByConcept = (encounter, conceptUuid) => {
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-  return answer?.value?.display;
-};
-
-// Helper functions for finding observations
-const findObsByConcept = (encounter, conceptUuid) =>
-  encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-
 // Helper function to process dataValues from an encounter
 function processEncounterDataValues(encounter, form, state) {
   return Object.keys(form.dataValueMap)
     .map((dataElement) => {
-      const conceptUuid = form.dataValueMap[dataElement];
-      const obsAnswer = encounter.obs.find(
-        (o) => o.concept.uuid === conceptUuid
-      );
-
-      const answer = {
-        ...obsAnswer,
-        formUuid: encounter.form.uuid,
-      };
-      const value = answer
-        ? processAnswer(answer, state.optsMap, state.optionSetKey)
-        : processNoAnswer(encounter, conceptUuid, dataElement);
+      const value = findDataValue(encounter, dataElement, {
+        optsMap: state.optsMap,
+        optionSetKey: state.optionSetKey,
+        form,
+      });
 
       return { dataElement, value };
     })
@@ -79,8 +84,19 @@ function processEncounterDataValues(encounter, form, state) {
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const calculateAge = (dob) =>
   Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
+
 fn((state) => {
-  state.eventsMapping = Object.entries(state.encountersByPatient)
+  // Group encounters by patient UUID
+  const encountersByPatient = state.encounters?.reduce((acc, obj) => {
+    const key = obj.patient.uuid;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(obj);
+    return acc;
+  }, {});
+
+  state.eventsMapping = Object.entries(encountersByPatient)
     .map(([patientUuid, encounters]) => {
       // Skip if we don't have exactly 2 encounters
       if (encounters.length !== 2) return null;
@@ -208,4 +224,10 @@ fn((state) => {
     .filter(Boolean);
 
   return state;
+});
+
+fn((state) => {
+  return {
+    eventsMapping: state.eventsMapping,
+  };
 });
