@@ -1,8 +1,35 @@
 const f08Form = "f0bb3bf7-4e0a-3545-afce-a6b33b0378e4";
 const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261";
 const f23Form = "1b14d9e6-0569-304e-9d4e-f9df40762dff";
+const f24Form = "399cf41a-ea2a-39e3-8758-508e79729656";
+const f25Form = "c4db716a-f9d0-35df-a589-d5caf2dfb106";
+const f26Form = "afcf2993-233e-385b-8030-74a8b475eccd";
 const f27Form = "ac97ec76-5647-3153-b4e1-2eceae121e50";
 const f28Form = "893ef4b7-5ad1-39e7-8515-eab308ccd636";
+
+const encountersFormPairs = (encounters, formsUuids) => {
+  const { f08Form, f09Form, f23Form, f27Form, f28Form, f25Form, f26Form } =
+    formsUuids;
+  const f8f9Encounters = encounters.filter(
+    (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
+  );
+  const f23f24Encounters = encounters.filter(
+    (e) => e.form.uuid === f23Form || e.form.uuid === f24Form
+  );
+  const f25f26Encounters = encounters.filter(
+    (e) => e.form.uuid === f25Form || e.form.uuid === f26Form
+  );
+  const f27f28Encounters = encounters.filter(
+    (e) => e.form.uuid === f27Form || e.form.uuid === f28Form
+  );
+
+  return {
+    f8f9Encounters,
+    f23f24Encounters,
+    f27f28Encounters,
+    f25f26Encounters,
+  };
+};
 
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const calculateAge = (dob) =>
@@ -20,81 +47,6 @@ const teiAge = (tei) => {
     age = calculateAge(birthdate);
   }
   return age;
-};
-
-const findAnswerByConcept = (encounter, conceptUuid) => {
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-  return answer?.value?.display;
-};
-
-// Helper functions for finding observations
-const findObsByConcept = (encounter, conceptUuid) => {
-  const [conceptId, questionId] = conceptUuid.split("-rfe-");
-  const answer = encounter.obs.find(
-    (o) =>
-      o.concept.uuid === conceptId &&
-      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
-  );
-  return answer;
-};
-
-const findDataValue = (encounter, dataElement, metadataMap) => {
-  const { optsMap, optionSetKey, form } = metadataMap;
-  const [conceptUuid, questionId] =
-    form.dataValueMap[dataElement]?.split("-rfe-");
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-  const isObjectAnswer = answer && typeof answer.value === "object";
-  const isStringAnswer = answer && typeof answer.value === "string";
-
-  if (isStringAnswer) {
-    return answer.value;
-  }
-
-  if (isObjectAnswer) {
-    const optionKey = questionId
-      ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
-      : `${encounter.form.uuid}-${answer.concept.uuid}`;
-    const matchingOptionSet = optionSetKey[optionKey];
-    const opt = optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === answer.value.uuid &&
-        o["DHIS2 Option Set UID"] === matchingOptionSet
-    );
-    const matchingOption =
-      opt?.["DHIS2 Option Code"] ||
-      opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
-      answer?.value?.display; //TODO: revisit this logic if optionSet not found
-
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
-
-    return matchingOption;
-  }
-
-  const isEncounterDate =
-    conceptUuid === "encounter-date" &&
-    ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
-      dataElement
-    );
-
-  // These are data elements for encounter date in DHIS2
-  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
-  if (isEncounterDate) {
-    return encounter.encounterDatetime.replace("+0000", "");
-  }
-
-  return "";
-};
-
-const findByConceptAndValue = (encounter, conceptUuid, value) => {
-  const [conceptId, questionId] = conceptUuid.split("-rfe-");
-  const answer = encounter.obs.find(
-    (o) =>
-      o.concept.uuid === conceptId &&
-      (questionId ? o.formFieldPath === `rfe-${questionId}` : true) &&
-      o.value.uuid === value
-  );
-  return answer;
 };
 
 function f8(encounter) {
@@ -184,16 +136,100 @@ function f23(encounter) {
       : false,
   }));
 }
-// Helper function to process dataValues from an encounter
-function buildDataValues(encounter, form, mappingConfig) {
+
+function teiAttributeMapping(tei, attributeMap) {
+  const attrMapping = Object.entries(attributeMap)
+    .map(([dataElement, attributeId]) => {
+      const value = tei?.attributes?.find(
+        (attr) => attr.attribute === attributeId
+      )?.value;
+
+      return { dataElement, value };
+    })
+    .filter(Boolean);
+
+  return attrMapping;
+}
+
+const findObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+  );
+  return answer;
+};
+
+const findByConceptAndValue = (encounter, conceptUuid, value) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true) &&
+      o.value.uuid === value
+  );
+  return answer;
+};
+
+const findDataValue = (encounter, dataElement, metadataMap) => {
+  const { optsMap, optionSetKey, form } = metadataMap;
+  const [conceptUuid, questionId] =
+    form.dataValueMap[dataElement]?.split("-rfe-");
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const isObjectAnswer = answer && typeof answer.value === "object";
+  const isStringAnswer = answer && typeof answer.value === "string";
+
+  if (isStringAnswer) {
+    return answer.value;
+  }
+
+  if (isObjectAnswer) {
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
+    const matchingOptionSet = optionSetKey[optionKey];
+    const opt = optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === answer.value.uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet
+    );
+    const matchingOption =
+      opt?.["DHIS2 Option Code"] ||
+      opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
+      answer?.value?.display; //TODO: revisit this logic if optionSet not found
+
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+
+    return matchingOption;
+  }
+
+  const isEncounterDate =
+    conceptUuid === "encounter-date" &&
+    ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
+      dataElement
+    );
+
+  // These are data elements for encounter date in DHIS2
+  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
+  if (isEncounterDate) {
+    return encounter.encounterDatetime.replace("+0000", "");
+  }
+
+  return "";
+};
+
+const buildDataValues = (encounter, form, mappingConfig) => {
   const { optsMap, optionSetKey, tei } = mappingConfig;
-  let dvMapping = [];
+  let formMapping = [];
   // F08 Form Encounter Mapping
   if (encounter.form.uuid === f08Form) {
     const f8Mapping = f8(encounter);
-    dvMapping.push(...f8Mapping);
+    formMapping.push(...f8Mapping);
   }
 
+  // F09 Form Encounter Mapping
   if (encounter.form.uuid === f09Form) {
     const attributeMap = {
       Lg1LrNf9LQR: "qptKDiv9uPl",
@@ -205,18 +241,60 @@ function buildDataValues(encounter, form, mappingConfig) {
       FsL5BjQocuo: "Xvzc9e0JJmp",
     };
     const f09Mapping = teiAttributeMapping(tei, attributeMap);
-    dvMapping.push(...f09Mapping);
+    formMapping.push(...f09Mapping);
   }
-  // F27 Form Encounter Mapping
-  if (encounter.form.uuid === f27Form) {
-    const f27Mapping = f27(encounter);
-    dvMapping.push(...f27Mapping);
-  }
+
   // F23 Form Encounter Mapping
   if (encounter.form.uuid === f23Form) {
     const f23Mapping = f23(encounter);
-    dvMapping.push(...f23Mapping);
+    formMapping.push(...f23Mapping);
   }
+
+  // F24 Form Encounter Mapping
+  if (encounter.form.uuid === f24Form) {
+    const attributeMap = {
+      Hww0CNYYt3E: "qptKDiv9uPl",
+      // Z7vMFdnQxpE: "WDp4nVor9Z7",
+      // L97SmAK11DN: "T1iX2NuPyqS",
+      yE0dIWW0TXP: "rBtrjV1Mqkz",
+    };
+    const attributeMapping = teiAttributeMapping(tei, attributeMap);
+
+    const dob = tei?.attributes?.find(
+      (attr) => attr.attribute === "WDp4nVor9Z7"
+    )?.value;
+
+    const age = tei?.attributes?.find(
+      (attr) => attr.attribute === "T1iX2NuPyqS"
+    )?.value;
+
+    const ageInMonths = calculateAge(dob) * 12;
+    let ageInDays = calculateAge(dob) * 365;
+    if (!dob) {
+      ageInDays = age * 365;
+    }
+    const ageMappings = [
+      {
+        dataElement: "Z7vMFdnQxpE",
+        value: ageInDays,
+      },
+      {
+        dataElement: "L97SmAK11DN",
+        value: ageInMonths,
+      },
+    ];
+
+    formMapping.push(...attributeMapping, ...ageMappings);
+  }
+
+  // F27 Form Encounter Mapping
+  if (encounter.form.uuid === f27Form) {
+    console.log("f27Form");
+    const f27Mapping = f27(encounter);
+    formMapping.push(...f27Mapping);
+  }
+
+  // F28 Form Encounter Mapping
   if (encounter.form.uuid === f28Form) {
     const attributeMap = {
       WP5vr8KB2lH: "qptKDiv9uPl",
@@ -233,12 +311,11 @@ function buildDataValues(encounter, form, mappingConfig) {
         value: teiAge(tei),
       },
     ];
-    dvMapping.push(...attributeMapping, ...f28Mapping);
+    formMapping.push(...attributeMapping, ...f28Mapping);
   }
 
-  return [
-    ...dvMapping,
-    ...Object.keys(form.dataValueMap).map((dataElement) => {
+  const dataValuesMapping = Object.keys(form.dataValueMap)
+    .map((dataElement) => {
       const value = findDataValue(encounter, dataElement, {
         optsMap,
         optionSetKey,
@@ -246,23 +323,16 @@ function buildDataValues(encounter, form, mappingConfig) {
       });
 
       return { dataElement, value };
-    }),
-  ].filter((d) => d);
-}
-
-function teiAttributeMapping(tei, attributeMap) {
-  const attrMapping = Object.entries(attributeMap)
-    .map(([dataElement, attributeId]) => {
-      const value = tei?.attributes?.find(
-        (attr) => attr.attribute === attributeId
-      )?.value;
-
-      return { dataElement, value };
     })
-    .filter(Boolean);
+    .filter((d) => d.value);
 
-  return attrMapping;
-}
+  const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
+    Boolean
+  );
+
+  return combinedMapping;
+};
+
 fn((state) => {
   // Group encounters by patient UUID
   const encountersByPatient = state.encounters?.reduce((acc, obj) => {
@@ -275,59 +345,68 @@ fn((state) => {
   }, {});
 
   state.eventsMapping = Object.entries(encountersByPatient)
-    .map(([patientUuid, encounters]) => {
-      // Skip if we don't have exactly 2 encounters
-      // if (encounters.length !== 2) return null;
+    .map(([patientUuid, patientEncounters]) => {
+      const pairedEncounters = Object.values(
+        encountersFormPairs(patientEncounters, {
+          f08Form,
+          f09Form,
+          f23Form,
+          f27Form,
+          f28Form,
+          f25Form,
+          f26Form,
+        })
+      );
 
-      // Get the forms for both encounters
+      return pairedEncounters
+        .filter((encounters) => encounters.length === 2)
+        .map((encounters) => {
+          // Get the forms for both encounters
+          const form1 = state.formMaps[encounters[0].form.uuid];
+          const form2 = state.formMaps[encounters[1].form.uuid];
 
-      // const form1 = state.formMaps[encounters[0].form.uuid];
-      // const form2 = state.formMaps[encounters[1].form.uuid];
+          // Skip if either form doesn't have dataValueMap
+          if (!form1?.dataValueMap || !form2?.dataValueMap) {
+            return null;
+          }
 
-      // // Skip if either form doesn't have dataValueMap
+          const tei = state.TEIs[patientUuid];
 
-      // if (!form1?.dataValueMap || !form2?.dataValueMap) {
-      //   return null;
-      // }
+          const dataValues = encounters
+            .map((encounter) => {
+              const form = state.formMaps[encounter.form.uuid];
+              if (!form?.dataValueMap) {
+                return null;
+              }
 
-      const tei = state.TEIs[patientUuid];
+              return buildDataValues(encounter, form, {
+                optsMap: state.optsMap,
+                optionSetKey: state.optionSetKey,
+                tei,
+              });
+            })
+            .flat()
+            .filter((d) => d.value);
 
-      const encountersMapping = encounters.map((encounter) => {
-        const form = state.formMaps[encounter.form.uuid];
-        if (!form?.dataValueMap) {
-          return null;
-        }
-        return buildDataValues(encounter, form, {
-          optsMap: state.optsMap,
-          optionSetKey: state.optionSetKey,
-          tei,
-        });
-      });
-      // Combine dataValues from both encounters
-      const formDataValues = [
-        ...encountersMapping,
-        // ...buildDataValues(encounters[0], form1, state),
-        // ...buildDataValues(encounters[1], form2, state),
-      ].filter((d) => d.value);
-
-      // Use properties from the first encounter for the event metadata
-      // (or choose which encounter to use for each field)
-      return {
-        program: form1.programId,
-        orgUnit: form1.orgUnit,
-        occurredAt: encounters[0].encounterDatetime.replace("+0000", ""),
-        programStage: form1.programStage,
-        dataValues: formDataValues,
-        trackedEntityInstance: patientUuid,
-      };
+          return {
+            program: form1.programId,
+            orgUnit: form1.orgUnit,
+            occurredAt: encounters[0].encounterDatetime.replace("+0000", ""),
+            programStage: form1.programStage,
+            dataValues,
+            trackedEntityInstance: patientUuid,
+          };
+        })
+        .filter(Boolean);
     })
+    .flat()
     .filter(Boolean);
 
   return state;
 });
 
-// fn((state) => {
-//   return {
-//     eventsMapping: state.eventsMapping,
-//   };
-// });
+fn((state) => {
+  return {
+    eventsMapping: state.eventsMapping,
+  };
+});
