@@ -264,32 +264,58 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       (attr) => attr.attribute === "WDp4nVor9Z7"
     )?.value;
 
-    const age = tei?.attributes?.find(
-      (attr) => attr.attribute === "T1iX2NuPyqS"
-    )?.value;
-
-    const ageInMonths = calculateAge(dob) * 12;
-    let ageInDays = calculateAge(dob) * 365;
-    if (!dob) {
-      ageInDays = age * 365;
-    }
-    const ageMappings = [
-      {
+    if (dob) {
+      let ageInDays = calculateAge(dob) * 365;
+      attributeMapping.push({
         dataElement: "Z7vMFdnQxpE",
         value: ageInDays,
-      },
-      {
+      });
+    }
+    if (!dob) {
+      const age = tei?.attributes?.find(
+        (attr) => attr.attribute === "T1iX2NuPyqS"
+      )?.value;
+
+      const ageInMonths = age * 12;
+
+      attributeMapping.push({
         dataElement: "L97SmAK11DN",
         value: ageInMonths,
-      },
-    ];
+      });
+    }
 
-    formMapping.push(...attributeMapping, ...ageMappings);
+    formMapping.push(...attributeMapping);
+  }
+
+  if (encounter.form.uuid === f26Form) {
+    const attributeMap = {
+      eDuqRYx3wLx: "qptKDiv9uPl",
+      d7wOfzPBbQD: "T1iX2NuPyqS",
+      y9pK9sVcbU9: "k26cdlS78i9",
+      // b7z6xIpzkim: "",
+      CDuiRuOcfzj: "YUIQIA2ClN6",
+      JMhFzB97fcS: "Qq6xQ2s6LO8",
+      Nd43pz1Oo62: "rBtrjV1Mqkz",
+    };
+    const attributeMapping = teiAttributeMapping(tei, attributeMap);
+
+    const dob = tei?.attributes?.find(
+      (attr) => attr.attribute === "WDp4nVor9Z7"
+    )?.value;
+
+    if (dob) {
+      let ageInDays = calculateAge(dob) * 365;
+      attributeMapping.push({
+        dataElement: "b7z6xIpzkim",
+        value: ageInDays,
+      });
+    }
+
+    formMapping.push(...attributeMapping);
   }
 
   // F27 Form Encounter Mapping
   if (encounter.form.uuid === f27Form) {
-    console.log("f27Form");
     const f27Mapping = f27(encounter);
     formMapping.push(...f27Mapping);
   }
