@@ -15,7 +15,7 @@ collections.get("mosul-metadata-mappings-staging").then((state) => {
     .filter((i) => i.key.includes("identifiers-value-"))
     .map((i) => i.value);
   state.syncedAt = state.data.find((i) => i.key === "syncedAt")?.value;
-  state.formMetadata = state.data.find((i) => i.key === "formMetadata")?.value; // filter form maps where formmap.workflow == "WF3"
+  state.formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
   state.placeOflivingMap = state.data.find(
     (i) => i.key === "placeOflivingMap"
   )?.value;
@@ -25,10 +25,14 @@ collections.get("mosul-metadata-mappings-staging").then((state) => {
   state.fileDateModified = state.data.filter(
     (i) => i.key === "fileDateModified"
   )?.[0]?.value;
+  state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
+
+  // TODO: Remove state.optionSetKey, when needed
+  // Build from state.formMaps
   state.optionSetKey = state.data.filter(
     (i) => i.key === "optionSetKey"
   )?.[0]?.value;
-  state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
+
   delete state.data;
   delete state.references;
   return state;
@@ -70,15 +74,4 @@ fn((state) => {
   ]; //MSF ID or OpenMRS Patient Number
 
   return rest;
-});
-
-fn((state) => {
-  state.genderOptions = state.optsMap
-    .filter((o) => o["OptionSet name"] === "Sex - Patient")
-    .reduce((acc, value) => {
-      acc[value["value.uuid - External ID"]] = value["DHIS2 Option Code"];
-      return acc;
-    }, {});
-
-  return state;
 });
