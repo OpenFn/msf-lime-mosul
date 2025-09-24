@@ -1,46 +1,35 @@
-// Fetch all encounters
-http
-  .get("/ws/fhir2/R4/Encounter", {
-    query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
-  })
-  .then((state) => {
-    const { link, total } = state.data;
-    state.nextUrl = link
-      .find((l) => l.relation === "next")
-      ?.url.replace(/(_count=)\d+/, `$1${total}`)
-      .split("/openmrs")[1];
+function removeLinks(data) {
+  if (Array.isArray(data)) {
+    return data.map(removeLinks);
+  }
 
-    state.allResponse = state.data;
-    return state;
-  });
+  if (typeof data === "object" && data !== null) {
+    const { links, ...rest } = data;
+    return Object.fromEntries(
+      Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
+    );
+  }
 
-fnIf(
-  $.nextUrl,
-  http.get($.nextUrl).then((state) => {
-    console.log(`Fetched ${state.data.entry.length} remaining encounters`);
-    delete state.allResponse.link;
-    state.allResponse.entry.push(...state.data.entry);
-    return state;
-  })
-);
+  return data;
+}
 
-fn((state) => {
-  console.log(
-    "Total # of encounters fetched: ",
-    state.allResponse?.entry?.length
-  );
+function removeNulls(data) {
+  if (Array.isArray(data)) {
+    return data.filter((item) => item !== null).map(removeNulls);
+  }
 
-  state.patientUuids = [
-    ...new Set(
-      state.allResponse?.entry?.map((p) =>
-        p.resource.subject.reference.replace("Patient/", "")
-      )
-    ),
-  ];
+  if (typeof data === "object" && data !== null) {
+    const result = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (value !== null) {
+        result[key] = removeNulls(value);
+      }
+    }
+    return result;
+  }
 
-  return state;
-});
-
+  return data;
+}
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Fetch patient encounters
 each(
@@ -89,29 +78,39 @@ fn((state) => {
   } = state;
 
   if (next.encounters?.length) {
-    next.encounters = next.encounters.map(
-      ({ uuid, patient, obs, form, encounterDatetime }) => ({
+    next.encounters = next.encounters.map((encounter) => {
+      const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+        removeNulls(encounter)
+      );
+
+      return {
         uuid,
-        patient,
-        obs,
-        form,
+        patient: {
+          uuid: patient.uuid,
+          display: patient.display,
+        },
+        obs: obs.map((o) => {
+          return {
+            uuid: o.uuid,
+            concept: o.concept,
+            display: o.display,
+            formFieldPath: o.formFieldPath,
+            value: o.value,
+          };
+        }),
+        form: {
+          uuid: form.uuid,
+          display: form.display,
+          description: form.description,
+          name: form.name,
+        },
         encounterDatetime,
-      })
-    );
+      };
+    });
     console.log(next.encounters.length, "# of new encounters to sync to dhis2");
   } else {
     console.log("No encounters found for cursor: ", next.cursor);
   }
-
-  // Group encounters by patient UUID
-  next.encountersByPatient = next.encounters?.reduce((acc, obj) => {
-    const key = obj.patient.uuid;
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(obj);
-    return acc;
-  }, {});
 
   return next;
 });
