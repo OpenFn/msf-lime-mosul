@@ -8,7 +8,12 @@ cursor("today", {
   format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: "IQ", v: "full", includeVoide: true, limit: "100" });
+searchPatient({
+  q: "IQ146-25-012-289",
+  v: "full",
+  includeVoide: true,
+  limit: "100",
+});
 
 fn((state) => {
   const { cursor, data, lastRunDateTime } = state;

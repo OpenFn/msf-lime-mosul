@@ -1,14 +1,14 @@
 // Fetch all encounters
 http
-  .get('/ws/fhir2/R4/Encounter', {
+  .get("/ws/fhir2/R4/Encounter", {
     query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
   })
-  .then(state => {
+  .then((state) => {
     const { link, total } = state.data;
     state.nextUrl = link
-      .find(l => l.relation === 'next')
+      .find((l) => l.relation === "next")
       ?.url.replace(/(_count=)\d+/, `$1${total}`)
-      .split('/openmrs')[1];
+      .split("/openmrs")[1];
 
     state.allResponse = state.data;
     return state;
@@ -16,7 +16,7 @@ http
 
 fnIf(
   $.nextUrl,
-  http.get($.nextUrl).then(state => {
+  http.get($.nextUrl).then((state) => {
     console.log(`Fetched ${state.data.entry.length} remaining encounters`);
     delete state.allResponse.link;
     state.allResponse.entry.push(...state.data.entry);
@@ -24,16 +24,16 @@ fnIf(
   })
 );
 
-fn(state => {
+fn((state) => {
   console.log(
-    'Total # of encounters fetched: ',
+    "Total # of encounters fetched: ",
     state.allResponse?.entry?.length
   );
 
   state.patientUuids = [
     ...new Set(
-      state.allResponse?.entry?.map(p =>
-        p.resource.subject.reference.replace('Patient/', '')
+      state.allResponse?.entry?.map((p) =>
+        p.resource.subject.reference.replace("Patient/", "")
       )
     ),
   ];
@@ -41,16 +41,16 @@ fn(state => {
   return state;
 });
 
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Fetch patient encounters
 each(
   $.patientUuids,
-  get('encounter', { patient: $.data, v: 'full' }).then(state => {
+  get("encounter", { patient: $.data, v: "full" }).then((state) => {
     const patientUuid = state.references.at(-1);
-    const filteredEncounters = state.formUuids.map(formUuid =>
+    const filteredEncounters = state.formUuids.map((formUuid) =>
       state?.data?.results
         .filter(
-          e =>
+          (e) =>
             e.auditInfo.dateCreated >= state.cursor &&
             e?.form?.uuid === formUuid
         )
@@ -61,7 +61,8 @@ each(
         )
     );
 
-    const encounters = filteredEncounters.map(e => e[0]).filter(e => e);
+    // Why we only keep the latest one form encounter?
+    const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
     state.encounters ??= [];
     state.encounters.push(...encounters);
 
@@ -75,7 +76,7 @@ each(
   })
 );
 
-fn(state => {
+fn((state) => {
   const {
     data,
     index,
@@ -97,9 +98,9 @@ fn(state => {
         encounterDatetime,
       })
     );
-    console.log(next.encounters.length, '# of new encounters to sync to dhis2');
+    console.log(next.encounters.length, "# of new encounters to sync to dhis2");
   } else {
-    console.log('No encounters found for cursor: ', next.cursor);
+    console.log("No encounters found for cursor: ", next.cursor);
   }
 
   // Group encounters by patient UUID
