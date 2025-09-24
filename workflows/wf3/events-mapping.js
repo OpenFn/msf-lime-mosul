@@ -1,7 +1,26 @@
 const f08Form = "f0bb3bf7-4e0a-3545-afce-a6b33b0378e4";
 const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261";
+const f23Form = "1b14d9e6-0569-304e-9d4e-f9df40762dff";
 const f27Form = "ac97ec76-5647-3153-b4e1-2eceae121e50";
 const f28Form = "893ef4b7-5ad1-39e7-8515-eab308ccd636";
+
+const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
+const calculateAge = (dob) =>
+  Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
+
+const teiAge = (tei) => {
+  let age = tei?.attributes?.find(
+    (attr) => attr.attribute === "T1iX2NuPyqS"
+  )?.value;
+
+  if (!age) {
+    const birthdate = tei?.attributes?.find(
+      (attr) => attr.attribute === "WDp4nVor9Z7"
+    )?.value;
+    age = calculateAge(birthdate);
+  }
+  return age;
+};
 
 const findAnswerByConcept = (encounter, conceptUuid) => {
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -66,25 +85,184 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
 
   return "";
 };
+
+const findByConceptAndValue = (encounter, conceptUuid, value) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true) &&
+      o.value.uuid === value
+  );
+  return answer;
+};
+
+function f8(encounter) {
+  const obsDatetime = findObsByConcept(
+    encounter,
+    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+  )?.obsDatetime;
+
+  const datePart = obsDatetime.substring(0, 10);
+  const timePart = obsDatetime.substring(11, 19);
+  return [
+    {
+      dataElement: "yprMS34o8s3",
+      value: encounter.encounterDatetime,
+    },
+    {
+      dataElement: "iQio7NYSA3m",
+      value: datePart,
+    },
+    {
+      dataElement: "yprMS34o8s3",
+      value: timePart,
+    },
+  ];
+}
+
+function f27(encounter) {
+  const admissionDate = findObsByConcept(
+    encounter,
+    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+  )?.value;
+
+  return [
+    {
+      dataElement: "eYvDzr2m8f5",
+      value: admissionDate,
+    },
+  ];
+}
+function f23(encounter) {
+  // Define concept mappings object for cleaner reference
+  const CONCEPT_ID = "f587c6a3-6a71-48ae-83b2-5e2417580b6f";
+
+  const conditions = [
+    {
+      // 'Neonatal infection in previous pregnancy' is selected in OMRS
+      dataElement: "H9noxo3e7ox",
+      valueId: "09d6bb71-b061-4cae-85f3-2ff020a10c92",
+    },
+    {
+      // 'Mother got antibiotics during delivery/post-partum ' is selected in OMRS
+      dataElement: "GfN1TtpqDoJ",
+      valueId: "3764bd79-9ae2-478a-88e7-51adc0a8a2e3",
+    },
+    {
+      //'Infection in other baby if multiple pregnancy' is selected in OMRS
+      dataElement: "WS1p4xgbZqU",
+      valueId: "95d55453-060b-43a2-b4a0-11848dd9ac72",
+    },
+    {
+      //'Maternal fever during labour' is selected in OMRS
+      dataElement: "WX19iDuB4Dj",
+      valueId: "890f4bdb-91bc-484c-a9cf-17f5068b0507",
+    },
+    {
+      // 'Rupture of membranes ≥18h' is selected in OMRS
+      dataElement: "eLKs6GUHJdS",
+      valueId: "28d10ce0-7f72-4654-834d-64fa37ad8e85",
+    },
+    {
+      // 'Pre-labour rupture of membranes <18h' is selected in OMRS
+      dataElement: "hCfngwimBjX",
+      valueId: "cf48d000-a741-44e0-81cb-a51f88595e41",
+    },
+    {
+      // 'Smelling/cloudy amniotic fluid' is selected in OMRS
+      dataElement: "qc7ubAwULxs",
+      valueId: "49829d18-22c9-404c-a79a-49ed6b21d2be",
+    },
+  ];
+
+  // Map through conditions and create final mapping
+  return conditions.map((condition) => ({
+    dataElement: condition.dataElement,
+    value: findByConceptAndValue(encounter, CONCEPT_ID, condition.valueId)
+      ? true
+      : false,
+  }));
+}
 // Helper function to process dataValues from an encounter
-function processEncounterDataValues(encounter, form, state) {
-  return Object.keys(form.dataValueMap)
-    .map((dataElement) => {
+function buildDataValues(encounter, form, mappingConfig) {
+  const { optsMap, optionSetKey, tei } = mappingConfig;
+  let dvMapping = [];
+  // F08 Form Encounter Mapping
+  if (encounter.form.uuid === f08Form) {
+    const f8Mapping = f8(encounter);
+    dvMapping.push(...f8Mapping);
+  }
+
+  if (encounter.form.uuid === f09Form) {
+    const attributeMap = {
+      Lg1LrNf9LQR: "qptKDiv9uPl",
+      OVo3FxLURtH: "k26cdlS78i9",
+      f3n6kIB9IbI: "Rv8WM2mTuS5",
+      oc9zlhOoWmP: "YUIQIA2ClN6",
+      DbyD9bbGIvE: "Qq6xQ2s6LO8",
+      fiPFww1viBB: "rBtrjV1Mqkz",
+      FsL5BjQocuo: "Xvzc9e0JJmp",
+    };
+    const f09Mapping = teiAttributeMapping(tei, attributeMap);
+    dvMapping.push(...f09Mapping);
+  }
+  // F27 Form Encounter Mapping
+  if (encounter.form.uuid === f27Form) {
+    const f27Mapping = f27(encounter);
+    dvMapping.push(...f27Mapping);
+  }
+  // F23 Form Encounter Mapping
+  if (encounter.form.uuid === f23Form) {
+    const f23Mapping = f23(encounter);
+    dvMapping.push(...f23Mapping);
+  }
+  if (encounter.form.uuid === f28Form) {
+    const attributeMap = {
+      WP5vr8KB2lH: "qptKDiv9uPl",
+      Y7qzoa4Qaiz: "YUIQIA2ClN6",
+      XCUd9xOGXkn: "Qq6xQ2s6LO8",
+      onKT21rxH6Z: "rBtrjV1Mqkz",
+      sCKCNreiqEA: "Xvzc9e0JJmp",
+    };
+    const attributeMapping = teiAttributeMapping(tei, attributeMap);
+
+    const f28Mapping = [
+      {
+        dataElement: "NWOnMq8h4w1",
+        value: teiAge(tei),
+      },
+    ];
+    dvMapping.push(...attributeMapping, ...f28Mapping);
+  }
+
+  return [
+    ...dvMapping,
+    ...Object.keys(form.dataValueMap).map((dataElement) => {
       const value = findDataValue(encounter, dataElement, {
-        optsMap: state.optsMap,
-        optionSetKey: state.optionSetKey,
+        optsMap,
+        optionSetKey,
         form,
       });
 
       return { dataElement, value };
-    })
-    .filter((d) => d);
+    }),
+  ].filter((d) => d);
 }
 
-const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
-const calculateAge = (dob) =>
-  Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
+function teiAttributeMapping(tei, attributeMap) {
+  const attrMapping = Object.entries(attributeMap)
+    .map(([dataElement, attributeId]) => {
+      const value = tei?.attributes?.find(
+        (attr) => attr.attribute === attributeId
+      )?.value;
 
+      return { dataElement, value };
+    })
+    .filter(Boolean);
+
+  return attrMapping;
+}
 fn((state) => {
   // Group encounters by patient UUID
   const encountersByPatient = state.encounters?.reduce((acc, obj) => {
@@ -99,115 +277,37 @@ fn((state) => {
   state.eventsMapping = Object.entries(encountersByPatient)
     .map(([patientUuid, encounters]) => {
       // Skip if we don't have exactly 2 encounters
-      if (encounters.length !== 2) return null;
+      // if (encounters.length !== 2) return null;
 
       // Get the forms for both encounters
-      const form1 = state.formMaps[encounters[0].form.uuid];
-      const form2 = state.formMaps[encounters[1].form.uuid];
 
-      // Skip if either form doesn't have dataValueMap
+      // const form1 = state.formMaps[encounters[0].form.uuid];
+      // const form2 = state.formMaps[encounters[1].form.uuid];
 
-      if (!form1?.dataValueMap || !form2?.dataValueMap) {
-        return null;
-      }
-      let encountersMapping = [];
-      const f8Encounter = encounters.find((e) => e.form.uuid === f08Form);
+      // // Skip if either form doesn't have dataValueMap
 
-      if (f8Encounter) {
-        const obsDatetime = findObsByConcept(
-          f8Encounter,
-          "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-        )?.obsDatetime;
-
-        const datePart = obsDatetime.substring(0, 10);
-        const timePart = obsDatetime.substring(11, 19);
-        const f8Mapping = [
-          {
-            dataElement: "yprMS34o8s3",
-            value: f8Encounter.encounterDatetime,
-          },
-          {
-            dataElement: "iQio7NYSA3m",
-            value: datePart,
-          },
-          {
-            dataElement: "yprMS34o8s3",
-            value: timePart,
-          },
-        ];
-        encountersMapping.push(...f8Mapping);
-      }
-
-      const f27Encounter = encounters.find((e) => e.form.uuid === f27Form);
-
-      if (f27Encounter) {
-        const admissionDate = findObsByConcept(
-          f27Encounter,
-          "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-        )?.value;
-
-        const f27Mapping = [
-          {
-            dataElement: "eYvDzr2m8f5",
-            value: admissionDate,
-          },
-        ];
-        encountersMapping.push(...f27Mapping);
-      }
+      // if (!form1?.dataValueMap || !form2?.dataValueMap) {
+      //   return null;
+      // }
 
       const tei = state.TEIs[patientUuid];
-      if (tei) {
-        const attributeMap = {
-          Lg1LrNf9LQR: "qptKDiv9uPl",
-          OVo3FxLURtH: "k26cdlS78i9",
-          f3n6kIB9IbI: "Rv8WM2mTuS5",
-          oc9zlhOoWmP: "YUIQIA2ClN6",
-          DbyD9bbGIvE: "Qq6xQ2s6LO8",
-          fiPFww1viBB: "rBtrjV1Mqkz",
-          FsL5BjQocuo: "Xvzc9e0JJmp",
-          //F28 DSHI2 UID
-          WP5vr8KB2lH: "qptKDiv9uPl",
-          Y7qzoa4Qaiz: "YUIQIA2ClN6",
-          XCUd9xOGXkn: "Qq6xQ2s6LO8",
-          onKT21rxH6Z: "rBtrjV1Mqkz",
-          sCKCNreiqEA: "Xvzc9e0JJmp",
-        };
 
-        const attributeMapping = Object.entries(attributeMap)
-          .map(([dataElement, attributeId]) => {
-            const value = tei?.attributes?.find(
-              (attr) => attr.attribute === attributeId
-            )?.value;
-
-            return { dataElement, value };
-          })
-          .filter(Boolean);
-
-        let age = tei?.attributes?.find(
-          (attr) => attr.attribute === "T1iX2NuPyqS"
-        )?.value;
-
-        if (!age) {
-          const birthdate = tei?.attributes?.find(
-            (attr) => attr.attribute === "WDp4nVor9Z7"
-          )?.value;
-          age = calculateAge(birthdate);
+      const encountersMapping = encounters.map((encounter) => {
+        const form = state.formMaps[encounter.form.uuid];
+        if (!form?.dataValueMap) {
+          return null;
         }
-
-        const f28Mapping = [
-          {
-            dataElement: "NWOnMq8h4w1",
-            value: age,
-          },
-        ];
-        encountersMapping.push(...attributeMapping, ...f28Mapping);
-      }
-
+        return buildDataValues(encounter, form, {
+          optsMap: state.optsMap,
+          optionSetKey: state.optionSetKey,
+          tei,
+        });
+      });
       // Combine dataValues from both encounters
       const formDataValues = [
         ...encountersMapping,
-        ...processEncounterDataValues(encounters[0], form1, state),
-        ...processEncounterDataValues(encounters[1], form2, state),
+        // ...buildDataValues(encounters[0], form1, state),
+        // ...buildDataValues(encounters[1], form2, state),
       ].filter((d) => d.value);
 
       // Use properties from the first encounter for the event metadata
@@ -226,8 +326,8 @@ fn((state) => {
   return state;
 });
 
-fn((state) => {
-  return {
-    eventsMapping: state.eventsMapping,
-  };
-});
+// fn((state) => {
+//   return {
+//     eventsMapping: state.eventsMapping,
+//   };
+// });

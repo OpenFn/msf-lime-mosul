@@ -41,7 +41,7 @@
                 "configuration": "../tmp/openmrs-creds.json",
                 "expression": "get-encounters.js",
                 "next": {
-                    "get-teis": "!state.errors && state.encounters"
+                    "get-teis": "!state.errors && state.encounters.length > 0"
                 }
             },
             {
