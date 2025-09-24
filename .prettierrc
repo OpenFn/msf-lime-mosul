@@ -2,7 +2,7 @@
   "proseWrap": "always",
   "trailingComma": "es5",
   "arrowParens": "always",
-  "semi": true,
+  "semi": false,
   "singleQuote": false,
   "printWidth": 80
 }
