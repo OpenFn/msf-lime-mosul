@@ -17,19 +17,17 @@ fn((state) => {
   return state;
 });
 
-fn((state) => {
-  // Reduce childTeis to only the trackedEntity, events, and enrollment
-  state.childTeis = Object.entries(state.childTeis).reduce(
-    (acc, [patientUuid, tei]) => {
-      acc[patientUuid] = {
-        trackedEntity: tei.trackedEntity,
-        events: tei.enrollments[0]?.events,
-        enrollment: tei.enrollments[0]?.enrollment,
-      };
-      return acc;
-    },
-    {}
-  );
+each($.upsertedTeis, get(`tracker/trackedEntities/${$.data}`).then(state => {
+  const { trackedEntity, enrollments, attributes } = state.data || {};
+
+  const patientUuid = attributes.find(a => a.attribute === 'AYbfTPYMNJH').value
+
+  state.childTeis ??= {};
+  state.childTeis[patientUuid] = {
+    trackedEntity,
+    events: enrollments?.[0]?.events,
+    enrollment: enrollments?.[0]?.enrollment,
+  };
 
   return state;
-});
+}))
