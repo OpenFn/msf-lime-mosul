@@ -5,6 +5,9 @@
                 "id": "fetch-metadata",
                 "adaptor": "http@6.5.1",
                 "expression": "1-fetch-metadata.js",
+                "state": {
+                    "lastRunDateTime": "2025-09-30T00:24:13.845"
+                },
                 "next": {
                     "get-teis": "!state.errors"
                 }
