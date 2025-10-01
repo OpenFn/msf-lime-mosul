@@ -13,15 +13,20 @@ steps:
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
+    state: ./tmp/state.json
+    configuration: ../tmp/openmrs-creds.json
     next:
       mappings:
         disabled: false
+        condition: |
+          !state.errors
         openfn:
           uuid: 712ee9ea-bbde-4ce7-b802-321bc3d9f394
     expression: ./get-patients.js
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: ../tmp/dhis2-creds.json
     next:
       get-encounters:
         disabled: false
@@ -33,6 +38,7 @@ steps:
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: ../tmp/openmrs-creds.json
     next:
       get-teis-and-map-answers:
         disabled: false
@@ -44,6 +50,7 @@ steps:
   - id: get-teis-and-map-answers
     name: Get TEIs and Map Answers
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: ../tmp/dhis2-creds.json
     next:
       event-mappings:
         disabled: false
@@ -55,6 +62,7 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: ../tmp/dhis2-creds.json
     next:
       update-teis:
         disabled: false
@@ -83,6 +91,7 @@ steps:
   - id: update-teis
     name: Update TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: ../tmp/dhis2-creds.json
     expression: ./update-teis.js
   - id: event-mappings
     name: Event Mappings
