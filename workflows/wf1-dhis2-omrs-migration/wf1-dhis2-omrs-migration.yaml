@@ -1,0 +1,57 @@
+id: wf1-dhis2-omrs-migration
+name: wf1-dhis2-omrs-migration
+options: {}
+steps:
+  - id: trigger
+    type: cron
+    next:
+      fetch-metadata:
+        disabled: false
+        condition: true
+        openfn:
+          uuid: 85b3b59f-90c1-434a-a9a6-1c09dd86ccff
+  - id: fetch-metadata
+    name: Fetch Metadata
+    adaptor: "@openfn/language-http@6.5.1"
+    next:
+      get-teis-and-locations:
+        disabled: false
+        condition: |
+          state.trackedEntityInstances.length > 0
+        openfn:
+          uuid: cfa7784e-6a3e-4f6f-8578-4dfb410f4a41
+    expression: ./fetch-metadata.js
+  - id: get-teis-and-locations
+    name: Get Teis and Locations
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      create-patients:
+        disabled: false
+        condition: |
+          state.uniqueTeis.length > 0 && !state.errors
+        openfn:
+          uuid: c2122c54-8ddf-4ed1-9e6a-ff86adc4b7d8
+      alert-admin-of-duplicate-teis:
+        disabled: false
+        condition: |
+          state.duplicatePatients.length > 0 && !state.errors
+        openfn:
+          uuid: 88024c8e-523a-4e6c-9775-870ae667ff28
+    expression: ./get-teis-and-locations.js
+  - id: create-patients
+    name: Create Patients
+    adaptor: "@openfn/language-openmrs@4.2.0"
+    next:
+      update-teis:
+        disabled: false
+        openfn:
+          uuid: 22aa79eb-9f8d-404d-9880-09c866470085
+    expression: ./create-patients.js
+  - id: update-teis
+    name: Update Teis
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    expression: ./update-teis.js
+  - id: alert-admin-of-duplicate-teis
+    name: Alert Admin of Duplicate TEIs
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./alert-admin-of-duplicate-teis.js

@@ -193,7 +193,11 @@ fn((state) => {
   } else {
     console.log("No encounters found for cursor: ", next.cursor);
   }
-  next.allEncounters = next.allEncounters?.map((encounter) => {
+  next.allEncounters = next.allEncounters?.sort(
+          (a, b) =>
+            new Date(b.auditInfo.dateCreated) -
+            new Date(a.auditInfo.dateCreated)
+        ).map((encounter) => {
     const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
       removeNulls(encounter)
     );
