@@ -1,3 +1,15 @@
+const remapToObjects = (columnsAndRows) => {
+  const { columns, rows } = columnsAndRows;
+
+  return rows.map((row) => {
+    const obj = {};
+    columns.forEach((colName, index) => {
+      obj[colName] = row[index];
+    });
+    return obj;
+  });
+};
+
 const processAnswer = (
   answer,
   conceptUuid,
@@ -133,6 +145,7 @@ fn((state) => {
     state.missingRecords[uuid].encounters.push(data.uuid);
   };
 
+  const optsMap = remapToObjects(state.optsMap);
   state.eventsMapping = state.encounters
     .map((encounter) => {
       const form = state.formMaps[encounter.form.uuid];
@@ -161,7 +174,7 @@ fn((state) => {
                 answer,
                 conceptUuid,
                 dataElement,
-                state.optsMap,
+                optsMap,
                 state.optionSetKey,
                 encounter.form.uuid,
                 questionId
@@ -220,7 +233,7 @@ fn((state) => {
           precipitatingEvent1 &&
           precipitatingEvent1?.value?.uuid === otherValue?.uuid
         ) {
-          const opt = state.optsMap.find(
+          const opt = optsMap.find(
             (o) => o["value.uuid - External ID"] === otherValue?.value?.uuid
           );
 
@@ -239,7 +252,7 @@ fn((state) => {
           precipitatingEvent2 &&
           precipitatingEvent2?.value?.uuid === otherValue?.uuid
         ) {
-          const opt = state.optsMap.find(
+          const opt = optsMap.find(
             (o) => o["value.uuid - External ID"] === otherValue?.value?.uuid
           );
           customMapping.push({
@@ -257,7 +270,7 @@ fn((state) => {
           precipitatingEvent3 &&
           precipitatingEvent3?.value?.uuid === otherValue?.uuid
         ) {
-          const opt = state.optsMap.find(
+          const opt = optsMap.find(
             (o) => o["value.uuid - External ID"] === otherValue?.value?.uuid
           );
           customMapping.push({
