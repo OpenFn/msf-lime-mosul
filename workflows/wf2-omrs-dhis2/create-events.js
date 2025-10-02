@@ -1,3 +1,15 @@
+const remapToObjects = (columnsAndRows) => {
+  const { columns, rows } = columnsAndRows;
+
+  return rows.map((row) => {
+    const obj = {};
+    columns.forEach((colName, index) => {
+      obj[colName] = row[index];
+    });
+    return obj;
+  });
+};
+
 // Create or update events for each encounter
 create(
   "tracker",
@@ -18,6 +30,8 @@ create(
     },
   }
 );
+
+const isNotEmpty = (obj) => obj && Object.keys(obj).length > 0;
 
 const findlatestAnswer = (encounters, conceptUuid) => {
   const latestAnswer = encounters.reduce((acc, e) => {
@@ -43,7 +57,7 @@ fn((state) => {
     TEIs,
     program,
     orgUnit,
-    optsMap,
+    // optsMap,
     // Lighten state by removing unused properties
     formMaps,
     optionSetKey,
@@ -54,6 +68,7 @@ fn((state) => {
     ...next
   } = state;
 
+  const optsMap = remapToObjects(state.optsMap);
   const genderMap = optsMap
     .filter((o) => o["DHIS2 DE UID"] === "qptKDiv9uPl")
     .reduce((acc, obj) => {
@@ -67,8 +82,10 @@ fn((state) => {
     "ec42d68d-3e23-43de-b8c5-a03bb538e7c7"
   );
 
-  if (latestGenderUpdate) {
+  if (isNotEmpty(latestGenderUpdate)) {
     const [personUuid, answer] = Object.entries(latestGenderUpdate).flat();
+    console.log("latest gender", { personUuid, answer });
+
     const { trackedEntity } = TEIs[personUuid] || {};
     if (!trackedEntity) {
       console.log("No TEI found for person", personUuid);
@@ -79,6 +96,7 @@ fn((state) => {
         program,
         orgUnit,
         trackedEntity,
+        trackedEntityType: "cHlzCA2MuEF",
         attributes: [],
       };
     }
@@ -100,8 +118,10 @@ fn((state) => {
     "cc3a5a7a-abfe-4630-b0c0-c1275c6cbb54"
   );
 
-  if (latestEducationUpdate) {
+  if (isNotEmpty(latestEducationUpdate)) {
     const [personUuid, answer] = Object.entries(latestEducationUpdate).flat();
+    console.log("latestEducation", { personUuid, answer });
+
     const { trackedEntity } = TEIs[personUuid] || {};
     if (!trackedEntity) {
       console.log("No TEI found for person", personUuid);
@@ -112,6 +132,7 @@ fn((state) => {
         program,
         orgUnit,
         trackedEntity,
+        trackedEntityType: "cHlzCA2MuEF",
         attributes: [],
       };
     }
@@ -132,7 +153,7 @@ fn((state) => {
     "783a300d-5624-4202-90c6-91660a779cab"
   );
 
-  if (partnerMissingUpdate) {
+  if (isNotEmpty(partnerMissingUpdate)) {
     const [personUuid, answer] = Object.entries(partnerMissingUpdate).flat();
     const { trackedEntity } = TEIs[personUuid] || {};
     if (!trackedEntity) {
@@ -145,21 +166,48 @@ fn((state) => {
           program,
           orgUnit,
           trackedEntity,
+          trackedEntityType: "cHlzCA2MuEF",
           attributes: [],
         };
       }
       const attribues = [
         {
           attribute: "FpuGAOu6itZ",
-          value: "Partner left/missing",
-        },
-        {
-          attribute: "cUUwuY8Uc5c",
           value: "partner_left",
         },
       ];
       teiMapping[trackedEntity].attributes.push(...attribues);
     }
+  }
+
+  const howManyPeopleUpdate = findlatestAnswer(
+    encounters,
+    "58dec757-38d5-4c7b-9bd3-713d965f4883"
+  );
+  if (isNotEmpty(howManyPeopleUpdate)) {
+    const [personUuid, answer] = Object.entries(howManyPeopleUpdate).flat();
+    const { trackedEntity } = TEIs[personUuid] || {};
+    if (!trackedEntity) {
+      console.log("No TEI found for person", personUuid);
+      return;
+    }
+
+    if (!teiMapping[trackedEntity]) {
+      teiMapping[trackedEntity] = {
+        program,
+        orgUnit,
+        trackedEntity,
+        trackedEntityType: "cHlzCA2MuEF",
+        attributes: [],
+      };
+    }
+    const attribues = [
+      {
+        attribute: "WDimt0711kS",
+        value: answer.value,
+      },
+    ];
+    teiMapping[trackedEntity].attributes.push(...attribues);
   }
 
   return { ...next, teisToUpdate: Object.values(teiMapping) };
