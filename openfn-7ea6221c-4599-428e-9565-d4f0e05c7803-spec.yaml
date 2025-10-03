@@ -3805,32 +3805,30 @@ workflows:
                     // 4. if yes in step 3, set this value as true
                     // 5. else set this value as false"
                     const patientUuid = encounter.patient.uuid;
-                    const previousChangeInDiagnosis = state.allEncounters
-                      .filter(
-                        (e) =>
-                          encounter.uuid !== e.uuid &&
-                          new Date(e.encounterDatetime) < new Date(encounter.encounterDatetime) &&
-                          e.patient.uuid === patientUuid && 
-                          ["F32-mhGAP Follow-up v2", "F31-mhGAP Baseline v2"].includes(
-                            e.form.description
-                          )
-                      )
+                    const filteredEncounters = state.allEncounters.filter(
+                      (e) =>
+                        encounter.uuid !== e.uuid &&
+                        new Date(e.encounterDatetime) <
+                          new Date(encounter.encounterDatetime) &&
+                        e.patient.uuid === patientUuid &&
+                        ["F32-mhGAP Follow-up", "F31-mhGAP Baseline"].includes(
+                          e.form.name
+                        )
+                    );
+
+                    // find the last encounter where change in diagnosis has value
+                    const previousChangeInDiagnosis = filteredEncounters
                       ?.sort(
                         (a, b) =>
-                          new Date(a.auditInfo.dateCreated) -
-                          new Date(b.auditInfo.dateCreated)
-                      ) // sort by previous encounters
-                      .find((e) => {
-                        return e.obs.find(
-                          (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
-                        ).value?.display;
-                      });
+                          new Date(a.encounterDatetime) - new Date(b.encounterDatetime)
+                      )[0]
+                      ?.obs?.find(
+                        (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
+                      ).value?.display;
 
                     const currentChangeInDiagnosis = encounter.obs.find(
                       (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
                     )?.value?.display;
-
-                   // return previousChangeInDiagnosis !== currentChangeInDiagnosis;
 
                     if (
                       previousChangeInDiagnosis &&
