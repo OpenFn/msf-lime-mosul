@@ -3796,14 +3796,6 @@ workflows:
                     }
                   };
                   const changeInDiagnosis = (encounter) => {
-                    // Default = FALSE.
-                    // Fill with TRUE if [Change in diagnosis] is not blank and
-                    // if it is different from the diagnosis in the last mhGAP consultation, baseline or follow-up.
-                    // 1. find previous f32(F32-mhGAP Follow-up v2) forms for the patient
-                    // 2. filter out the last f32 form where change in diagosis has value
-                    // 3. check if current change in diagnosis has value and is different from last change in diagnosis we got on step 2
-                    // 4. if yes in step 3, set this value as true
-                    // 5. else set this value as false"
                     const patientUuid = encounter.patient.uuid;
                     const filteredEncounters = state.allEncounters.filter(
                       (e) =>
