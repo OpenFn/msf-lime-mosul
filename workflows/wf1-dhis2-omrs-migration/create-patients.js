@@ -94,21 +94,21 @@ fn((state) => {
       })
       .filter(Boolean);
 
+    const birtDate = d.attributes.find(
+      (a) => a.attribute === "WDp4nVor9Z7"
+    )?.value;
+    const age = getValueForCode(d.attributes, "age");
+
     return {
       patientNumber,
       person: {
-        age: getValueForCode(d.attributes, "age"),
+        age,
         gender: genderOptions[getValueForCode(d.attributes, "sex")] ?? "U",
-        birthdate:
-          d.attributes.find((a) => a.attribute === "WDp4nVor9Z7")?.value ??
-          calculateDOB(getValueForCode(d.attributes, "age")),
+        birthdate: birtDate,
+        // ?? calculateDOB(getValueForCode(d.attributes, "age")), TODO : should we calculate Age in Months
         // d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ?
         // calculateDOB(getValueForCode(d.attributes, 'age')) : '1900-01-01',
-        birthdateEstimated: d.attributes.find(
-          (a) => a.attribute === "WDp4nVor9Z7"
-        )
-          ? true
-          : false,
+        birthdateEstimated: !age && !birtDate ? undefined : !birtDate,
         names: [
           {
             familyName:
