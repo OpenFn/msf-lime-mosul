@@ -339,8 +339,8 @@ fn(state => {
           const previousChangeInDiagnosis = state.allEncounters
             .find(
               e =>
-                e.patient.uuid === patientUuid &&
-                e.form.description.includes('F32-mhGAP Follow-up v2') &&
+                e.patient.uuid === patientUuid && //TODO: review aisha's code
+                e.form.description.includes('F32-mhGAP Follow-up v2') || e.form.description.includes('F31-mhGAP Baseline v2') &&
                 encounter.uuid !== e.uuid
             )
             ?.obs.find(

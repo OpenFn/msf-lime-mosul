@@ -90,7 +90,9 @@ fn(state => {
         }
       })
       .filter(Boolean);
-
+//    1. If TEI has DOB, set “Age is estimated” to false and set DOB instead and not age
+//    2. If TEI has no DOB but has age, set “Age is estimated” to true and set the Age attribute
+//    3. If TEI has no DOB, check if TEI has age, if it has neither, don’t set “Age is estimated” or “Age” or “DOB”
     return {
       patientNumber,
       person: {
