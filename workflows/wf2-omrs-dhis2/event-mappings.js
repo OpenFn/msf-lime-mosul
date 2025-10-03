@@ -355,49 +355,40 @@ fn((state) => {
           }
         };
         const changeInDiagnosis = (encounter) => {
-          // Default = FALSE.
-          // Fill with TRUE if [Change in diagnosis] is not blank and
-          // if it is different from the diagnosis in the last mhGAP consultation, baseline or follow-up.
-          // 1. find previous f32(F32-mhGAP Follow-up v2) forms for the patient
-          // 2. filter out the last f32 form where change in diagosis has value
-          // 3. check if current change in diagnosis has value and is different from last change in diagnosis we got on step 2
-          // 4. if yes in step 3, set this value as true
-          // 5. else set this value as false"
           const patientUuid = encounter.patient.uuid;
-          const previousChangeInDiagnosis = state.allEncounters
-            .filter(
-              (e) =>
-                encounter.uuid !== e.uuid &&
-                e.patient.uuid === patientUuid && //TODO: review aisha's code
-                ["F32-mhGAP Follow-up v2", "F31-mhGAP Baseline v2"].includes(
-                  e.form.description
-                )
-            )
+          const filteredEncounters = state.allEncounters.filter(
+            (e) =>
+              encounter.uuid !== e.uuid &&
+              new Date(e.encounterDatetime) <
+                new Date(encounter.encounterDatetime) &&
+              e.patient.uuid === patientUuid &&
+              ["F32-mhGAP Follow-up", "F31-mhGAP Baseline"].includes(
+                e.form.name
+              )
+          );
+
+          // find the last encounter where change in diagnosis has value
+          const previousChangeInDiagnosis = filteredEncounters
             ?.sort(
               (a, b) =>
-                new Date(a.auditInfo.dateCreated) -
-                new Date(b.auditInfo.dateCreated)
-            ) // sort by previous encounters
-            .find((e) => {
-              return e.obs.find(
-                (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
-              ).value?.display;
-            });
+                new Date(a.encounterDatetime) - new Date(b.encounterDatetime)
+            )[0]
+            ?.obs?.find(
+              (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
+            ).value?.display;
 
           const currentChangeInDiagnosis = encounter.obs.find(
             (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
           )?.value?.display;
 
-          return previousChangeInDiagnosis !== currentChangeInDiagnosis;
+          if (
+            previousChangeInDiagnosis &&
+            previousChangeInDiagnosis !== currentChangeInDiagnosis
+          ) {
+            return true;
+          }
 
-          // if (
-          //   // previousChangeInDiagnosis &&
-          //   previousChangeInDiagnosis !== currentChangeInDiagnosis
-          // ) {
-          //   return true;
-          // }
-
-          // return false;
+          return false;
         };
         const mapping = [
           {
