@@ -1,11 +1,7 @@
 //Define gender options and prepare newPatientUuid and identifiers
-fn(state => {
+fn((state) => {
   const { uniqueTeis } = state;
-  if (uniqueTeis.length > 0)
-    console.log('# of TEIs to send to OpenMRS: ', uniqueTeis.length);
-  if (uniqueTeis.length === 0)
-    console.log('No data fetched in step prior to sync.');
-
+  console.log("# of TEIs to send to OpenMRS: ", uniqueTeis.length);
   return state;
 });
 
@@ -13,8 +9,8 @@ fn(state => {
 each(
   $.uniqueTeis,
   post(
-    'idgen/identifiersource/8549f706-7e85-4c1d-9424-217d50a2988b/identifier'
-  ).then(state => {
+    "idgen/identifiersource/8549f706-7e85-4c1d-9424-217d50a2988b/identifier"
+  ).then((state) => {
     state.identifiers ??= [];
     state.identifiers.push(state.data.identifier);
     return state;
@@ -22,7 +18,7 @@ each(
 );
 
 // Then we map uniqueTeis to openMRS data model
-fn(state => {
+fn((state) => {
   const {
     uniqueTeis,
     nationalityMap,
@@ -33,11 +29,11 @@ fn(state => {
   } = state;
 
   const getValueForCode = (attributes, code) => {
-    const result = attributes.find(attribute => attribute.code === code);
+    const result = attributes.find((attribute) => attribute.code === code);
     return result ? result.value : undefined;
   };
 
-  const calculateDOB = age => {
+  const calculateDOB = (age) => {
     if (!age) return age;
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
@@ -49,16 +45,18 @@ fn(state => {
       currentDate.getDay()
     );
 
-    return birthday.toISOString().replace(/\.\d+Z$/, '+0000');
+    return birthday.toISOString().replace(/\.\d+Z$/, "+0000");
   };
 
   state.patients = uniqueTeis.map((d, i) => {
     const patientNumber =
-      getValueForCode(d.attributes, 'patient_number') || d.trackedEntity; // Add random number for testing + Math.random()
+      getValueForCode(d.attributes, "patient_number") || d.trackedEntity; // Add random number for testing + Math.random()
 
-    const lonlat = d.attributes.find(a => a.attribute === 'rBtrjV1Mqkz')?.value;
+    const lonlat = d.attributes.find(
+      (a) => a.attribute === "rBtrjV1Mqkz"
+    )?.value;
     const location = lonlat
-      ? locations.options.find(o => o.code === lonlat)?.displayName
+      ? locations.options.find((o) => o.code === lonlat)?.displayName
       : undefined;
 
     let countyDistrict, cityVillage;
@@ -67,61 +65,64 @@ fn(state => {
       const match = location.match(/^(.*?)\s*\((.*?)\)/);
       if (match) {
         [, countyDistrict, cityVillage] = match;
-        cityVillage = cityVillage.split('-')[0].trim(); // Remove country code and trim
+        cityVillage = cityVillage.split("-")[0].trim(); // Remove country code and trim
       }
     }
 
     const attributes = d.attributes
-      .filter(a => a.attribute in state.patientAttributes)
-      .map(a => {
-        let value = a.value;
+      .filter((a) => a.attribute in state.patientAttributes)
+      .map((a) => {
+        const attributeType = state.patientAttributes[a.attribute];
 
-        if (a.displayName === 'Nationality') {
-          value = nationalityMap[a.value];
-        } else if (a.displayName.includes(' status')) {
-          value = statusMap[a.value];
-        }
-
-        if (value) {
+        if (a.displayName === "Nationality") {
           return {
-            attributeType: state.patientAttributes[a.attribute].trim(),
-            value,
+            attributeType,
+            value: nationalityMap[a.value],
           };
         }
+        if (a.displayName.includes(" status")) {
+          return {
+            attributeType,
+            value: statusMap[a.value],
+          };
+        }
+
+        return {
+          attributeType,
+          value: a.value,
+        };
       })
       .filter(Boolean);
-//    1. If TEI has DOB, set “Age is estimated” to false and set DOB instead and not age
-//    2. If TEI has no DOB but has age, set “Age is estimated” to true and set the Age attribute
-//    3. If TEI has no DOB, check if TEI has age, if it has neither, don’t set “Age is estimated” or “Age” or “DOB”
+
+    const birtDate = d.attributes.find(
+      (a) => a.attribute === "WDp4nVor9Z7"
+    )?.value;
+    const age = getValueForCode(d.attributes, "age");
+
     return {
       patientNumber,
       person: {
-        age: getValueForCode(d.attributes, 'age'),
-        gender: genderOptions[getValueForCode(d.attributes, 'sex')] ?? 'U',
-        birthdate:
-          d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ??
-          calculateDOB(getValueForCode(d.attributes, 'age')),
+        age,
+        gender: genderOptions[getValueForCode(d.attributes, "sex")] ?? "U",
+        birthdate: birtDate,
+        // ?? calculateDOB(getValueForCode(d.attributes, "age")), TODO : should we calculate Age in Months
         // d.attributes.find(a => a.attribute === 'WDp4nVor9Z7')?.value ?
         // calculateDOB(getValueForCode(d.attributes, 'age')) : '1900-01-01',
-        birthdateEstimated: d.attributes.find(
-          a => a.attribute === 'WDp4nVor9Z7'
-        )
-          ? true
-          : false,
+        birthdateEstimated: !age && !birtDate ? undefined : !birtDate,
         names: [
           {
             familyName:
-              d.attributes.find(a => a.attribute === 'fa7uwpCKIwa')?.value ??
-              'unknown',
+              d.attributes.find((a) => a.attribute === "fa7uwpCKIwa")?.value ??
+              "unknown",
             givenName:
-              d.attributes.find(a => a.attribute === 'Jt9BhFZkvP2')?.value ??
-              'unknown',
+              d.attributes.find((a) => a.attribute === "Jt9BhFZkvP2")?.value ??
+              "unknown",
           },
         ],
         addresses: [
           {
-            country: 'Iraq',
-            stateProvince: 'Ninewa',
+            country: "Iraq",
+            stateProvince: "Ninewa",
             countyDistrict,
             cityVillage,
           },
@@ -131,15 +132,15 @@ fn(state => {
       identifiers: [
         {
           identifier: identifiers[i], //OMRS-generated identifier - see above
-          identifierType: '05a29f94-c0ed-11e2-94be-8c13b969e334',
-          location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location old:44c3efb0-2583-4c80-a79e-1f756a03c0a1
+          identifierType: "05a29f94-c0ed-11e2-94be-8c13b969e334",
+          location: "cf6fa7d4-1f19-4c85-ac50-ff824805c51c", //default location old:44c3efb0-2583-4c80-a79e-1f756a03c0a1
           preferred: true,
         },
         {
           uuid: d.trackedEntity,
           identifier: patientNumber, //Patient Number from DHIS2
-          identifierType: '8d79403a-c2cc-11de-8d13-0010c6dffd0f', //Old Identification number
-          location: 'cf6fa7d4-1f19-4c85-ac50-ff824805c51c', //default location
+          identifierType: "8d79403a-c2cc-11de-8d13-0010c6dffd0f", //Old Identification number
+          location: "cf6fa7d4-1f19-4c85-ac50-ff824805c51c", //default location
           preferred: false, //default value for this identifiertype
         },
       ],
@@ -153,19 +154,17 @@ fn(state => {
 each(
   $.patients,
   upsert(
-    'patient',
-    { q: $.data.patientNumber,
-      limit: 1, 
-      startIndex: 0 },
-    state => {
+    "patient",
+    { q: $.data.patientNumber, limit: 1, startIndex: 0 },
+    (state) => {
       const { patientNumber, ...patient } = state.data;
       console.log(
-        'Upserting patient record...',
+        "Upserting patient record...",
         JSON.stringify(patient, null, 2)
       );
       return patient;
     },
-    state => {
+    (state) => {
       state.newPatientUuid ??= [];
       //console.log('state.references ::', state.references)
       state.newPatientUuid.push({
@@ -173,7 +172,7 @@ each(
         omrs_patient_number: state.references
           .at(-1)
           ?.identifiers.find(
-            i => (i.identifierType = `${state.openmrsAutoId}`)
+            (i) => (i.identifierType = `${state.openmrsAutoId}`)
           ),
         uuid: state.data.uuid,
       });
