@@ -3,7 +3,7 @@ name: wf1-dhis2-omrs-migration
 options: {}
 steps:
   - id: trigger
-    type: cron
+    # type: cron
     next:
       fetch-metadata:
         disabled: false
@@ -13,17 +13,19 @@ steps:
   - id: fetch-metadata
     name: Fetch Metadata
     adaptor: "@openfn/language-http@6.5.1"
+    state: ./tmp/state.json
     next:
       get-teis-and-locations:
         disabled: false
         condition: |
-          state.trackedEntityInstances.length > 0
+          !state.errors
         openfn:
           uuid: cfa7784e-6a3e-4f6f-8578-4dfb410f4a41
     expression: ./fetch-metadata.js
   - id: get-teis-and-locations
     name: Get Teis and Locations
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: ../tmp/dhis2-creds.json
     next:
       create-patients:
         disabled: false
@@ -41,6 +43,7 @@ steps:
   - id: create-patients
     name: Create Patients
     adaptor: "@openfn/language-openmrs@4.2.0"
+    configuration: ../tmp/openmrs-creds.json
     next:
       update-teis:
         disabled: false
@@ -50,6 +53,7 @@ steps:
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: ../tmp/dhis2-creds.json
     expression: ./update-teis.js
   - id: alert-admin-of-duplicate-teis
     name: Alert Admin of Duplicate TEIs
