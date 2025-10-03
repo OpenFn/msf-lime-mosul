@@ -1,3 +1,14 @@
+const remapToObjects = (columnsAndRows) => {
+  const { columns, rows } = columnsAndRows;
+
+  return rows.map((row) => {
+    const obj = {};
+    columns.forEach((colName, index) => {
+      obj[colName] = row[index];
+    });
+    return obj;
+  });
+};
 const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
   const genderMap = {
     M: "male",
@@ -38,7 +49,7 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
 
   const findOptCode = (optUuid) =>
     optsMap.find((o) => o["value.uuid - External ID"] === optUuid)?.[
-    "DHIS2 Option Code"
+      "DHIS2 Option Code"
     ];
 
   const patientMap = formMaps.patient.dataValueMap;
@@ -138,7 +149,7 @@ each(
       program: state.program,
       patientProgramStage: state.patientProgramStage,
       formMaps: state.formMaps,
-      optsMap: state.optsMap,
+      optsMap: remapToObjects(state.optsMap),
       dhis2PatientNumber: state.dhis2PatientNumber,
       openmrsAutoId: state.openmrsAutoId,
     });
@@ -169,6 +180,6 @@ fn((state) => {
     identifiers,
     ...next
   } = state;
-  next.patientUuids = patients.map(p => p.uuid);
+  next.patientUuids = patients.map((p) => p.uuid);
   return next;
 });
