@@ -31,14 +31,18 @@ function removeNulls(data) {
   return data;
 }
 
-cursor($.lastRunDateTime || $.manualCursor || "2023-05-20T06:01:24.000Z");
+cursor($.lastRunDateTime || "2023-05-20T06:01:24.000Z");
 
 cursor("today", {
   key: "lastRunDateTime",
   format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: "IQ", v: "full", limit: "100" });
+searchPatient({
+  q: $.msfId || "IQ",
+  v: "full",
+  limit: "100",
+});
 
 fn((state) => {
   const { cursor, data, lastRunDateTime } = state;
