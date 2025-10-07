@@ -127,6 +127,8 @@ steps:
     next:
       create-teis-relationship:
         disabled: false
+        condition: | 
+          !state.errors
         openfn:
           uuid: b5de09be-bff1-45fb-8726-ad8e8e02c2ca
     expression: ./upsert-child-teis.js
