@@ -1,0 +1,97 @@
+id: wf3-omrs-dhis2
+name: wf3-omrs-dhis2
+options: {}
+steps:
+  - id: trigger
+    type: cron
+    next:
+      get-patients:
+        disabled: false
+        condition: true
+        openfn:
+          uuid: d681f4f9-4e4f-415f-a52c-a6fcd9f2740b
+  - id: get-mappings-from-collection
+    name: Get Mappings from Collection
+    adaptor: "@openfn/language-common@2.3.0"
+    next:
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        openfn:
+          uuid: d9d6c1fb-627e-491e-88b1-ed2575e77de3
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        openfn:
+          uuid: 7b001148-c273-49f5-9582-09979cbd4ca9
+    expression: ./get-mappings-from-collection.js
+  - id: get-encounters
+    name: Get Encounters
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    next:
+      get-teis-and-map-answers:
+        disabled: false
+        condition: |
+          !state.errors && state?.encounters?.length > 0
+        openfn:
+          uuid: bd5834d4-b481-47f0-b497-c56dbd05ed03
+    expression: ./get-encounters.js
+  - id: create-events
+    name: Create Events
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    expression: ./create-events.js
+  - id: custom-logic-for-events
+    name: Custom Logic for Events
+    adaptor: "@openfn/language-common@2.1.1"
+    next:
+      create-events:
+        disabled: false
+        condition: |
+          state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
+        openfn:
+          uuid: 168e2969-4f85-4c05-843c-445ca7102086
+    expression: ./custom-logic-for-events.js
+  - id: get-patients
+    name: Get Patients
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    next:
+      get-mappings-from-collection:
+        disabled: false
+        openfn:
+          uuid: 15dc93e4-fb96-4cc5-b0c3-c0bd544bdc6d
+    expression: ./get-patients.js
+  - id: upsert-teis
+    name: Upsert TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      get-encounters:
+        disabled: false
+        condition: |
+          state.patientUuids.length > 0 && !state.errors
+        openfn:
+          uuid: 1d37cfc8-1a71-4cc8-809d-583d6d8b8fca
+    expression: ./upsert-teis.js
+  - id: get-teis-and-map-answers
+    name: Get TEIs and Map Answers
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      custom-logic-for-events:
+        disabled: false
+        condition: |
+          state.TEIs && !state.errors
+        openfn:
+          uuid: 9eb6f99d-434c-4b47-ab4b-058a5930435c
+    expression: ./get-teis-and-map-answers.js
+  - id: get-tie
+    name: Get Tie
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      custom-logic-for-events:
+        disabled: false
+        condition: |
+          state.testMode
+        openfn:
+          uuid: 80f9eb77-8bc4-4557-8c9b-907ab7408473
+    expression: ./get-tie.js

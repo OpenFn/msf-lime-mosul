@@ -1,0 +1,65 @@
+id: wf1-dhis2-omrs-migration
+name: wf1-dhis2-omrs-migration
+options: {}
+steps:
+  - id: trigger
+    type: cron
+    next:
+      fetch-metadata:
+        disabled: false
+        condition: true
+        openfn:
+          uuid: 4f025e3a-80af-47ff-8c25-8891eff0c486
+  - id: fetch-metadata
+    name: Fetch Metadata
+    adaptor: "@openfn/language-common@2.1.1"
+    next:
+      get-teis-and-locations:
+        disabled: false
+        openfn:
+          uuid: 947f7f92-1205-4fda-8595-4d8025786c35
+    expression: ./fetch-metadata.js
+  - id: get-teis-and-locations
+    name: Get Teis and Locations
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      create-patients:
+        disabled: false
+        condition: |
+          state.uniqueTeis.length > 0 && !state.errors
+        openfn:
+          uuid: b4e06a4a-f873-407f-824a-39ad2006ccb9
+      alert-admin-of-duplicate-teis:
+        disabled: false
+        condition: |
+          state.duplicatePatients.length > 0 && !state.errors
+        openfn:
+          uuid: c0260aec-64c9-4f5b-8327-bca677cfdcba
+      validate-teis-with-omrs-id:
+        disabled: false
+        condition: |
+          !state.errors && state. teisWithOMRSID.length > 0
+        openfn:
+          uuid: 3c86df64-2a6a-42d0-8107-affe53db8190
+    expression: ./get-teis-and-locations.js
+  - id: create-patients
+    name: Create Patients
+    adaptor: "@openfn/language-openmrs@4.2.0"
+    next:
+      update-teis:
+        disabled: false
+        openfn:
+          uuid: 05d88b14-52e6-4f24-8acc-ed0ba455c942
+    expression: ./create-patients.js
+  - id: update-teis
+    name: Update Teis
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    expression: ./update-teis.js
+  - id: alert-admin-of-duplicate-teis
+    name: Alert Admin of Duplicate TEIs
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./alert-admin-of-duplicate-teis.js
+  - id: validate-teis-with-omrs-id
+    name: Validate TEIs with OMRS Id
+    adaptor: "@openfn/language-openmrs@4.2.0"
+    expression: ./validate-teis-with-omrs-id.js

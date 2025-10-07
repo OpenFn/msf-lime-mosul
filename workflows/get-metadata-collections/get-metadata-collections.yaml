@@ -1,0 +1,16 @@
+id: get-metadata-collections
+name: get-metadata-collections
+options: {}
+steps:
+  - id: trigger
+    type: webhook
+    next:
+      get-and-set-metadata-collections:
+        disabled: false
+        condition: true
+        openfn:
+          uuid: 809a825b-da5e-4f02-857a-7d08017e42c4
+  - id: get-and-set-metadata-collections
+    name: Get and set metadata collections
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./get-and-set-metadata-collections.js
