@@ -3,7 +3,7 @@ name: wf2-omrs-dhis2-137
 options: {}
 steps:
   - id: trigger
-    type: cron
+    # type: cron
     next:
       get-patients:
         disabled: false
@@ -12,16 +12,23 @@ steps:
           uuid: e5a1e40b-a435-495b-8260-3ddf4e4b6f95
   - id: get-patients
     name: Get Patients
+    state: ./tmp/state.json
+    configuration: ../tmp/openmrs-creds.json
     adaptor: "@openfn/language-openmrs@4.3.0"
     next:
       mappings:
         disabled: false
+        condition: |
+          !state.errors
         openfn:
           uuid: 704bb712-f0be-4199-83b8-c84a3da5feb5
     expression: ./get-patients.js
   - id: mappings
     name: Mappings
-    adaptor: "@openfn/language-common@2.1.1"
+    configuration: ../tmp/collections-creds.json
+    adaptors: 
+      - "@openfn/language-common@2.1.1"
+      - "@openfn/language-collections@0.7.15"
     next:
       get-encounters:
         disabled: false
@@ -38,6 +45,7 @@ steps:
     expression: ./mappings.js
   - id: upsert-teis
     name: Upsert TEIs
+    configuration: ../tmp/dhis2-creds.json
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
       get-encounters:
@@ -49,6 +57,7 @@ steps:
     expression: ./upsert-teis.js
   - id: get-encounters
     name: Get Encounters
+    configuration: ../tmp/openmrs-creds.json
     adaptor: "@openfn/language-openmrs@4.3.0"
     next:
       get-parent-and-child-teis:
@@ -60,6 +69,7 @@ steps:
     expression: ./get-encounters.js
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs
+    configuration: ../tmp/dhis2-creds.json
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
       upsert-child-teis:
@@ -72,6 +82,7 @@ steps:
     expression: ./get-parent-and-child-teis.js
   - id: create-events
     name: Create Events
+    configuration: ../tmp/dhis2-creds.json
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
       update-teis:
@@ -83,6 +94,7 @@ steps:
     expression: ./create-events.js
   - id: update-teis
     name: Update TEIs
+    configuration: ../tmp/dhis2-creds.json
     adaptor: "@openfn/language-dhis2@5.0.1"
     expression: ./update-teis.js
   - id: event-mappings
@@ -98,6 +110,7 @@ steps:
     expression: ./event-mappings.js
   - id: create-teis-relationship
     name: Create TEIs Relationship
+    configuration: ../tmp/dhis2-creds.json
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
       event-mappings:
@@ -109,6 +122,7 @@ steps:
     expression: ./create-teis-relationship.js
   - id: upsert-child-teis
     name: Upsert Child TEIs
+    configuration: ../tmp/dhis2-creds.json
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
       create-teis-relationship:
