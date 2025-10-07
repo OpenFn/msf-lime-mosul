@@ -88,24 +88,30 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
     attributes: [...filteredAttr, ...filteredStatusAttr],
   };
   // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
+  const enrollments = [
+    {
+      orgUnit,
+      program,
+      enrolledAt,
+      programStage: patientProgramStage, //'MdTtRixaC1B',
+    },
+  ];
 
   if (!patientTei) {
     payload.trackedEntityType = "cHlzCA2MuEF";
-    const enrollments = [
-      {
-        orgUnit,
-        program,
-        enrolledAt,
-        programStage: patientProgramStage, //'MdTtRixaC1B',
-      },
-    ];
+
     payload.attributes.push({
       attribute: "qptKDiv9uPl",
       value: genderMap[omrsPatient.person.gender],
     });
     console.log("create enrollment");
     payload.enrollments = enrollments;
-  } else {
+  }
+  if (!patientTei?.enrollments) {
+    console.log("add enrollment to existing TEI");
+    payload.enrollments = enrollments;
+  }
+  if (patientTei) {
     payload.trackedEntity = patientTei.trackedEntity;
     payload.trackedEntityType = patientTei.trackedEntityType;
   }
@@ -121,6 +127,7 @@ get("tracker/trackedEntities", {
     `AYbfTPYMNJH:IN:${state.patients.map((patient) => patient.uuid).join(";")}`,
   ],
   program: $.program,
+  fields: "attributes,trackedEntity,trackedEntityType,enrollments",
 });
 
 fn((state) => {
