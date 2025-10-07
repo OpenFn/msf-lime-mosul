@@ -75,6 +75,7 @@ function f16(encounter) {
   const answers = encounter.obs.filter(
     (o) => o.concept.uuid === "877aa979-c02f-4890-8156-836d52696f09"
   );
+
   if (encounter.form.description.includes("F16-Operative Report") && answers) {
     const [date, time] = encounter.encounterDatetime.split("T");
     return [
