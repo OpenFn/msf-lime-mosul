@@ -858,7 +858,7 @@ workflows:
         adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
-          path: workflows/wf2-omrs-dhis2-137/events-mapping.js
+          path: workflows/wf2-omrs-dhis2-137/event-mappings.js
 
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
