@@ -17,17 +17,37 @@ fn((state) => {
   return state;
 });
 
-each($.upsertedTeis, get(`tracker/trackedEntities/${$.data}`).then(state => {
-  const { trackedEntity, enrollments, attributes } = state.data || {};
+each(
+  $.upsertedTeis,
+  get(`tracker/trackedEntities/${$.data}`, {
+    fields: "*",
+  }).then((state) => {
+    const {
+      trackedEntity,
+      programOwners,
+      enrollments,
+      attributes,
+      events,
+      orgUnit,
+    } = state.data || {};
 
-  const patientUuid = attributes.find(a => a.attribute === 'AYbfTPYMNJH').value
+    const program = programOwners.find(
+      (po) => po.trackedEntity === trackedEntity && po.orgUnit === orgUnit
+    )?.program;
 
-  state.childTeis ??= {};
-  state.childTeis[patientUuid] = {
-    trackedEntity,
-    events: enrollments?.[0]?.events,
-    enrollment: enrollments?.[0]?.enrollment,
-  };
+    const patientUuid = attributes.find(
+      (a) => a.attribute === "AYbfTPYMNJH"
+    ).value;
 
-  return state;
-}))
+    state.childTeis ??= {};
+    state.childTeis[patientUuid] = {
+      trackedEntity,
+      events: enrollments?.[0]?.events ?? events,
+      enrollment: enrollments?.[0]?.enrollment,
+      orgUnit,
+      program,
+    };
+
+    return state;
+  })
+);
