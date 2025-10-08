@@ -142,7 +142,7 @@ fn((state) => {
   const inbothResults = searchPatientUuids.filter((id) =>
     encounterPatientUuids.includes(id)
   );
-  const patientUuids = [ ...onlyInR4Encounter];
+  const patientUuids = [...new Set(searchPatientUuids, encounterPatientUuids)];
 
   console.log("inbothResults", inbothResults.length);
   console.log("patient-search-array", onlyInSearchPatient.length);

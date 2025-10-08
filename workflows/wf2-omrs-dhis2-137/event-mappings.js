@@ -450,11 +450,16 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
+    console.log("matchingOptionSet:", matchingOptionSet)
+    console.log("Answer:", answer.value.uuid)
+
     const opt = optsMap.find(
       (o) =>
         o["value.uuid - External ID"] === answer.value.uuid &&
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
+
+    console.log("Opt:", opt)
     const matchingOption =
       opt?.["DHIS2 Option Code"] ||
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.

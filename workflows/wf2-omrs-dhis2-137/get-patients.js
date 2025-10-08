@@ -38,7 +38,7 @@ cursor("today", {
   format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({ q: "IQ146-25-012-436", v: "full", limit: "100" });
+searchPatient({ q: $.msfId || "IQ", v: "full", limit: "100" });
 
 fn((state) => {
   const { cursor, data } = state;
@@ -140,7 +140,9 @@ fn((state) => {
   const inbothResults = searchPatientUuids.filter((id) =>
     encounterPatientUuids.includes(id)
   );
-  const patientUuids = [...new Set([...searchPatientUuids, ...encounterPatientUuids])];
+  const patientUuids = [
+    ...new Set([...searchPatientUuids, ...encounterPatientUuids]),
+  ];
 
   console.log("inbothResults", inbothResults.length);
   console.log("patient-search-array", onlyInSearchPatient.length);
