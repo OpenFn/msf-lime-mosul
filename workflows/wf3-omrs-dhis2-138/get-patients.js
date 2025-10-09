@@ -38,7 +38,7 @@ cursor("today", {
 });
 
 searchPatient({
-  q: "IQ146-25-012-291",
+  q: $.msfId || "IQ146-25-012-291",
   v: "full",
   limit: "100",
 });
