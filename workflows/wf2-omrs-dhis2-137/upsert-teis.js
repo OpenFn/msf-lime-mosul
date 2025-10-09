@@ -20,23 +20,42 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   const findIdentifierByUuid = (identifiers, targetUuid) =>
     identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
 
-  const findOptsUuid = (uuid) =>
-    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
-      ?.value?.uuid ||
-    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
-      ?.value;
+  const findAttrValue = (uuid) => {
+    return omrsPatient.person.attributes.find(
+      (a) => a.attributeType.uuid === uuid
+    )?.value;
+  };
 
-  const findOptCode = (optUuid) =>
-    optsMap.find((o) => o["value.uuid - External ID"] === optUuid)?.[
+  const findOptCodeByUuid = (uuid) => {
+    return optsMap.find((o) => o["value.uuid - External ID"] === uuid)?.[
       "DHIS2 Option Code"
     ];
+  };
+
+  const findOptCode = (attrValue) => {
+    if (typeof attrValue === "string") {
+      return findOptCodeByUuid(attrValue);
+    }
+    if (typeof attrValue === "object") {
+      const { uuid, display } = attrValue;
+      const optCodeByDisplay = optsMap.find(
+        (o) =>
+          o["value.uuid - External ID"] === uuid &&
+          o["value.display - Answers"] === display
+      )?.["DHIS2 Option Code"];
+
+      return optCodeByDisplay ?? findOptCodeByUuid(uuid);
+    }
+    return null;
+  };
 
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
-    const optUid = findOptsUuid(patientMap[d]);
+    const attrValue = findAttrValue(patientMap[d]);
+
     return {
       attribute: d,
-      value: findOptCode(optUid) || optUid,
+      value: findOptCode(attrValue) || attrValue,
     };
   });
 
@@ -107,10 +126,7 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
     console.log("create enrollment");
     payload.enrollments = enrollments;
   }
-  if (!patientTei?.enrollments) {
-    console.log("add enrollment to existing TEI");
-    payload.enrollments = enrollments;
-  }
+
   if (patientTei) {
     payload.trackedEntity = patientTei.trackedEntity;
     payload.trackedEntityType = patientTei.trackedEntityType;
@@ -127,7 +143,7 @@ get("tracker/trackedEntities", {
     `AYbfTPYMNJH:IN:${state.patients.map((patient) => patient.uuid).join(";")}`,
   ],
   program: $.program,
-  fields: "attributes,trackedEntity,trackedEntityType,enrollments",
+  fields: "*",
 });
 
 fn((state) => {
@@ -166,11 +182,11 @@ create(
   {
     params: {
       atomicMode: "ALL",
+      importStrategy: "CREATE_AND_UPDATE",
       async: false,
     },
   }
 );
-
 fn((state) => {
   const {
     data,
