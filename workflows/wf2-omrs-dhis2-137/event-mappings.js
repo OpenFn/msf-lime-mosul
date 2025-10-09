@@ -89,24 +89,23 @@ function f16(encounter) {
       },
     ];
   }
+  return;
 }
 
 function f17(encounter) {
-  const answers = findObsByConcept(
-    encounter,
-    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  );
-
-  const mappings = [
-    // Always fill with the value 'hour' -> code = 'hour', UID = 'vYF6BoRQlXj'
-    {
-      dataElement: "vYF6BoRQlXj",
-      value: "hour",
-    },
-  ];
+  const mappings = [];
   if (
     encounter.form.description.includes("F17-Surgery admission form") &&
-    answers
+    findObsByConcept(encounter, "13d4d6b8-0cd3-46c5-be7b-c3a7565aaca7")
+  ) {
+    mappings.push({
+      dataElement: "vYF6BoRQlXj",
+      value: "hour",
+    });
+  }
+  if (
+    encounter.form.description.includes("F17-Surgery admission form") &&
+    findObsByConcept(encounter, "7f00c65d-de60-467a-8964-fe80c7a85ef0")
   ) {
     const [date, time] = encounter.encounterDatetime.split("T");
     mappings.push([
@@ -176,7 +175,7 @@ function f29(encounter, optsMap) {
     if (priority1 && priority1?.value?.display === "Other") {
       mappings.push({
         dataElement: "pj5hIE6iyAR",
-        value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+        value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
       });
     }
 
@@ -187,7 +186,7 @@ function f29(encounter, optsMap) {
     if (priority2 && priority2?.value?.display === "Other") {
       mappings.push({
         dataElement: "Em5zvpdd5ha",
-        value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+        value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
       });
     }
 
@@ -198,7 +197,7 @@ function f29(encounter, optsMap) {
     if (priority3 && priority3?.value?.display === "Other") {
       mappings.push({
         dataElement: "aWsxYkJR8Ua",
-        value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY).value,
+        value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
       });
     }
 
@@ -449,9 +448,10 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     const optionKey = questionId
       ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
+
     const matchingOptionSet = optionSetKey[optionKey];
-    console.log("matchingOptionSet:", matchingOptionSet)
-    console.log("Answer:", answer.value.uuid)
+    console.log("matchingOptionSet:", matchingOptionSet);
+    console.log("Answer:", answer.value.uuid);
 
     const opt = optsMap.find(
       (o) =>
@@ -459,7 +459,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
-    console.log("Opt:", opt)
+    console.log("Opt:", opt);
     const matchingOption =
       opt?.["DHIS2 Option Code"] ||
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
