@@ -1,11 +1,3 @@
-function chunkArray(array, size) {
-  const chunks = [];
-  for (let i = 0; i < array.length; i += size) {
-    chunks.push(array.slice(i, i + size));
-  }
-  return chunks;
-}
-
 const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   const genderMap = {
     M: "male",
@@ -145,25 +137,18 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-each(
-  (state) => chunkArray(state.patients, 200),
-  get("tracker/trackedEntities", {
-    orgUnit: $.orgUnit,
-    filter: (state) => [
-      `AYbfTPYMNJH:IN:${state.data.map((patient) => patient.uuid).join(";")}`,
-    ],
-    program: $.program,
-    fields: "*",
-  }).then((state) => {
-    state.foundTrackedEntities ??= [];
-    state.foundTrackedEntities.push(...state.data.instances);
-    return state;
-  })
-);
+get("tracker/trackedEntities", {
+  orgUnit: $.orgUnit,
+  filter: (state) => [
+    `AYbfTPYMNJH:IN:${state.patients.map((patient) => patient.uuid).join(";")}`,
+  ],
+  program: $.program,
+  fields: "*",
+});
 
 fn((state) => {
   const findTeiByUuid = (patientUuid) => {
-    return state.foundTrackedEntities.find((tei) => {
+    return state.data.instances.find((tei) => {
       return (
         tei.attributes.find(
           (attribute) => attribute.attribute === "AYbfTPYMNJH"
