@@ -6,6 +6,9 @@ const f25Form = "c4db716a-f9d0-35df-a589-d5caf2dfb106";
 const f26Form = "afcf2993-233e-385b-8030-74a8b475eccd";
 const f27Form = "ac97ec76-5647-3153-b4e1-2eceae121e50";
 const f28Form = "893ef4b7-5ad1-39e7-8515-eab308ccd636";
+const f41Form = "a67db828-cf17-3514-b089-5206b5cfb223";
+const f42Form = "1a00bf19-b959-32c0-afc5-1a29583b3063";
+const f43Form = "b11a57cc-6730-3d6c-a5ec-7949b8af26bc";
 
 const encountersFormPairs = (encounters, formsUuids) => {
   const { f08Form, f09Form, f23Form, f27Form, f28Form, f25Form, f26Form } =
@@ -47,6 +50,13 @@ const teiAge = (tei) => {
     age = calculateAge(birthdate);
   }
   return age;
+};
+
+const ageInDays = (dob, encounterDate) => {
+  const birth = new Date(dob);
+  const encounter = new Date(encounterDate);
+  const diffTime = Math.abs(encounter - birth);
+  return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
 
 function f8(encounter) {
@@ -136,7 +146,76 @@ function f23(encounter) {
       : false,
   }));
 }
+function f41(encounter) {
+  const obsDatetime = findObsByConcept(
+    encounter,
+    "40108bf5-0bbd-42e8-8102-bcbd0550a943"
+  )?.obsDatetime;
 
+  if (!obsDatetime) return [];
+
+  return [
+    {
+      dataElement: "gluXfK7zg1d",
+      value: obsDatetime,
+    },
+    {
+      dataElement: "bkissws06TK",
+      value: obsDatetime,
+    },
+  ];
+}
+
+function f42(encounter) {
+  const obsDatetime = findObsByConcept(
+    encounter,
+    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+  )?.obsDatetime;
+  if (!obsDatetime) return [];
+
+  return [
+    {
+      dataElement: "xr2Dqw14DGX",
+      value: obsDatetime,
+    },
+  ];
+}
+
+function f43(encounter, tei) {
+  const mappings = [];
+  const obsDatetime = findObsByConcept(
+    encounter,
+    "88472a4e-f26e-4235-8144-4ad6df874949"
+  )?.obsDatetime;
+
+  const birthdate = tei?.attributes?.find(
+    (attr) => attr.attribute === "WDp4nVor9Z7"
+  )?.value;
+
+  const datePart = obsDatetime.substring(0, 10);
+  const timePart = obsDatetime.substring(11, 19);
+
+  if (obsDatetime) {
+    mappings.push(
+      {
+        dataElement: "tR7XL9TPVkr",
+        value: datePart,
+      },
+      {
+        dataElement: "P8bmDESxYqn",
+        value: timePart,
+      }
+    );
+  }
+
+  if (birthdate) {
+    mappings.push({
+      dataElement: "Z2RzJFkXzII",
+      value: ageInDays(birthdate, encounter.encounterDatetime),
+    });
+  }
+  return mappings;
+}
 function teiAttributeMapping(tei, attributeMap) {
   const attrMapping = Object.entries(attributeMap)
     .map(([dataElement, attributeId]) => {
@@ -340,6 +419,32 @@ const buildDataValues = (encounter, form, mappingConfig) => {
     formMapping.push(...attributeMapping, ...f28Mapping);
   }
 
+  // F41 Form Encounter Mapping
+  if (encounter.form.uuid === f41Form) {
+    const f41Mapping = f41(encounter);
+    formMapping.push(...f41Mapping);
+  }
+
+  // F42 Form Encounter Mapping
+  if (encounter.form.uuid === f42Form) {
+    const f42Mapping = f42(encounter);
+    formMapping.push(...f42Mapping);
+  }
+
+  // F43 Form Encounter Mapping
+  if (encounter.form.uuid === f43Form) {
+    const attributeMap = {
+      eMXqL66pJSV: "qptKDiv9uPl",
+      hT8pIot8b6Y: "k26cdlS78i9",
+      BA7aQjiwlrL: "Rv8WM2mTuS5",
+      KRNhyZHeGGM: "YUIQIA2ClN6",
+      fUxvDvbPKlU: "Qq6xQ2s6LO8",
+      xw5Vres1Ndt: "rBtrjV1Mqkz",
+      iGHeO9F8CKm: "Xvzc9e0JJmp",
+    };
+    const f43AttributeMapping = teiAttributeMapping(tei, attributeMap);
+    formMapping.push(...f43AttributeMapping, ...f43(encounter, tei));
+  }
   const dataValuesMapping = Object.keys(form.dataValueMap)
     .map((dataElement) => {
       const value = findDataValue(encounter, dataElement, {
@@ -431,8 +536,8 @@ fn((state) => {
   return state;
 });
 
-fn((state) => {
-  return {
-    eventsMapping: state.eventsMapping,
-  };
-});
+// fn((state) => {
+//   return {
+//     eventsMapping: state.eventsMapping,
+//   };
+// });
