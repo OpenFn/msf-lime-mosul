@@ -31,7 +31,7 @@ steps:
       - "@openfn/language-collections@0.7.15"
     next:
       get-encounters:
-        disabled: true
+        disabled: false
         condition: |
           !state.errors && state.patients.length === 0
         openfn:
@@ -49,7 +49,7 @@ steps:
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
       get-encounters:
-        disabled: true
+        disabled: false
         condition: |
           state.patientUuids.length > 0 && !state.errors
         openfn:
