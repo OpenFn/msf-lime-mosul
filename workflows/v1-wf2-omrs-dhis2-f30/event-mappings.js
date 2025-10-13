@@ -20,6 +20,7 @@ const processAnswer = (
   questionId
 ) => {
   if (typeof answer.value === "object") {
+    //TODO: These should be form specificic mappings
     const isDiagnosisByPsychologist =
       conceptUuid === "722dd83a-c1cf-48ad-ac99-45ac131ccc96" &&
       dataElement === "pN4iQH4AEzk";
@@ -36,7 +37,7 @@ const processAnswer = (
       console.log("True only question detected..", dataElement);
       return answer.value.uuid === "681cf0bc-5213-492a-8470-0a0b3cc324dd"
         ? "true"
-        : undefined;
+        : "";
     }
     const optionKey = questionId
       ? `${formUuid}-${answer.concept.uuid}-rfe-${questionId}`
@@ -52,23 +53,22 @@ const processAnswer = (
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    // console.log(`matchingOption value: "${matchingOption}" for`);
-    // console.log({
-    //   optionKey,
-    //   conceptUid: answer.concept.uuid,
-    //   'answer.value.uid': answer.value.uuid,
-    //   'answer.value.display': answer.value.display,
-    //   matchingOption,
-    //   matchingOptionSet,
-    // });
-
     if (matchingOption === "FALSE" || matchingOption === "No") {
       return "false";
     }
     if (matchingOption === "TRUE" || matchingOption === "Yes") {
       return "true";
     }
-
+    // console.log(`matchingOption value: "${matchingOption}" for`);
+    // console.log({
+    //   dataElement,
+    //   optionKey,
+    //   conceptUid: answer.concept.uuid,
+    //   "answer.value.uid": answer.value.uuid,
+    //   "answer.value.display": answer.value.display,
+    //   matchingOption,
+    //   matchingOptionSet,
+    // });
     return matchingOption || "";
   }
 
@@ -152,6 +152,7 @@ fn((state) => {
       if (!form?.dataValueMap) {
         return null;
       }
+
       const { trackedEntity, enrollment, events } =
         state.TEIs[encounter.patient.uuid] || {};
 
@@ -168,6 +169,7 @@ fn((state) => {
               o.concept.uuid === conceptUuid &&
               (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
           );
+
           const answer = obsAnswer;
           const value = answer
             ? processAnswer(
@@ -439,8 +441,21 @@ fn((state) => {
           item.dataElement !== "KjgDauY9v4J"
       );
 
+      const latestFormEvent = events.find(
+        (e) => e.programStage === form.programStage
+      )?.event;
+
+      const encounterEvent = events.find(
+        (e) =>
+          e.programStage === form.programStage &&
+          e.occurredAt === encounter.encounterDatetime.replace("+0000", "")
+      )?.event;
+
+      const event =
+        form.syncType === "latest" ? latestFormEvent : encounterEvent;
+
       return {
-        event: events.find((e) => e.programStage === form.programStage)?.event,
+        event,
         program: state.program,
         orgUnit: state.orgUnit,
         trackedEntity,
