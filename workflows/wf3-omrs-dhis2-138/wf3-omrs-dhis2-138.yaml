@@ -14,18 +14,18 @@ steps:
     name: Get Mappings from Collection
     adaptor: "@openfn/language-common@2.3.0"
     next:
-      upsert-teis:
-        disabled: false
-        condition: |
-          state.patients.length > 0 && !state.errors
-        openfn:
-          uuid: 2fb1882b-4d33-4b98-859f-aee13063e89d
       get-encounters:
         disabled: false
         condition: |
           !state.errors && state.patients.length === 0
         openfn:
           uuid: 6125b84e-655c-4d28-8a2e-25f4cd913c3c
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        openfn:
+          uuid: 2fb1882b-4d33-4b98-859f-aee13063e89d
     expression: ./get-mappings-from-collection.js
   - id: get-encounters
     name: Get Encounters
