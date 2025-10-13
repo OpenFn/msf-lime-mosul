@@ -36,7 +36,7 @@ const processAnswer = (
       console.log("True only question detected..", dataElement);
       return answer.value.uuid === "681cf0bc-5213-492a-8470-0a0b3cc324dd"
         ? "true"
-        : undefined;
+        : "";
     }
     const optionKey = questionId
       ? `${formUuid}-${answer.concept.uuid}-rfe-${questionId}`
@@ -439,8 +439,21 @@ fn((state) => {
           item.dataElement !== "KjgDauY9v4J"
       );
 
+      const latestFormEvent = events.find(
+        (e) => e.programStage === form.programStage
+      )?.event;
+
+      const encounterEvent = events.find(
+        (e) =>
+          e.programStage === form.programStage &&
+          e.occurredAt === encounter.encounterDatetime.replace("+0000", "")
+      )?.event;
+
+      const event =
+        form.syncType === "latest" ? latestFormEvent : encounterEvent;
+
       return {
-        event: events.find((e) => e.programStage === form.programStage)?.event,
+        event,
         program: state.program,
         orgUnit: state.orgUnit,
         trackedEntity,
@@ -449,8 +462,8 @@ fn((state) => {
         programStage: form.programStage,
         dataValues: [...formDataValues, ...customMapping],
       };
-    })
-    .filter(Boolean);
-
+      })
+      .filter(Boolean);
+    
   return state;
 });
