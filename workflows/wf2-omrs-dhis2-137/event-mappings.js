@@ -95,7 +95,7 @@ function f16(encounter) {
 function f17(encounter) {
   const mappings = [];
   if (
-    encounter.form.description.includes("F17-Surgery admission form") &&
+    encounter.form.description.includes("F17-Surgery Admission") &&
     findObsByConcept(encounter, "13d4d6b8-0cd3-46c5-be7b-c3a7565aaca7")
   ) {
     mappings.push({
@@ -104,11 +104,11 @@ function f17(encounter) {
     });
   }
   if (
-    encounter.form.description.includes("F17-Surgery admission form") &&
+    encounter.form.description.includes("F17-Surgery Admission") &&
     findObsByConcept(encounter, "7f00c65d-de60-467a-8964-fe80c7a85ef0")
   ) {
     const [date, time] = encounter.encounterDatetime.split("T");
-    mappings.push([
+    mappings.push(
       {
         dataElement: "DEGa7RaIDTo",
         value: date,
@@ -121,7 +121,7 @@ function f17(encounter) {
         dataElement: "mDOUf2zzwS2",
         value: time,
       },
-    ]);
+    );
   }
   return mappings;
 }
@@ -133,11 +133,11 @@ function f18(encounter, encounters) {
   );
 
   if (
-    encounter.form.description.includes("F18-Surgery discharge form") &&
+    encounter.form.description.includes("F18-Surgery Discharge") &&
     isDischarge
   ) {
     const lastAdmission = formEncounters(
-      "F17-Surgery admission form",
+      "F17-Surgery Admission",
       encounters
     )
       .at(-1)
