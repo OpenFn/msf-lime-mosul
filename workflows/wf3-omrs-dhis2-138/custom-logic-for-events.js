@@ -530,7 +530,7 @@ fn((state) => {
             occurredAt: encounters[0].encounterDatetime.replace("+0000", ""),
             programStage: form1.programStage,
             dataValues,
-            trackedEntityInstance: patientUuid,
+            trackedEntityInstance: tei.trackedEntity,
           };
         })
         .filter(Boolean);
