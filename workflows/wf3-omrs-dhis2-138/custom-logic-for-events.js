@@ -336,6 +336,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       // Z7vMFdnQxpE: "WDp4nVor9Z7",
       // L97SmAK11DN: "T1iX2NuPyqS",
       yE0dIWW0TXP: "rBtrjV1Mqkz",
+      fnH6H3biOkE: "P4wdYGkldeG"
     };
     const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -375,6 +376,8 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       CDuiRuOcfzj: "YUIQIA2ClN6",
       JMhFzB97fcS: "Qq6xQ2s6LO8",
       Nd43pz1Oo62: "rBtrjV1Mqkz",
+      kcSuQKfU5Zo: "P4wdYGkldeG"
+
     };
     const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -407,6 +410,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       XCUd9xOGXkn: "Qq6xQ2s6LO8",
       onKT21rxH6Z: "rBtrjV1Mqkz",
       sCKCNreiqEA: "Xvzc9e0JJmp",
+      ci9C72RjN8Z: "P4wdYGkldeG"
     };
     const attributeMapping = teiAttributeMapping(tei, attributeMap);
 

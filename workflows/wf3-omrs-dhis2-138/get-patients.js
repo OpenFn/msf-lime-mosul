@@ -38,7 +38,7 @@ cursor("today", {
 });
 
 searchPatient({
-  q: $.msfId || "IQ146-25-012-291",
+  q: $.msfId || "IQ146-25-012-369",
   v: "full",
   limit: "100",
 });
@@ -142,7 +142,7 @@ fn((state) => {
   const inbothResults = searchPatientUuids.filter((id) =>
     encounterPatientUuids.includes(id)
   );
-  const patientUuids = [...new Set(searchPatientUuids, encounterPatientUuids)];
+const patientUuids = [...new Set([...searchPatientUuids, ...encounterPatientUuids])];
 
   console.log("inbothResults", inbothResults.length);
   console.log("patient-search-array", onlyInSearchPatient.length);

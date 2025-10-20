@@ -99,8 +99,8 @@ function f17(encounter) {
     findObsByConcept(encounter, "13d4d6b8-0cd3-46c5-be7b-c3a7565aaca7")
   ) {
     mappings.push({
-      dataElement: "vYF6BoRQlXj",
-      value: "hour",
+      dataElement: "hMqZO0MIIT1",
+      value: "hours",
     });
   }
   if (
@@ -419,8 +419,9 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
+  const isNumberAnswer = answer && typeof answer.value === "number";
 
-  if (isStringAnswer) {
+  if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
 
@@ -534,7 +535,6 @@ fn((state) => {
             value &&
             !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(dataElement)
         );
-
       const f16Mapping = f16(encounter);
       const f17Mapping = f17(encounter);
       const f18Mapping = f18(encounter, state.encounters);
