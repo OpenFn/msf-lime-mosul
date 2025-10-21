@@ -9,7 +9,7 @@ steps:
         disabled: false
         condition: true
         openfn:
-          uuid: 57a8ef61-a75f-4af2-8152-371d871e21bb
+          uuid: e5a1e40b-a435-495b-8260-3ddf4e4b6f95
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -17,24 +17,24 @@ steps:
       mappings:
         disabled: false
         openfn:
-          uuid: e2f4678d-270b-430c-82f6-b5553c641def
+          uuid: 704bb712-f0be-4199-83b8-c84a3da5feb5
     expression: ./get-patients.js
   - id: mappings
     name: Mappings
     adaptor: "@openfn/language-common@2.1.1"
     next:
-      upsert-teis:
-        disabled: false
-        condition: |
-          state.patients.length > 0 && !state.errors
-        openfn:
-          uuid: cec97e34-8c98-473c-87f0-f68391d38f3b
       get-encounters:
         disabled: false
         condition: |
           !state.errors && state.patients.length === 0
         openfn:
-          uuid: e48fdb3b-7287-4572-8888-ea1b1206b23d
+          uuid: 0fd2390e-6faf-4da6-8d4a-220685fe22ae
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        openfn:
+          uuid: 5953cda9-d8c3-454a-8a05-aac6c9c07eb5
     expression: ./mappings.js
   - id: upsert-teis
     name: Upsert TEIs
@@ -45,30 +45,31 @@ steps:
         condition: |
           state.patientUuids.length > 0 && !state.errors
         openfn:
-          uuid: c051248f-741e-4eba-8880-bb6a4ddf8883
+          uuid: 26954f83-daed-4f98-8011-c2c5bc24ecd3
     expression: ./upsert-teis.js
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
     next:
-      get-teis-and-map-answers:
+      get-parent-and-child-teis:
         disabled: false
         condition: |
           !state.errors && state.encounters.length > 0
         openfn:
-          uuid: 33cdeb8c-524d-4a9a-8530-647907096741
+          uuid: 44fda748-0643-46bb-8e89-4b75bec4bdbd
     expression: ./get-encounters.js
-  - id: get-teis-and-map-answers
-    name: Get TEIs and Map Answers
+  - id: get-parent-and-child-teis
+    name: Get Parent and Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
     next:
-      create-teis-relationship:
+      upsert-child-teis:
         disabled: false
-        condition: |
-          state?.relationshipsMapping?.length > 0
+        condition: >
+          Object.keys(state?.childTeis)?.length > 0 &&
+          Object.keys(state?.parentTeis)?.length > 0
         openfn:
-          uuid: 4d2e6fe6-f7d1-48c5-863c-9d7c886ac0e2
-    expression: ./get-teis-and-map-answers.js
+          uuid: a07cd9c9-a88e-4854-8186-23a9f98a8103
+    expression: ./get-parent-and-child-teis.js
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
@@ -78,7 +79,7 @@ steps:
         condition: |
           state?.teisToUpdate?.length > 0
         openfn:
-          uuid: 457fb90b-4b2d-4090-8a95-8539e781044c
+          uuid: 30bc10fc-d40f-4704-81f4-a05fefc5e1e3
     expression: ./create-events.js
   - id: update-teis
     name: Update TEIs
@@ -93,7 +94,7 @@ steps:
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         openfn:
-          uuid: 75db1f32-bff0-4db5-8265-12682e7097f0
+          uuid: a314d87c-3497-4036-831a-3227d85b8c6b
     expression: ./event-mappings.js
   - id: create-teis-relationship
     name: Create TEIs Relationship
@@ -104,5 +105,14 @@ steps:
         condition: |
           state.childTeis && !state.errors
         openfn:
-          uuid: 14519ad2-8496-4f43-89dd-a9942ac3d077
+          uuid: d11da1ea-7d5d-4021-8ecb-9394be06623d
     expression: ./create-teis-relationship.js
+  - id: upsert-child-teis
+    name: Upsert Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      create-teis-relationship:
+        disabled: false
+        openfn:
+          uuid: b5de09be-bff1-45fb-8726-ad8e8e02c2ca
+    expression: ./upsert-child-teis.js

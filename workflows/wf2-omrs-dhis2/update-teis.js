@@ -1,8 +1,8 @@
 // Update TEIs
 create(
-  'tracker',
+  "tracker",
   { trackedEntities: $.teisToUpdate },
-  { params: { async: false, importStrategy: 'UPDATE' } }
+  { params: { async: false, importStrategy: "UPDATE" } }
 );
 
 fn(({ lastRunDateTime }) => ({ lastRunDateTime }));

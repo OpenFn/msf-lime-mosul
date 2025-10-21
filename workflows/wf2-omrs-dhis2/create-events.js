@@ -1,10 +1,10 @@
 // Create or update events for each encounter
 create(
-  'tracker',
+  "tracker",
   {
-    events: state => {
+    events: (state) => {
       console.log(
-        'Creating events for: ',
+        "Creating events for: ",
         JSON.stringify(state.eventsMapping, null, 2)
       );
       return state.eventsMapping;
@@ -13,8 +13,8 @@ create(
   {
     params: {
       async: false,
-      dataElementIdScheme: 'UID',
-      importStrategy: 'CREATE_AND_UPDATE',
+      dataElementIdScheme: "UID",
+      importStrategy: "CREATE_AND_UPDATE",
     },
   }
 );
@@ -68,8 +68,8 @@ fn((state) => {
 
   const genderUpdated = latestGenderUpdate
     .map((answer) => {
-      const parentTei = parentTeis[answer?.person?.uuid].trackedEntity
-      const childTei = childTeis[answer?.person?.uuid].trackedEntity
+      const parentTei = parentTeis[answer?.person?.uuid].trackedEntity;
+      const childTei = childTeis[answer?.person?.uuid].trackedEntity;
 
       const mappings = [];
       const sharedMapping = {
@@ -104,7 +104,7 @@ fn((state) => {
           orgUnit,
         });
       }
-      return mappings
+      return mappings;
     })
     .filter(Boolean)
     .flat();
@@ -117,10 +117,10 @@ fn((state) => {
   // console.log({ latestEducationUpdate })
   const educationUpdated = latestEducationUpdate
     .map((answer) => {
-      const parentTei = parentTeis[answer?.person?.uuid]?.trackedEntity
-      const childTei = childTeis[answer?.person?.uuid]?.trackedEntity
-      console.log({ parentTei, childTei })
-      const mappings = []
+      const parentTei = parentTeis[answer?.person?.uuid]?.trackedEntity;
+      const childTei = childTeis[answer?.person?.uuid]?.trackedEntity;
+      console.log({ parentTei, childTei });
+      const mappings = [];
       const sharedMapping = {
         trackedEntityType: "cHlzCA2MuEF",
         attributes: [
@@ -131,7 +131,7 @@ fn((state) => {
             )?.["DHIS2 Option Code"], //map to DHIS2 Option Code in optsMap
           },
         ],
-      }
+      };
       if (!childTei) {
         console.log("No TEI found for person", answer.person.uuid);
       }
@@ -141,19 +141,19 @@ fn((state) => {
           trackedEntity: parentTei,
           program,
           orgUnit,
-          ...sharedMapping
-        })
+          ...sharedMapping,
+        });
       }
       if (childTei) {
         mappings.push({
           trackedEntity: childTei,
           program: formMaps[answer.formUuid].programId,
           orgUnit: formMaps[answer.formUuid].orgUnit,
-          ...sharedMapping
-        })
+          ...sharedMapping,
+        });
       }
 
-      return mappings
+      return mappings;
     })
     .filter(Boolean)
     .flat();
