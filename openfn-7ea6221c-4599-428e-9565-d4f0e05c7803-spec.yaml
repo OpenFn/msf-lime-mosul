@@ -1564,70 +1564,70 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
-          path: workflows/wf2-omrs-dhis2-137/get-patients.js
+          path: workflows/wf2-omrs-dhis2/get-patients.js
 
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
         credential: mtuchi@openfn.org-mtuchi-collections-config
         body:
-          path: workflows/wf2-omrs-dhis2-137/mappings.js
+          path: workflows/wf2-omrs-dhis2/mappings.js
 
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2-137/upsert-teis.js
+          path: workflows/wf2-omrs-dhis2/upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
-          path: workflows/wf2-omrs-dhis2-137/get-encounters.js
+          path: workflows/wf2-omrs-dhis2/get-encounters.js
 
       Get-Parent-and-Child-TEIs:
         name: Get Parent and Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2-137/get-parent-and-child-teis.js
+          path: workflows/wf2-omrs-dhis2/get-parent-and-child-teis.js
 
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2-137/create-events.js
+          path: workflows/wf2-omrs-dhis2/create-events.js
 
       Update-TEIs:
         name: Update TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2-137/update-teis.js
+          path: workflows/wf2-omrs-dhis2/update-teis.js
 
       Event-Mappings:
         name: Event Mappings
         adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
-          path: workflows/wf2-omrs-dhis2-137/event-mappings.js
+          path: workflows/wf2-omrs-dhis2/event-mappings.js
 
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2-137/create-teis-relationship.js
+          path: workflows/wf2-omrs-dhis2/create-teis-relationship.js
 
       Upsert-Child-TEIs:
         name: Upsert Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2-137/upsert-child-teis.js
+          path: workflows/wf2-omrs-dhis2/upsert-child-teis.js
 
     triggers:
       cron:
