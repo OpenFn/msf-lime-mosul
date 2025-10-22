@@ -14,6 +14,15 @@ const findObsByConcept = (encounter, conceptUuid) => {
   return answer;
 };
 
+const filterObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answers = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+  );
+  return answers;
+};
 function f11(encounter, optsMap) {
   if (encounter.form.description.includes("F11-Family Planning Assessment")) {
     const answers = encounter.obs.filter(
@@ -120,7 +129,7 @@ function f17(encounter) {
       {
         dataElement: "mDOUf2zzwS2",
         value: time,
-      },
+      }
     );
   }
   return mappings;
@@ -136,10 +145,7 @@ function f18(encounter, encounters) {
     encounter.form.description.includes("F18-Surgery Discharge") &&
     isDischarge
   ) {
-    const lastAdmission = formEncounters(
-      "F17-Surgery Admission",
-      encounters
-    )
+    const lastAdmission = formEncounters("F17-Surgery Admission", encounters)
       .at(-1)
       ?.encounterDatetime.replace("+0000", "");
     return [
@@ -149,6 +155,41 @@ function f18(encounter, encounters) {
       },
     ];
   }
+}
+
+function f22(encounter) {
+  const answers = filterObsByConcept(
+    encounter,
+    "38d5dcf5-b8bf-420e-bb14-a270e1f518b3"
+  ).map((o) => o.value.display);
+
+  if (answers.length === 0) {
+    return;
+  }
+  const mapping = [
+    {
+      dataElement: "y5EEruMtgG1",
+      value: answers.some((a) => a.includes("None")),
+    },
+    {
+      dataElement: "SqCZBLTRSt7",
+      value: answers.some((a) => a.includes("Ventilation")),
+    },
+    {
+      dataElement: "hW2US5pqO9c",
+      value: answers.some((a) => a.includes("Cardiac massage")),
+    },
+    {
+      dataElement: "ZgzXA4TjsDg",
+      value: answers.some((a) => a.includes("Adrenaline")),
+    },
+    {
+      dataElement: "hW2US5pqO9c",
+      value: answers.some((a) => a.includes("Other")),
+    },
+  ];
+  console.log("f22 mapping", mapping);
+  return mapping;
 }
 
 function f29(encounter, optsMap) {
@@ -540,6 +581,7 @@ fn((state) => {
       const f18Mapping = f18(encounter, state.encounters);
       const f13Mapping = f13(encounter, state.optsMap);
       const f11Mapping = f11(encounter, state.optsMap);
+      const f22Mapping = f22(encounter);
       const f29Mapping = f29(encounter, state.optsMap);
       const f30f29Mapping = f30f29(encounter, state.allEncounters);
       const f32f31Mapping = f32f31(encounter, state.allEncounters);
@@ -552,6 +594,7 @@ fn((state) => {
         f16Mapping,
         f17Mapping,
         f29Mapping,
+        f22Mapping,
         f30f29Mapping,
         f32f31Mapping,
         f33f34Mapping,
