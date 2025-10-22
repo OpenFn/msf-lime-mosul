@@ -23,6 +23,7 @@ const filterObsByConcept = (encounter, conceptUuid) => {
   );
   return answers;
 };
+
 function f11(encounter, optsMap) {
   if (encounter.form.description.includes("F11-Family Planning Assessment")) {
     const answers = encounter.obs.filter(
@@ -453,6 +454,58 @@ function f33f34(encounter, allEncounters) {
   }
 }
 
+function f37(encounter) {
+  const answers = filterObsByConcept(
+    encounter,
+    "d30db8b8-f8fb-450c-9562-629195212a45"
+  ).map((o) => o.value.display);
+
+  if (answers.length === 0) {
+    return;
+  }
+
+  const mapping = [
+    {
+      dataElement: "MATDmdd9lRR",
+      value: answers.some((a) => a.includes("Medical induction")),
+    },
+    {
+      dataElement: "DNQWSGBOBQB",
+      value: answers.some((a) => a.includes("Unassisted induction")),
+    },
+    {
+      dataElement: "ts3xCk7k7x0",
+      value: answers.some((a) => a.includes("Artificial rupture of membrane")),
+    },
+    {
+      dataElement: "p59TQ8PvXVH",
+      value: answers.some((a) => a.includes("Dilatation and curettage")),
+    },
+    {
+      dataElement: "Uby3bOB4hFn",
+      value: answers.some((a) => a.includes("Prepare for C-section")),
+    },
+    {
+      dataElement: "G2XoPI8Onh6",
+      value: answers.some((a) => a.includes("Prepare for emergency C-section")),
+    },
+    {
+      dataElement: "cLo2RytNPE9",
+      value: answers.some((a) => a.includes("Deferred admission")),
+    },
+    {
+      dataElement: "xB4S4ZVgAbm",
+      value: answers.some((a) => a.includes("External referral")),
+    },
+    {
+      dataElement: "HgexHDb2auE",
+      value: answers.some((a) => a.includes("Other")),
+    },
+  ];
+  console.log("f37 mapping", mapping);
+  return mapping;
+}
+
 const findDataValue = (encounter, dataElement, metadataMap) => {
   const { optsMap, optionSetKey, form } = metadataMap;
   const [conceptUuid, questionId] =
@@ -582,6 +635,7 @@ fn((state) => {
       const f13Mapping = f13(encounter, state.optsMap);
       const f11Mapping = f11(encounter, state.optsMap);
       const f22Mapping = f22(encounter);
+      const f37Mapping = f37(encounter);
       const f29Mapping = f29(encounter, state.optsMap);
       const f30f29Mapping = f30f29(encounter, state.allEncounters);
       const f32f31Mapping = f32f31(encounter, state.allEncounters);
@@ -595,6 +649,7 @@ fn((state) => {
         f17Mapping,
         f29Mapping,
         f22Mapping,
+        f37Mapping,
         f30f29Mapping,
         f32f31Mapping,
         f33f34Mapping,
