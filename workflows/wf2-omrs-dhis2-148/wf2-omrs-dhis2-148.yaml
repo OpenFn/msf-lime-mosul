@@ -14,6 +14,7 @@ steps:
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
     configuration: "../../tmp/openmrs-creds.json"
+    state: "../../tmp/wf2-omrs-dhis2-148-state.json"
     next:
       mappings:
         disabled: false
@@ -124,6 +125,8 @@ steps:
     next:
       create-teis-relationship:
         disabled: false
+        condition: | 
+          !state.errors
         openfn:
           uuid: 2d3915d3-b21c-42bb-8e44-c947570e1bdc
     expression: ./upsert-child-teis.js
