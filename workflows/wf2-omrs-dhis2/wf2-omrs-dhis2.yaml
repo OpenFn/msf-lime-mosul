@@ -13,6 +13,8 @@ steps:
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: "../../tmp/openmrs-creds.json"
+    state: "../../tmp/wf2-omrs-dhis2-state.json"
     next:
       mappings:
         disabled: false
@@ -21,7 +23,8 @@ steps:
     expression: ./get-patients.js
   - id: mappings
     name: Mappings
-    adaptor: "@openfn/language-common@2.1.1"
+    adaptors: ["@openfn/language-common@2.1.1", "@openfn/language-collections@0.7.16"]
+    configuration: "../../tmp/collections-creds.json"
     next:
       get-encounters:
         disabled: false
@@ -39,6 +42,7 @@ steps:
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       get-encounters:
         disabled: false
@@ -50,6 +54,7 @@ steps:
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: "../../tmp/openmrs-creds.json"
     next:
       get-parent-and-child-teis:
         disabled: false
@@ -61,6 +66,7 @@ steps:
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       upsert-child-teis:
         disabled: false
@@ -73,6 +79,7 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       update-teis:
         disabled: false
@@ -84,6 +91,7 @@ steps:
   - id: update-teis
     name: Update TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     expression: ./update-teis.js
   - id: event-mappings
     name: Event Mappings
@@ -99,6 +107,7 @@ steps:
   - id: create-teis-relationship
     name: Create TEIs Relationship
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       event-mappings:
         disabled: false
@@ -110,9 +119,12 @@ steps:
   - id: upsert-child-teis
     name: Upsert Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       create-teis-relationship:
         disabled: false
+        condition: | 
+          !state.errors
         openfn:
           uuid: b5de09be-bff1-45fb-8726-ad8e8e02c2ca
     expression: ./upsert-child-teis.js
