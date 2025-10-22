@@ -485,6 +485,87 @@ function f37(encounter) {
   return f37Mapping;
 }
 
+function f38(encounter) {
+  const procedureAnswers = filterObsByConcept(
+    encounter,
+    "482af9e6-795d-42d9-be5b-64f4df54a63e"
+  ).map((o) => o.value.display);
+  console.log({ procedureAnswers });
+
+  const anaesthesiaAnswers = filterObsByConcept(
+    encounter,
+    "84cc236e-90fa-4eec-acf5-d0cd6b713dc4"
+  ).map((o) => o.value.display);
+
+  let f38Mapping = [];
+  if (procedureAnswers.length > 1) {
+    const procedureConfig = [
+      {
+        dataElement: "JshMCeD8bNx",
+        has: "FGM / female circumcision management",
+      },
+      { dataElement: "oxXdt4qFPUT", has: "Episiotomy" },
+      { dataElement: "puJfC1hX0CN", has: "Induction of labor" },
+      {
+        dataElement: "ncgztSFld2L",
+        has: "Oxytocin for augmentation of labour",
+      },
+      {
+        dataElement: "cQsT8zdLu6s",
+        has: "VBAC (Vaginal birth after Caesearan)",
+      },
+      { dataElement: "BvfOhTNVitn", has: "Vaginal breech delivery" },
+      { dataElement: "RHSujdOFWre", has: "Twins / triplets vaginal delivery" },
+      { dataElement: "z1Bej1f1gCu", has: "Maneuver" },
+      { dataElement: "JHZVr6SECp3", has: "Manual exploration of uterus" },
+      { dataElement: "RiSel8y1SuF", has: "Curettage" },
+      {
+        dataElement: "DxnQSPcbxdF",
+        has: "Laceration (perineal tear) repaired",
+      },
+      { dataElement: "IIoljELzj95", has: "Cervical tear repair" },
+      { dataElement: "Lvk3ipAxiAH", has: "Tubal ligation (sterilization)" },
+    ];
+    const procedureMapping = procedureConfig
+      .map((config) => {
+        if (procedureAnswers.some((a) => a.includes(config.has))) {
+          return {
+            dataElement: config.dataElement,
+            value: true,
+          };
+        }
+      })
+      .filter(Boolean);
+    f38Mapping.push(...procedureMapping);
+  }
+
+  if (anaesthesiaAnswers.length > 0) {
+    const anaesthesiaConfig = [
+      { dataElement: "kjg89ETfuSW", has: "General" },
+      { dataElement: "bgauK1cE1HM", has: "Local" },
+      { dataElement: "dBAXsq3kl3p", has: "Spinal" },
+    ];
+    const anaesthesiaMapping = anaesthesiaConfig
+      .map((config) => {
+        if (anaesthesiaAnswers.some((a) => a.includes(config.has))) {
+          return {
+            dataElement: config.dataElement,
+            value: true,
+          };
+        }
+      })
+      .filter(Boolean);
+    f38Mapping.push(...anaesthesiaMapping);
+  }
+
+  if (f38Mapping.length === 0) {
+    return;
+  }
+
+  console.log({ f38Mapping });
+  return f38Mapping;
+}
+
 const findDataValue = (encounter, dataElement, metadataMap) => {
   const { optsMap, optionSetKey, form } = metadataMap;
   const [conceptUuid, questionId] =
@@ -615,6 +696,7 @@ fn((state) => {
       const f11Mapping = f11(encounter, state.optsMap);
       const f22Mapping = f22(encounter);
       const f37Mapping = f37(encounter);
+      const f38Mapping = f38(encounter);
       const f29Mapping = f29(encounter, state.optsMap);
       const f30f29Mapping = f30f29(encounter, state.allEncounters);
       const f32f31Mapping = f32f31(encounter, state.allEncounters);
@@ -629,6 +711,7 @@ fn((state) => {
         f29Mapping,
         f22Mapping,
         f37Mapping,
+        f38Mapping,
         f30f29Mapping,
         f32f31Mapping,
         f33f34Mapping,
