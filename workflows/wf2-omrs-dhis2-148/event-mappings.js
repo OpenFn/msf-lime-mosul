@@ -167,30 +167,25 @@ function f22(encounter) {
   if (answers.length === 0) {
     return;
   }
-  const mapping = [
-    {
-      dataElement: "y5EEruMtgG1",
-      value: answers.some((a) => a.includes("None")),
-    },
-    {
-      dataElement: "SqCZBLTRSt7",
-      value: answers.some((a) => a.includes("Ventilation")),
-    },
-    {
-      dataElement: "hW2US5pqO9c",
-      value: answers.some((a) => a.includes("Cardiac massage")),
-    },
-    {
-      dataElement: "ZgzXA4TjsDg",
-      value: answers.some((a) => a.includes("Adrenaline")),
-    },
-    {
-      dataElement: "hW2US5pqO9c",
-      value: answers.some((a) => a.includes("Other")),
-    },
+  // Define mapping configurations
+  const mappingConfig = [
+    { dataElement: "y5EEruMtgG1", has: "None" },
+    { dataElement: "SqCZBLTRSt7", has: "Ventilation" },
+    { dataElement: "hW2US5pqO9c", has: "Cardiac massage" },
+    { dataElement: "ZgzXA4TjsDg", has: "Adrenaline" },
+    { dataElement: "BYxj9JiIETF", has: "Other" },
   ];
-  console.log("f22 mapping", mapping);
-  return mapping;
+
+  return mappingConfig
+    .map((config) => {
+      if (answers.some((a) => a.includes(config.has))) {
+        return {
+          dataElement: config.dataElement,
+          value: true,
+        };
+      }
+    })
+    .filter(Boolean);
 }
 
 function f29(encounter, optsMap) {
@@ -463,47 +458,31 @@ function f37(encounter) {
   if (answers.length === 0) {
     return;
   }
-
-  const mapping = [
-    {
-      dataElement: "MATDmdd9lRR",
-      value: answers.some((a) => a.includes("Medical induction")),
-    },
-    {
-      dataElement: "DNQWSGBOBQB",
-      value: answers.some((a) => a.includes("Unassisted induction")),
-    },
-    {
-      dataElement: "ts3xCk7k7x0",
-      value: answers.some((a) => a.includes("Artificial rupture of membrane")),
-    },
-    {
-      dataElement: "p59TQ8PvXVH",
-      value: answers.some((a) => a.includes("Dilatation and curettage")),
-    },
-    {
-      dataElement: "Uby3bOB4hFn",
-      value: answers.some((a) => a.includes("Prepare for C-section")),
-    },
-    {
-      dataElement: "G2XoPI8Onh6",
-      value: answers.some((a) => a.includes("Prepare for emergency C-section")),
-    },
-    {
-      dataElement: "cLo2RytNPE9",
-      value: answers.some((a) => a.includes("Deferred admission")),
-    },
-    {
-      dataElement: "xB4S4ZVgAbm",
-      value: answers.some((a) => a.includes("External referral")),
-    },
-    {
-      dataElement: "HgexHDb2auE",
-      value: answers.some((a) => a.includes("Other")),
-    },
+  const mappingConfig = [
+    { dataElement: "MATDmdd9lRR", has: "Medical induction" },
+    { dataElement: "DNQWSGBOBQB", has: "Unassisted induction" },
+    { dataElement: "ts3xCk7k7x0", has: "Artificial rupture of membrane" },
+    { dataElement: "p59TQ8PvXVH", has: "Dilatation and curettage" },
+    { dataElement: "Uby3bOB4hFn", has: "Prepare for C-section" },
+    { dataElement: "G2XoPI8Onh6", has: "Prepare for emergency C-section" },
+    { dataElement: "cLo2RytNPE9", has: "Deferred admission" },
+    { dataElement: "xB4S4ZVgAbm", has: "External referral" },
+    { dataElement: "HgexHDb2auE", has: "Other" },
   ];
-  console.log("f37 mapping", mapping);
-  return mapping;
+
+  const f37Mapping = mappingConfig
+    .map((config) => {
+      if (answers.some((a) => a.includes(config.has))) {
+        return {
+          dataElement: config.dataElement,
+          value: true,
+        };
+      }
+    })
+    .filter(Boolean);
+
+  console.log({ f37Mapping });
+  return f37Mapping;
 }
 
 const findDataValue = (encounter, dataElement, metadataMap) => {
