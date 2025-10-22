@@ -1,0 +1,129 @@
+id: wf2-omrs-dhis2-148
+name: wf2-omrs-dhis2-148
+options: {}
+steps:
+  - id: trigger
+    type: cron
+    next:
+      get-patients:
+        disabled: false
+        condition: true
+        openfn:
+          uuid: 7e948887-4d58-4362-874b-7efd70858b13
+  - id: get-patients
+    name: Get Patients
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: "../../tmp/openmrs-creds.json"
+    next:
+      mappings:
+        disabled: false
+        condition: |
+          !state.errors
+        openfn:
+          uuid: 22111fa6-ade2-41ba-8c4c-40673021101f
+    expression: ./get-patients.js
+  - id: mappings
+    name: Mappings
+    adaptors: ["@openfn/language-common@2.1.1", "@openfn/language-collections@0.7.16"]
+    configuration: "../../tmp/collections-creds.json"
+    next:
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        openfn:
+          uuid: d943bad4-5338-4e09-867d-a647ef637408
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        openfn:
+          uuid: 67e21f17-dcfc-4b5e-88de-ecb353669a5a
+    expression: ./mappings.js
+  - id: upsert-teis
+    name: Upsert TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
+    next:
+      get-encounters:
+        disabled: false
+        condition: |
+          state.patientUuids.length > 0 && !state.errors
+        openfn:
+          uuid: 4020062d-b422-4a69-83f5-bc2491de87ea
+    expression: ./upsert-teis.js
+  - id: get-encounters
+    name: Get Encounters
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: "../../tmp/openmrs-creds.json"
+    next:
+      get-parent-and-child-teis:
+        disabled: false
+        condition: |
+          !state.errors && state.encounters.length > 0
+        openfn:
+          uuid: 7b592c0e-1312-4d86-84cd-f372845f6774
+    expression: ./get-encounters.js
+  - id: get-parent-and-child-teis
+    name: Get Parent and Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
+    next:
+      upsert-child-teis:
+        disabled: false
+        condition: >
+          Object.keys(state?.childTeis)?.length > 0 &&
+          Object.keys(state?.parentTeis)?.length > 0
+        openfn:
+          uuid: 89313cb0-827c-464c-8394-7eb5fa0f92f4
+    expression: ./get-parent-and-child-teis.js
+  - id: create-events
+    name: Create Events
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
+    next:
+      update-teis:
+        disabled: false
+        condition: |
+          state?.teisToUpdate?.length > 0
+        openfn:
+          uuid: 78d37dd4-e11e-414d-877e-21dd2d4ca5b4
+    expression: ./create-events.js
+  - id: update-teis
+    name: Update TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
+    expression: ./update-teis.js
+  - id: event-mappings
+    name: Event Mappings
+    adaptor: "@openfn/language-common@2.1.1"
+    next:
+      create-events:
+        disabled: false
+        condition: |
+          state?.eventsMapping?.length > 0 && !state.errors
+        openfn:
+          uuid: 434ecc14-7476-4d85-8cd1-236e4460bce7
+    expression: ./event-mappings.js
+  - id: create-teis-relationship
+    name: Create TEIs Relationship
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
+    next:
+      event-mappings:
+        disabled: false
+        condition: |
+          state.childTeis && !state.errors
+        openfn:
+          uuid: 90d68bb7-4111-4078-840b-851298931930
+    expression: ./create-teis-relationship.js
+  - id: upsert-child-teis
+    name: Upsert Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
+    next:
+      create-teis-relationship:
+        disabled: false
+        openfn:
+          uuid: 2d3915d3-b21c-42bb-8e44-c947570e1bdc
+    expression: ./upsert-child-teis.js
