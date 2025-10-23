@@ -1,0 +1,12 @@
+name: msf-lime-mosul-staging
+workflowRoot: workflows
+formats:
+  openfn: yaml
+  project: yaml
+  workflow: yaml
+project:
+  uuid: 7ea6221c-4599-428e-9565-d4f0e05c7803
+  endpoint: https://app.openfn.org
+  env: project
+  inserted_at: 2025-01-30T11:16:04Z
+  updated_at: 2025-10-22T16:03:49Z

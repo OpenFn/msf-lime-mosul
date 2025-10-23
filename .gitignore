@@ -26,5 +26,3 @@ jspm_packages/
 .env
 .env.test
 
-openfn.yaml
-.projects
