@@ -3,7 +3,7 @@ name: v1-wf2-omrs-dhis2-f30
 options: {}
 steps:
   - id: trigger
-    # type: cron
+    type: cron
     next:
       get-patients:
         disabled: false
