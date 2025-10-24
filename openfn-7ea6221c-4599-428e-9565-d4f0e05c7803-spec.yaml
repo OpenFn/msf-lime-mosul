@@ -1422,11 +1422,6 @@ workflows:
           state.patients.length > 0 && !state.errors
 
         enabled: true
-      Get-Patients->Mappings:
-        source_job: Get-Patients
-        target_job: Mappings
-        condition_type: on_job_success
-        enabled: true
       Mappings->Get-Encounters:
         source_job: Mappings
         target_job: Get-Encounters
@@ -1462,6 +1457,11 @@ workflows:
         condition_expression: |
           state?.eventsMapping?.length > 0 && !state.errors
 
+        enabled: true
+      Get-Patients->Mappings:
+        source_job: Get-Patients
+        target_job: Mappings
+        condition_type: on_job_success
         enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
@@ -1729,7 +1729,7 @@ workflows:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
-        body: 
+        body:
           path: workflows/wf2-omrs-dhis2-148/get-patients.js
 
       Mappings:
@@ -1757,7 +1757,7 @@ workflows:
         name: Get Parent and Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body: 
+        body:
           path: workflows/wf2-omrs-dhis2-148/get-parent-and-child-teis.js
 
       Create-Events:
@@ -1780,11 +1780,12 @@ workflows:
         credential: null
         body:
           path: workflows/wf2-omrs-dhis2-148/event-mappings.js
+
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body: 
+        body:
           path: workflows/wf2-omrs-dhis2-148/create-teis-relationship.js
 
       Upsert-Child-TEIs:
@@ -1800,37 +1801,10 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
-      Mappings->Upsert-TEIs:
-        source_job: Mappings
-        target_job: Upsert-TEIs
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
-      Mappings->Get-Encounters:
-        source_job: Mappings
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-no-patients
-        condition_expression: |
-          !state.errors && state.patients.length === 0
-
+      Upsert-Child-TEIs->Create-TEIs-Relationship:
+        source_job: Upsert-Child-TEIs
+        target_job: Create-TEIs-Relationship
+        condition_type: on_job_success
         enabled: true
       Create-Events->Update-TEIs:
         source_job: Create-Events
@@ -1873,11 +1847,6 @@ workflows:
           Object.keys(state?.childTeis)?.length > 0 && Object.keys(state?.parentTeis)?.length > 0
 
         enabled: true
-      Upsert-Child-TEIs->Create-TEIs-Relationship:
-        source_job: Upsert-Child-TEIs
-        target_job: Create-TEIs-Relationship
-        condition_type: on_job_success
-        enabled: true
       Create-TEIs-Relationship->Event-Mappings:
         source_job: Create-TEIs-Relationship
         target_job: Event-Mappings
@@ -1885,6 +1854,38 @@ workflows:
         condition_label: has-child-teis
         condition_expression: |
           state.childTeis && !state.errors
+
+        enabled: true
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
+        enabled: true
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
+      Mappings->Get-Encounters:
+        source_job: Mappings
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
 
         enabled: true
   wf3-omrs-dhis2:

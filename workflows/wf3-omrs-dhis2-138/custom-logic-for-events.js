@@ -11,7 +11,7 @@ const f42Form = "1a00bf19-b959-32c0-afc5-1a29583b3063";
 const f43Form = "b11a57cc-6730-3d6c-a5ec-7949b8af26bc";
 
 const encountersFormPairs = (encounters, formsUuids) => {
-  const { f08Form, f09Form, f23Form, f27Form, f28Form, f25Form, f26Form } =
+  const { f08Form, f09Form, f23Form, f24Form, f27Form, f28Form, f25Form, f26Form } =
     formsUuids;
   const f8f9Encounters = encounters.filter(
     (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
@@ -143,7 +143,7 @@ function f23(encounter) {
     dataElement: condition.dataElement,
     value: findByConceptAndValue(encounter, CONCEPT_ID, condition.valueId)
       ? true
-      : false,
+      : undefined,
   }));
 }
 function f41(encounter) {
@@ -252,6 +252,9 @@ const findByConceptAndValue = (encounter, conceptUuid, value) => {
 };
 
 const findDataValue = (encounter, dataElement, metadataMap) => {
+  if (dataElement === 'H9noxo3e7ox') {
+    return;
+  }
   const { optsMap, optionSetKey, form } = metadataMap;
   const [conceptUuid, questionId] =
     form.dataValueMap[dataElement]?.split("-rfe-");
