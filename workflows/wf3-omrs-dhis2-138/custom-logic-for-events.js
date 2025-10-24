@@ -11,14 +11,23 @@ const f42Form = "1a00bf19-b959-32c0-afc5-1a29583b3063";
 const f43Form = "b11a57cc-6730-3d6c-a5ec-7949b8af26bc";
 
 const encountersFormPairs = (encounters, formsUuids) => {
-  const { f08Form, f09Form, f23Form, f24Form, f27Form, f28Form, f25Form, f26Form } =
-    formsUuids;
+  const {
+    f08Form,
+    f09Form,
+    f23Form,
+    f24Form,
+    f27Form,
+    f28Form,
+    f25Form,
+    f26Form,
+  } = formsUuids;
   const f8f9Encounters = encounters.filter(
     (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
   );
   const f23f24Encounters = encounters.filter(
     (e) => e.form.uuid === f23Form || e.form.uuid === f24Form
   );
+
   const f25f26Encounters = encounters.filter(
     (e) => e.form.uuid === f25Form || e.form.uuid === f26Form
   );
@@ -252,7 +261,7 @@ const findByConceptAndValue = (encounter, conceptUuid, value) => {
 };
 
 const findDataValue = (encounter, dataElement, metadataMap) => {
-  if (dataElement === 'H9noxo3e7ox') {
+  if (dataElement === "H9noxo3e7ox") {
     return;
   }
   const { optsMap, optionSetKey, form } = metadataMap;
@@ -271,6 +280,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
+
     const opt = optsMap.find(
       (o) =>
         o["value.uuid - External ID"] === answer.value.uuid &&
@@ -280,6 +290,8 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       opt?.["DHIS2 Option Code"] ||
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
+
+    console.log({ matchingOptionSet, opt, matchingOption });
 
     if (["FALSE", "No"].includes(matchingOption)) return "false";
     if (["TRUE", "Yes"].includes(matchingOption)) return "true";
@@ -321,7 +333,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       DbyD9bbGIvE: "Qq6xQ2s6LO8",
       fiPFww1viBB: "rBtrjV1Mqkz",
       FsL5BjQocuo: "Xvzc9e0JJmp",
-      Pi1zytYdq6l: "P4wdYGkldeG"
+      Pi1zytYdq6l: "P4wdYGkldeG",
     };
     const f09Mapping = teiAttributeMapping(tei, attributeMap);
     formMapping.push(...f09Mapping);
@@ -340,7 +352,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       // Z7vMFdnQxpE: "WDp4nVor9Z7",
       // L97SmAK11DN: "T1iX2NuPyqS",
       yE0dIWW0TXP: "rBtrjV1Mqkz",
-      fnH6H3biOkE: "P4wdYGkldeG"
+      fnH6H3biOkE: "P4wdYGkldeG",
     };
     const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -380,8 +392,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       CDuiRuOcfzj: "YUIQIA2ClN6",
       JMhFzB97fcS: "Qq6xQ2s6LO8",
       Nd43pz1Oo62: "rBtrjV1Mqkz",
-      kcSuQKfU5Zo: "P4wdYGkldeG"
-
+      kcSuQKfU5Zo: "P4wdYGkldeG",
     };
     const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -414,7 +425,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       XCUd9xOGXkn: "Qq6xQ2s6LO8",
       onKT21rxH6Z: "rBtrjV1Mqkz",
       sCKCNreiqEA: "Xvzc9e0JJmp",
-      ci9C72RjN8Z: "P4wdYGkldeG"
+      ci9C72RjN8Z: "P4wdYGkldeG",
     };
     const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
