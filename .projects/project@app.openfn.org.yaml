@@ -29,7 +29,7 @@ project_credentials:
     owner: mtuchi@openfn.org
 collections: []
 inserted_at: 2025-01-30T11:16:04Z
-updated_at: 2025-10-22T16:03:49Z
+updated_at: 2025-10-23T05:49:29Z
 env: main
 color: null
 concurrency: null
@@ -3221,8 +3221,8 @@ workflows:
         source_job_id: ba3e1803-acd8-4fe0-849f-6e0f4d120afd
   - concurrency: null
     inserted_at: 2025-09-24T21:49:31Z
-    updated_at: 2025-10-20T15:10:36Z
-    lock_version: 11
+    updated_at: 2025-10-23T18:13:32Z
+    lock_version: 15
     deleted_at: null
     id: 063313b2-8577-4501-ad12-baf9cfc2f1d9
     name: wf3-omrs-dhis2-138
@@ -3491,7 +3491,7 @@ workflows:
 
 
           const encountersFormPairs = (encounters, formsUuids) => {
-            const { f08Form, f09Form, f23Form, f27Form, f28Form, f25Form, f26Form } =
+            const { f08Form, f09Form, f23Form, f24Form, f27Form, f28Form, f25Form, f26Form } =
               formsUuids;
             const f8f9Encounters = encounters.filter(
               (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
@@ -3629,7 +3629,7 @@ workflows:
               dataElement: condition.dataElement,
               value: findByConceptAndValue(encounter, CONCEPT_ID, condition.valueId)
                 ? true
-                : false,
+                : undefined,
             }));
           }
 
@@ -3745,6 +3745,9 @@ workflows:
 
 
           const findDataValue = (encounter, dataElement, metadataMap) => {
+            if (dataElement === 'H9noxo3e7ox') {
+              return;
+            }
             const { optsMap, optionSetKey, form } = metadataMap;
             const [conceptUuid, questionId] =
               form.dataValueMap[dataElement]?.split("-rfe-");
@@ -4534,8 +4537,8 @@ workflows:
         source_job_id: 19bd6f3b-3e57-4189-8fb6-ce78ec879d9d
   - concurrency: null
     inserted_at: 2025-10-10T08:11:31Z
-    updated_at: 2025-10-22T16:03:49Z
-    lock_version: 3
+    updated_at: 2025-10-23T05:49:29Z
+    lock_version: 6
     deleted_at: null
     id: 4c8dc301-f47e-4988-b3a7-36aada41ac49
     name: v1-wf2-omrs-dhis2-f30
@@ -5108,9 +5111,6 @@ workflows:
         project_credential_id: null
       - name: Create Events
         body: >
-          // create-events.js
-
-
           const remapToObjects = (columnsAndRows) => {
             const { columns, rows } = columnsAndRows;
 
