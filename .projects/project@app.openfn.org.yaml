@@ -29,7 +29,7 @@ project_credentials:
     owner: mtuchi@openfn.org
 collections: []
 inserted_at: 2025-01-30T11:16:04Z
-updated_at: 2025-10-23T05:49:29Z
+updated_at: 2025-10-24T12:56:18Z
 env: main
 color: null
 concurrency: null
@@ -3221,8 +3221,8 @@ workflows:
         source_job_id: ba3e1803-acd8-4fe0-849f-6e0f4d120afd
   - concurrency: null
     inserted_at: 2025-09-24T21:49:31Z
-    updated_at: 2025-10-23T18:13:32Z
-    lock_version: 15
+    updated_at: 2025-10-24T13:00:51Z
+    lock_version: 17
     deleted_at: null
     id: 063313b2-8577-4501-ad12-baf9cfc2f1d9
     name: wf3-omrs-dhis2-138
@@ -3491,14 +3491,23 @@ workflows:
 
 
           const encountersFormPairs = (encounters, formsUuids) => {
-            const { f08Form, f09Form, f23Form, f24Form, f27Form, f28Form, f25Form, f26Form } =
-              formsUuids;
+            const {
+              f08Form,
+              f09Form,
+              f23Form,
+              f24Form,
+              f27Form,
+              f28Form,
+              f25Form,
+              f26Form,
+            } = formsUuids;
             const f8f9Encounters = encounters.filter(
               (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
             );
             const f23f24Encounters = encounters.filter(
               (e) => e.form.uuid === f23Form || e.form.uuid === f24Form
             );
+
             const f25f26Encounters = encounters.filter(
               (e) => e.form.uuid === f25Form || e.form.uuid === f26Form
             );
@@ -3745,7 +3754,7 @@ workflows:
 
 
           const findDataValue = (encounter, dataElement, metadataMap) => {
-            if (dataElement === 'H9noxo3e7ox') {
+            if (dataElement === "H9noxo3e7ox") {
               return;
             }
             const { optsMap, optionSetKey, form } = metadataMap;
@@ -3764,6 +3773,7 @@ workflows:
                 ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
                 : `${encounter.form.uuid}-${answer.concept.uuid}`;
               const matchingOptionSet = optionSetKey[optionKey];
+
               const opt = optsMap.find(
                 (o) =>
                   o["value.uuid - External ID"] === answer.value.uuid &&
@@ -3773,6 +3783,8 @@ workflows:
                 opt?.["DHIS2 Option Code"] ||
                 opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
                 answer?.value?.display; //TODO: revisit this logic if optionSet not found
+
+              console.log({ matchingOptionSet, opt, matchingOption });
 
               if (["FALSE", "No"].includes(matchingOption)) return "false";
               if (["TRUE", "Yes"].includes(matchingOption)) return "true";
@@ -3815,7 +3827,7 @@ workflows:
                 DbyD9bbGIvE: "Qq6xQ2s6LO8",
                 fiPFww1viBB: "rBtrjV1Mqkz",
                 FsL5BjQocuo: "Xvzc9e0JJmp",
-                Pi1zytYdq6l: "P4wdYGkldeG"
+                Pi1zytYdq6l: "P4wdYGkldeG",
               };
               const f09Mapping = teiAttributeMapping(tei, attributeMap);
               formMapping.push(...f09Mapping);
@@ -3834,7 +3846,7 @@ workflows:
                 // Z7vMFdnQxpE: "WDp4nVor9Z7",
                 // L97SmAK11DN: "T1iX2NuPyqS",
                 yE0dIWW0TXP: "rBtrjV1Mqkz",
-                fnH6H3biOkE: "P4wdYGkldeG"
+                fnH6H3biOkE: "P4wdYGkldeG",
               };
               const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -3874,8 +3886,7 @@ workflows:
                 CDuiRuOcfzj: "YUIQIA2ClN6",
                 JMhFzB97fcS: "Qq6xQ2s6LO8",
                 Nd43pz1Oo62: "rBtrjV1Mqkz",
-                kcSuQKfU5Zo: "P4wdYGkldeG"
-
+                kcSuQKfU5Zo: "P4wdYGkldeG",
               };
               const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -3908,7 +3919,7 @@ workflows:
                 XCUd9xOGXkn: "Qq6xQ2s6LO8",
                 onKT21rxH6Z: "rBtrjV1Mqkz",
                 sCKCNreiqEA: "Xvzc9e0JJmp",
-                ci9C72RjN8Z: "P4wdYGkldeG"
+                ci9C72RjN8Z: "P4wdYGkldeG",
               };
               const attributeMapping = teiAttributeMapping(tei, attributeMap);
 
@@ -4537,8 +4548,8 @@ workflows:
         source_job_id: 19bd6f3b-3e57-4189-8fb6-ce78ec879d9d
   - concurrency: null
     inserted_at: 2025-10-10T08:11:31Z
-    updated_at: 2025-10-23T05:49:29Z
-    lock_version: 6
+    updated_at: 2025-10-24T12:56:18Z
+    lock_version: 7
     deleted_at: null
     id: 4c8dc301-f47e-4988-b3a7-36aada41ac49
     name: v1-wf2-omrs-dhis2-f30
@@ -5915,6 +5926,7 @@ workflows:
         target_job_id: 164f89cc-6984-49cf-814c-88085c492195
         enabled: true
         source_job_id: 42d253c0-dc75-4aad-87a4-4666ad37d21b
+        condition_type: always
       - id: 7f6e10b7-0a8a-45b2-8891-9f160cd5eb66
         target_job_id: e793a79f-0d93-4095-868f-78a23df6150b
         enabled: true
