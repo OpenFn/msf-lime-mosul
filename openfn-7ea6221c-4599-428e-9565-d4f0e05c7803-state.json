@@ -55,9 +55,7 @@
     }
   },
   "version_history": [],
-  "allow_support_access": false,
   "collections": {},
-  "requires_mfa": false,
   "workflows": {
     "get-metadata-collections": {
       "id": "6be0f9f1-2933-403a-b3b1-4272ce0a3bc5",
@@ -1013,5 +1011,7 @@
         }
       }
     }
-  }
+  },
+  "allow_support_access": false,
+  "requires_mfa": false
 }
