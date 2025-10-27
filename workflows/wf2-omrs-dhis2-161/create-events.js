@@ -1,5 +1,5 @@
-const buildTeiUrl = (baseUrl, { tei, program, orgUnit }) => {
-  return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${tei}&program=${program}&ou=${orgUnit}`;
+const buildTeiUrl = (baseUrl, { trackedEntity, program, orgUnit }) => {
+  return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${trackedEntity}&program=${program}&ou=${orgUnit}`;
 };
 // Create or update events for each encounter
 create(
@@ -17,7 +17,7 @@ create(
         acc[key].push(event);
         return acc;
       }, {});
-      Object.split(groupedEvents).forEach((events, key) => {
+      Object.entries(groupedEvents).forEach(([key, events]) => {
         const [trackedEntity, program, orgUnit] = key.split("-");
 
         const teiUrl = buildTeiUrl(baseUrl, {
@@ -28,10 +28,6 @@ create(
 
         console.log({ events, teiUrl });
       });
-      // console.log(
-      //   "Creating events for: ",
-      //   JSON.stringify(state.eventsMapping, null, 2)
-      // );
       return state.eventsMapping;
     },
   },
