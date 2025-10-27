@@ -1,0 +1,118 @@
+id: wf2-omrs-dhis2-161
+name: wf2-omrs-dhis2-161
+options: {}
+steps:
+  - id: trigger
+    type: cron
+    next:
+      get-patients:
+        disabled: false
+        condition: true
+        openfn:
+          uuid: 84ef011a-f775-4d72-8603-ea8287b6e53a
+  - id: get-patients
+    name: Get Patients
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    next:
+      mappings:
+        disabled: false
+        openfn:
+          uuid: 5f91cdf9-21df-44e5-8d18-291f19634c70
+    expression: ./get-patients.js
+  - id: mappings
+    name: Mappings
+    adaptor: "@openfn/language-common@2.1.1"
+    next:
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        openfn:
+          uuid: bdf49a46-562a-4ec3-83d4-4a3fc59b46b6
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        openfn:
+          uuid: dbcd7b7e-edd4-4ff4-88b8-5b5895f9441c
+    expression: ./mappings.js
+  - id: upsert-teis
+    name: Upsert TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      get-encounters:
+        disabled: false
+        condition: |
+          state.patientUuids.length > 0 && !state.errors
+        openfn:
+          uuid: 74a4e08c-768f-45a9-8013-b5de4d766286
+    expression: ./upsert-teis.js
+  - id: get-encounters
+    name: Get Encounters
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    next:
+      get-parent-and-child-teis:
+        disabled: false
+        condition: |
+          !state.errors && state.encounters.length > 0
+        openfn:
+          uuid: e56417f5-bc86-432a-87f7-a42028cfdde3
+    expression: ./get-encounters.js
+  - id: get-parent-and-child-teis
+    name: Get Parent and Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      upsert-child-teis:
+        disabled: false
+        condition: >
+          Object.keys(state?.childTeis)?.length > 0 &&
+          Object.keys(state?.parentTeis)?.length > 0
+        openfn:
+          uuid: cad995e5-c170-49ac-8986-acdc8ef59ad4
+    expression: ./get-parent-and-child-teis.js
+  - id: create-events
+    name: Create Events
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      update-teis:
+        disabled: false
+        condition: |
+          state?.teisToUpdate?.length > 0
+        openfn:
+          uuid: 331ffeaf-1ea9-43b8-85cb-6892a84b6e0c
+    expression: ./create-events.js
+  - id: update-teis
+    name: Update TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    expression: ./update-teis.js
+  - id: event-mappings
+    name: Event Mappings
+    adaptor: "@openfn/language-common@2.1.1"
+    next:
+      create-events:
+        disabled: false
+        condition: |
+          state?.eventsMapping?.length > 0 && !state.errors
+        openfn:
+          uuid: 5d8fba22-4e78-4fe0-8245-527977e79fac
+    expression: ./event-mappings.js
+  - id: create-teis-relationship
+    name: Create TEIs Relationship
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      event-mappings:
+        disabled: false
+        condition: |
+          state.childTeis && !state.errors
+        openfn:
+          uuid: 78df1904-a0fa-47e8-83c7-a700b2aa1f76
+    expression: ./create-teis-relationship.js
+  - id: upsert-child-teis
+    name: Upsert Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    next:
+      create-teis-relationship:
+        disabled: false
+        openfn:
+          uuid: 83df9936-9c36-4cd2-8d39-118972730ab9
+    expression: ./upsert-child-teis.js
