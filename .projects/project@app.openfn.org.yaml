@@ -29,7 +29,7 @@ project_credentials:
     owner: mtuchi@openfn.org
 collections: []
 inserted_at: 2025-01-30T11:16:04Z
-updated_at: 2025-10-27T13:55:50Z
+updated_at: 2025-10-27T15:06:47Z
 env: main
 color: null
 concurrency: null
@@ -6127,8 +6127,8 @@ workflows:
         source_job_id: 149bf91b-40b7-4a85-8357-12bf34496b9d
   - concurrency: null
     inserted_at: 2025-10-27T14:58:56Z
-    updated_at: 2025-10-27T15:00:25Z
-    lock_version: 3
+    updated_at: 2025-10-27T15:20:14Z
+    lock_version: 7
     deleted_at: null
     id: c98512b0-11ca-4898-ba74-9438a92d152c
     name: wf2-omrs-dhis2-161
@@ -6956,16 +6956,39 @@ workflows:
         project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
       - name: Create Events
         body: >
+          const buildTeiUrl = (baseUrl, { trackedEntity, program, orgUnit }) =>
+          {
+            return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${trackedEntity}&program=${program}&ou=${orgUnit}`;
+          };
+
           // Create or update events for each encounter
 
           create(
             "tracker",
             {
               events: (state) => {
-                console.log(
-                  "Creating events for: ",
-                  JSON.stringify(state.eventsMapping, null, 2)
-                );
+                const baseUrl = state.configuration.hostUrl;
+
+                const groupedEvents = state.eventsMapping.reduce((acc, event) => {
+                  const { trackedEntity, program, orgUnit } = event;
+                  const key = `${trackedEntity}-${program}-${orgUnit}`;
+                  if (!acc[key]) {
+                    acc[key] = [];
+                  }
+                  acc[key].push(event);
+                  return acc;
+                }, {});
+                Object.entries(groupedEvents).forEach(([key, events]) => {
+                  const [trackedEntity, program, orgUnit] = key.split("-");
+
+                  const teiUrl = buildTeiUrl(baseUrl, {
+                    trackedEntity,
+                    program,
+                    orgUnit,
+                  });
+
+                  console.log({ events, teiUrl });
+                });
                 return state.eventsMapping;
               },
             },
