@@ -97,12 +97,16 @@ function f27(encounter) {
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
-
+  const timePart = admissionDate.substring(11, 19);
+  const datePart = admissionDate.replace("+0000", "")
   return [
     {
       dataElement: "eYvDzr2m8f5",
-      value: admissionDate,
+      value: timePart,
     },
+    {
+      f27AdmissionDate: datePart
+    }
   ];
 }
 function f23(encounter) {
@@ -270,8 +274,9 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
+  const isNumberAnswer = answer && typeof answer.value === "number";
 
-  if (isStringAnswer) {
+  if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
 
@@ -291,10 +296,10 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    console.log({ matchingOptionSet, opt, matchingOption });
-
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    // console.log({ matchingOptionSet, opt, matchingOption });
+    // If we get errors on true/false, yes/no mappings remove && !matchingOptionSet
+    if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption) && !matchingOptionSet) return "true";
 
     return matchingOption;
   }
@@ -475,7 +480,6 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       return { dataElement, value };
     })
     .filter((d) => d.value);
-
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
     Boolean
   );
@@ -535,15 +539,17 @@ fn((state) => {
                 tei,
               });
             })
-            .flat()
-            .filter((d) => d.value);
+            .flat();
+          const eventDate = dataValues.find(d => d.f27AdmissionDate)?.f27AdmissionDate || encounters[0].encounterDatetime.replace("+0000", "")
+          console.log({dataValues, eventDate})
+          const filteredDataValues = dataValues.filter((d) => d.value);
 
           return {
             program: form1.programId,
             orgUnit: form1.orgUnit,
-            occurredAt: encounters[0].encounterDatetime.replace("+0000", ""),
+            occurredAt: eventDate,
             programStage: form1.programStage,
-            dataValues,
+            dataValues: filteredDataValues,
             trackedEntityInstance: tei.trackedEntity,
           };
         })
