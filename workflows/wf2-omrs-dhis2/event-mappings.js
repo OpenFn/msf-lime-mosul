@@ -14,6 +14,16 @@ const findObsByConcept = (encounter, conceptUuid) => {
   return answer;
 };
 
+const filterObsByConcept = (encounter, conceptUuid) => {
+  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+  const answers = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === conceptId &&
+      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+  );
+  return answers;
+};
+
 function f11(encounter, optsMap) {
   if (encounter.form.description.includes("F11-Family Planning Assessment")) {
     const answers = encounter.obs.filter(
@@ -120,7 +130,7 @@ function f17(encounter) {
       {
         dataElement: "mDOUf2zzwS2",
         value: time,
-      },
+      }
     );
   }
   return mappings;
@@ -136,10 +146,7 @@ function f18(encounter, encounters) {
     encounter.form.description.includes("F18-Surgery Discharge") &&
     isDischarge
   ) {
-    const lastAdmission = formEncounters(
-      "F17-Surgery Admission",
-      encounters
-    )
+    const lastAdmission = formEncounters("F17-Surgery Admission", encounters)
       .at(-1)
       ?.encounterDatetime.replace("+0000", "");
     return [
@@ -149,6 +156,36 @@ function f18(encounter, encounters) {
       },
     ];
   }
+}
+
+function f22(encounter) {
+  const answers = filterObsByConcept(
+    encounter,
+    "38d5dcf5-b8bf-420e-bb14-a270e1f518b3"
+  ).map((o) => o.value.display);
+
+  if (answers.length === 0) {
+    return;
+  }
+  // Define mapping configurations
+  const mappingConfig = [
+    { dataElement: "y5EEruMtgG1", has: "None" },
+    { dataElement: "SqCZBLTRSt7", has: "Ventilation" },
+    { dataElement: "hW2US5pqO9c", has: "Cardiac massage" },
+    { dataElement: "ZgzXA4TjsDg", has: "Adrenaline" },
+    { dataElement: "BYxj9JiIETF", has: "Other" },
+  ];
+
+  return mappingConfig
+    .map((config) => {
+      if (answers.some((a) => a.includes(config.has))) {
+        return {
+          dataElement: config.dataElement,
+          value: true,
+        };
+      }
+    })
+    .filter(Boolean);
 }
 
 function f29(encounter, optsMap) {
@@ -412,6 +449,123 @@ function f33f34(encounter, allEncounters) {
   }
 }
 
+function f37(encounter) {
+  const answers = filterObsByConcept(
+    encounter,
+    "d30db8b8-f8fb-450c-9562-629195212a45"
+  ).map((o) => o.value.display);
+
+  if (answers.length === 0) {
+    return;
+  }
+  const mappingConfig = [
+    { dataElement: "MATDmdd9lRR", has: "Medical induction" },
+    { dataElement: "DNQWSGBOBQB", has: "Unassisted induction" },
+    { dataElement: "ts3xCk7k7x0", has: "Artificial rupture of membrane" },
+    { dataElement: "p59TQ8PvXVH", has: "Dilatation and curettage" },
+    { dataElement: "Uby3bOB4hFn", has: "Prepare for C-section" },
+    { dataElement: "G2XoPI8Onh6", has: "Prepare for emergency C-section" },
+    { dataElement: "cLo2RytNPE9", has: "Deferred admission" },
+    { dataElement: "xB4S4ZVgAbm", has: "External referral" },
+    { dataElement: "HgexHDb2auE", has: "Other" },
+  ];
+
+  const f37Mapping = mappingConfig
+    .map((config) => {
+      if (answers.some((a) => a.includes(config.has))) {
+        return {
+          dataElement: config.dataElement,
+          value: true,
+        };
+      }
+    })
+    .filter(Boolean);
+
+  console.log({ f37Mapping });
+  return f37Mapping;
+}
+
+function f38(encounter) {
+  const procedureAnswers = filterObsByConcept(
+    encounter,
+    "482af9e6-795d-42d9-be5b-64f4df54a63e"
+  ).map((o) => o.value.display);
+  console.log({ procedureAnswers });
+
+  const anaesthesiaAnswers = filterObsByConcept(
+    encounter,
+    "84cc236e-90fa-4eec-acf5-d0cd6b713dc4"
+  ).map((o) => o.value.display);
+
+  let f38Mapping = [];
+  if (procedureAnswers.length > 1) {
+    const procedureConfig = [
+      {
+        dataElement: "JshMCeD8bNx",
+        has: "FGM / female circumcision management",
+      },
+      { dataElement: "oxXdt4qFPUT", has: "Episiotomy" },
+      { dataElement: "puJfC1hX0CN", has: "Induction of labor" },
+      {
+        dataElement: "ncgztSFld2L",
+        has: "Oxytocin for augmentation of labour",
+      },
+      {
+        dataElement: "cQsT8zdLu6s",
+        has: "VBAC (Vaginal birth after Caesearan)",
+      },
+      { dataElement: "BvfOhTNVitn", has: "Vaginal breech delivery" },
+      { dataElement: "RHSujdOFWre", has: "Twins / triplets vaginal delivery" },
+      { dataElement: "z1Bej1f1gCu", has: "Maneuver" },
+      { dataElement: "JHZVr6SECp3", has: "Manual exploration of uterus" },
+      { dataElement: "RiSel8y1SuF", has: "Curettage" },
+      {
+        dataElement: "DxnQSPcbxdF",
+        has: "Laceration (perineal tear) repaired",
+      },
+      { dataElement: "IIoljELzj95", has: "Cervical tear repair" },
+      { dataElement: "Lvk3ipAxiAH", has: "Tubal ligation (sterilization)" },
+    ];
+    const procedureMapping = procedureConfig
+      .map((config) => {
+        if (procedureAnswers.some((a) => a.includes(config.has))) {
+          return {
+            dataElement: config.dataElement,
+            value: true,
+          };
+        }
+      })
+      .filter(Boolean);
+    f38Mapping.push(...procedureMapping);
+  }
+
+  if (anaesthesiaAnswers.length > 0) {
+    const anaesthesiaConfig = [
+      { dataElement: "kjg89ETfuSW", has: "General" },
+      { dataElement: "bgauK1cE1HM", has: "Local" },
+      { dataElement: "dBAXsq3kl3p", has: "Spinal" },
+    ];
+    const anaesthesiaMapping = anaesthesiaConfig
+      .map((config) => {
+        if (anaesthesiaAnswers.some((a) => a.includes(config.has))) {
+          return {
+            dataElement: config.dataElement,
+            value: true,
+          };
+        }
+      })
+      .filter(Boolean);
+    f38Mapping.push(...anaesthesiaMapping);
+  }
+
+  if (f38Mapping.length === 0) {
+    return;
+  }
+
+  console.log({ f38Mapping });
+  return f38Mapping;
+}
+
 const findDataValue = (encounter, dataElement, metadataMap) => {
   const { optsMap, optionSetKey, form } = metadataMap;
   const [conceptUuid, questionId] =
@@ -540,6 +694,9 @@ fn((state) => {
       const f18Mapping = f18(encounter, state.encounters);
       const f13Mapping = f13(encounter, state.optsMap);
       const f11Mapping = f11(encounter, state.optsMap);
+      const f22Mapping = f22(encounter);
+      const f37Mapping = f37(encounter);
+      const f38Mapping = f38(encounter);
       const f29Mapping = f29(encounter, state.optsMap);
       const f30f29Mapping = f30f29(encounter, state.allEncounters);
       const f32f31Mapping = f32f31(encounter, state.allEncounters);
@@ -552,6 +709,9 @@ fn((state) => {
         f16Mapping,
         f17Mapping,
         f29Mapping,
+        f22Mapping,
+        f37Mapping,
+        f38Mapping,
         f30f29Mapping,
         f32f31Mapping,
         f33f34Mapping,

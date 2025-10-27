@@ -1461,7 +1461,7 @@ workflows:
       Get-Patients->Mappings:
         source_job: Get-Patients
         target_job: Mappings
-        condition_type: on_job_success
+        condition_type: always
         enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
@@ -1635,20 +1635,6 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
-      Mappings->Upsert-TEIs:
-        source_job: Mappings
-        target_job: Upsert-TEIs
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
       Upsert-TEIs->Get-Encounters:
         source_job: Upsert-TEIs
         target_job: Get-Encounters
@@ -1713,6 +1699,15 @@ workflows:
         target_job: Create-TEIs-Relationship
         condition_type: on_job_success
         enabled: true
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
       Create-TEIs-Relationship->Event-Mappings:
         source_job: Create-TEIs-Relationship
         target_job: Event-Mappings
@@ -1721,6 +1716,11 @@ workflows:
         condition_expression: |
           state.childTeis && !state.errors
 
+        enabled: true
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
         enabled: true
   wf2-omrs-dhis2-148:
     name: wf2-omrs-dhis2-148

@@ -43,4 +43,4 @@ each(
 );
 
 // Creating relationship between parent and child tei
-each($.relationshipsToCreate, create("relationships", $.data));
+each($.relationshipsToCreate || [], create("relationships", $.data));
