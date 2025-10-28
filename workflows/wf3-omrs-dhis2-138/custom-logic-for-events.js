@@ -20,26 +20,33 @@ const encountersFormPairs = (encounters, formsUuids) => {
     f28Form,
     f25Form,
     f26Form,
+    f41Form,
+    f42Form,
+    f43Form,
   } = formsUuids;
-  const f8f9Encounters = encounters.filter(
-    (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
+  const f8f9Encounters = encounters.filter((e) =>
+    [f08Form, f09Form].includes(e.form.uuid)
   );
-  const f23f24Encounters = encounters.filter(
-    (e) => e.form.uuid === f23Form || e.form.uuid === f24Form
-  );
-
-  const f25f26Encounters = encounters.filter(
-    (e) => e.form.uuid === f25Form || e.form.uuid === f26Form
-  );
-  const f27f28Encounters = encounters.filter(
-    (e) => e.form.uuid === f27Form || e.form.uuid === f28Form
+  const f23f24Encounters = encounters.filter((e) =>
+    [f23Form, f24Form].includes(e.form.uuid)
   );
 
+  const f25f26Encounters = encounters.filter((e) =>
+    [f25Form, f26Form].includes(e.form.uuid)
+  );
+  const f27f28Encounters = encounters.filter((e) =>
+    [f27Form, f28Form].includes(e.form.uuid)
+  );
+
+  const f41f42f43Encounters = encounters.filter((e) =>
+    [f41Form, f42Form, f43Form].includes(e.form.uuid)
+  );
   return {
     f8f9Encounters,
     f23f24Encounters,
     f27f28Encounters,
     f25f26Encounters,
+    f41f42f43Encounters,
   };
 };
 
@@ -98,15 +105,15 @@ function f27(encounter) {
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
   const timePart = admissionDate.substring(11, 19);
-  const datePart = admissionDate.replace("+0000", "")
+  const datePart = admissionDate.replace("+0000", "");
   return [
     {
       dataElement: "eYvDzr2m8f5",
       value: timePart,
     },
     {
-      f27AdmissionDate: datePart
-    }
+      f27AdmissionDate: datePart,
+    },
   ];
 }
 function f23(encounter) {
@@ -298,8 +305,10 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
 
     // console.log({ matchingOptionSet, opt, matchingOption });
     // If we get errors on true/false, yes/no mappings remove && !matchingOptionSet
-    if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption) && !matchingOptionSet) return "true";
+    if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet)
+      return "false";
+    if (["TRUE", "Yes"].includes(matchingOption) && !matchingOptionSet)
+      return "true";
 
     return matchingOption;
   }
@@ -509,11 +518,16 @@ fn((state) => {
           f28Form,
           f25Form,
           f26Form,
+          f41Form,
+          f42Form,
+          f43Form,
         })
       );
 
       return pairedEncounters
-        .filter((encounters) => encounters.length === 2)
+        .filter(
+          (encounters) => encounters.length === 2 || encounters.length === 3
+        )
         .map((encounters) => {
           // Get the forms for both encounters
           const form1 = state.formMaps[encounters[0].form.uuid];
@@ -540,8 +554,10 @@ fn((state) => {
               });
             })
             .flat();
-          const eventDate = dataValues.find(d => d.f27AdmissionDate)?.f27AdmissionDate || encounters[0].encounterDatetime.replace("+0000", "")
-          console.log({dataValues, eventDate})
+          const eventDate =
+            dataValues.find((d) => d.f27AdmissionDate)?.f27AdmissionDate ||
+            encounters[0].encounterDatetime.replace("+0000", "");
+          console.log({ dataValues, eventDate });
           const filteredDataValues = dataValues.filter((d) => d.value);
 
           return {
