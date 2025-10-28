@@ -314,7 +314,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
           function removeLinks(data) {
             if (Array.isArray(data)) {
@@ -473,7 +473,7 @@ workflows:
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
-        credential: null
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body: |
           const isValidUUID = (id) => {
             if (!id || typeof id !== "string") return false;
@@ -558,7 +558,7 @@ workflows:
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           function chunkArray(array, size) {
             const chunks = [];
@@ -782,7 +782,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
           function removeLinks(data) {
             if (Array.isArray(data)) {
@@ -958,7 +958,7 @@ workflows:
       Get-Parent-and-Child-TEIs:
         name: Get Parent and Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -1110,7 +1110,7 @@ workflows:
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           // Create or update events for each encounter
           create(
@@ -1286,7 +1286,7 @@ workflows:
       Update-TEIs:
         name: Update TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           // Update TEIs
           create(
@@ -2042,7 +2042,7 @@ workflows:
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           fn((state) => {
             state.relationshipsMapping = Object.keys(state.childTeis)
@@ -2094,7 +2094,7 @@ workflows:
       Upsert-Child-TEIs:
         name: Upsert Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           create(
             "tracker",
