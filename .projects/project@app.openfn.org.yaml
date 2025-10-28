@@ -29,7 +29,7 @@ project_credentials:
     owner: mtuchi@openfn.org
 collections: []
 inserted_at: 2025-01-30T11:16:04Z
-updated_at: 2025-10-27T15:06:47Z
+updated_at: 2025-10-28T09:01:39Z
 env: main
 color: null
 concurrency: null
@@ -3385,8 +3385,8 @@ workflows:
         source_job_id: ba3e1803-acd8-4fe0-849f-6e0f4d120afd
   - concurrency: null
     inserted_at: 2025-09-24T21:49:31Z
-    updated_at: 2025-10-27T10:01:38Z
-    lock_version: 32
+    updated_at: 2025-10-28T09:01:39Z
+    lock_version: 33
     deleted_at: null
     id: 063313b2-8577-4501-ad12-baf9cfc2f1d9
     name: wf3-omrs-dhis2-138
@@ -3664,26 +3664,33 @@ workflows:
               f28Form,
               f25Form,
               f26Form,
+              f41Form,
+              f42Form,
+              f43Form,
             } = formsUuids;
-            const f8f9Encounters = encounters.filter(
-              (e) => e.form.uuid === f08Form || e.form.uuid === f09Form
+            const f8f9Encounters = encounters.filter((e) =>
+              [f08Form, f09Form].includes(e.form.uuid)
             );
-            const f23f24Encounters = encounters.filter(
-              (e) => e.form.uuid === f23Form || e.form.uuid === f24Form
-            );
-
-            const f25f26Encounters = encounters.filter(
-              (e) => e.form.uuid === f25Form || e.form.uuid === f26Form
-            );
-            const f27f28Encounters = encounters.filter(
-              (e) => e.form.uuid === f27Form || e.form.uuid === f28Form
+            const f23f24Encounters = encounters.filter((e) =>
+              [f23Form, f24Form].includes(e.form.uuid)
             );
 
+            const f25f26Encounters = encounters.filter((e) =>
+              [f25Form, f26Form].includes(e.form.uuid)
+            );
+            const f27f28Encounters = encounters.filter((e) =>
+              [f27Form, f28Form].includes(e.form.uuid)
+            );
+
+            const f41f42f43Encounters = encounters.filter((e) =>
+              [f41Form, f42Form, f43Form].includes(e.form.uuid)
+            );
             return {
               f8f9Encounters,
               f23f24Encounters,
               f27f28Encounters,
               f25f26Encounters,
+              f41f42f43Encounters,
             };
           };
 
@@ -3747,15 +3754,15 @@ workflows:
               "7f00c65d-de60-467a-8964-fe80c7a85ef0"
             )?.value;
             const timePart = admissionDate.substring(11, 19);
-            const datePart = admissionDate.replace("+0000", "")
+            const datePart = admissionDate.replace("+0000", "");
             return [
               {
                 dataElement: "eYvDzr2m8f5",
                 value: timePart,
               },
               {
-                f27AdmissionDate: datePart
-              }
+                f27AdmissionDate: datePart,
+              },
             ];
           }
 
@@ -3955,8 +3962,10 @@ workflows:
 
               // console.log({ matchingOptionSet, opt, matchingOption });
               // If we get errors on true/false, yes/no mappings remove && !matchingOptionSet
-              if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet) return "false";
-              if (["TRUE", "Yes"].includes(matchingOption) && !matchingOptionSet) return "true";
+              if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet)
+                return "false";
+              if (["TRUE", "Yes"].includes(matchingOption) && !matchingOptionSet)
+                return "true";
 
               return matchingOption;
             }
@@ -4168,11 +4177,16 @@ workflows:
                     f28Form,
                     f25Form,
                     f26Form,
+                    f41Form,
+                    f42Form,
+                    f43Form,
                   })
                 );
 
                 return pairedEncounters
-                  .filter((encounters) => encounters.length === 2)
+                  .filter(
+                    (encounters) => encounters.length === 2 || encounters.length === 3
+                  )
                   .map((encounters) => {
                     // Get the forms for both encounters
                     const form1 = state.formMaps[encounters[0].form.uuid];
@@ -4199,8 +4213,10 @@ workflows:
                         });
                       })
                       .flat();
-                    const eventDate = dataValues.find(d => d.f27AdmissionDate)?.f27AdmissionDate || encounters[0].encounterDatetime.replace("+0000", "")
-                    console.log({dataValues, eventDate})
+                    const eventDate =
+                      dataValues.find((d) => d.f27AdmissionDate)?.f27AdmissionDate ||
+                      encounters[0].encounterDatetime.replace("+0000", "");
+                    console.log({ dataValues, eventDate });
                     const filteredDataValues = dataValues.filter((d) => d.value);
 
                     return {
@@ -6096,6 +6112,7 @@ workflows:
         target_job_id: 164f89cc-6984-49cf-814c-88085c492195
         enabled: true
         source_job_id: 42d253c0-dc75-4aad-87a4-4666ad37d21b
+        condition_type: always
       - id: 7f6e10b7-0a8a-45b2-8891-9f160cd5eb66
         target_job_id: e793a79f-0d93-4095-868f-78a23df6150b
         enabled: true
