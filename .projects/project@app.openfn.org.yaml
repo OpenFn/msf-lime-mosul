@@ -6096,7 +6096,6 @@ workflows:
         target_job_id: 164f89cc-6984-49cf-814c-88085c492195
         enabled: true
         source_job_id: 42d253c0-dc75-4aad-87a4-4666ad37d21b
-        condition_type: always
       - id: 7f6e10b7-0a8a-45b2-8891-9f160cd5eb66
         target_job_id: e793a79f-0d93-4095-868f-78a23df6150b
         enabled: true
