@@ -79,7 +79,7 @@ function f8(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  )?.obsDatetime;
+  )?.value;
 
   const datePart = obsDatetime.substring(0, 10);
   const timePart = obsDatetime.substring(11, 19);
@@ -112,7 +112,7 @@ function f27(encounter) {
       value: timePart,
     },
     {
-      f27AdmissionDate: datePart,
+      eventDate: datePart,
     },
   ];
 }
@@ -170,18 +170,28 @@ function f41(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
-  )?.obsDatetime;
-
+  )?.value; 
+  console.log(obsDatetime)
+  // what is obsdatetime?
+  //TODO: extract time componenet and assign
+  //TODO: set date component to eventDate attribute
+  //TODO: use that when setting OccuredAt
+  //TODO: Apply the same changes for f27
+ const timePart = obsDatetime.substring(11, 19);
+  const datePart = obsDatetime.replace("+0000", "");
   if (!obsDatetime) return [];
 
   return [
     {
       dataElement: "gluXfK7zg1d",
-      value: obsDatetime,
+      value: timePart,
     },
     {
       dataElement: "bkissws06TK",
-      value: obsDatetime,
+      value: timePart,
+    },
+    {
+      eventDate: datePart
     },
   ];
 }
@@ -190,7 +200,7 @@ function f42(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  )?.obsDatetime;
+  )?.value;
   if (!obsDatetime) return [];
 
   return [
@@ -206,7 +216,7 @@ function f43(encounter, tei) {
   const obsDatetime = findObsByConcept(
     encounter,
     "88472a4e-f26e-4235-8144-4ad6df874949"
-  )?.obsDatetime;
+  )?.value;
 
   const birthdate = tei?.attributes?.find(
     (attr) => attr.attribute === "WDp4nVor9Z7"
@@ -555,7 +565,7 @@ fn((state) => {
             })
             .flat();
           const eventDate =
-            dataValues.find((d) => d.f27AdmissionDate)?.f27AdmissionDate ||
+            dataValues.find((d) => d.eventDate)?.eventDate ||
             encounters[0].encounterDatetime.replace("+0000", "");
           console.log({ dataValues, eventDate });
           const filteredDataValues = dataValues.filter((d) => d.value);
