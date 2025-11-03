@@ -1,5 +1,6 @@
 // Create or update events for each encounter create(
-create("tracker",
+create(
+  "tracker",
   {
     events: (state) => {
       console.log(
@@ -17,4 +18,5 @@ create("tracker",
     },
   }
 );
+
 fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
