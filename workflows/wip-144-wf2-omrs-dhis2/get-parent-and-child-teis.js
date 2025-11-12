@@ -90,57 +90,77 @@ each(
       filter: [`AYbfTPYMNJH:IN:${patientUuids.join(";")}`],
       fields: "*",
     };
-  }).then(async (state) => {
-    state.childTeis ??= {};
-    state.encounters.forEach((encounter) => {
-      const patientUuid = encounter.patient.uuid;
-      const tei = teiByPatientUuid(patientUuid, state.data.instances);
-
-      if (tei?.trackedEntity) {
-        console.log("Child TEI found:", tei.trackedEntity);
-        const program = tei.programOwners.find(
-          (po) => po.trackedEntity === tei.trackedEntity
-        )?.program;
-
-        state.childTeis[patientUuid] = {
-          trackedEntity: tei.trackedEntity,
-          attributes: tei.attributes,
-          trackedEntityType: tei.trackedEntityType,
-          enrollments: tei.enrollments,
-          orgUnit: tei.orgUnit,
-          program,
-        };
-      }
-
-      if (!tei && !state.childTeis[patientUuid]) {
-        console.log("Child TEI not found for patient:", patientUuid);
-        const { attributes, trackedEntityType } =
-          state?.parentTeis[patientUuid];
+  })
+    .then((state) => {
+      state.childTeis ??= {};
+      state.encounters.forEach((encounter) => {
+        const patientUuid = encounter.patient.uuid;
         const program = state.formMaps[encounter.form.uuid].programId;
         const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
 
-        state.childTeis[patientUuid] = {
-          trackedEntityType,
-          enrollments: [
-            {
-              orgUnit,
-              program,
-              enrolledAt: new Date().toISOString().split("T")[0],
-              attributes: attributes.filter((attribute) =>
-                [
-                  "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
-                ].includes(attribute.attribute)
-              ),
-            },
-          ],
-          attributes,
-          orgUnit,
-          program,
-        };
-      }
-    });
+        const tei = state.data.instances.find((tei) => {
+          const omrsPatientUuid = tei.attributes.find(
+            (attribute) => attribute.attribute === "AYbfTPYMNJH"
+          )?.value;
+          const teiProgram = tei.programOwners.find(
+            (po) => po.trackedEntity === tei.trackedEntity
+          )?.program;
 
-    await delay(2000);
-    return state;
-  })
+          return (
+            omrsPatientUuid === patientUuid &&
+            teiProgram === program &&
+            tei.orgUnit === orgUnit
+          );
+        });
+
+        const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
+        const relationshipType =
+          state.formMaps[encounter.form.uuid]?.relationshipId;
+
+        if (tei?.trackedEntity) {
+          console.log("Child TEI found:", tei.trackedEntity);
+          state.childTeis[patientOuProgram] = {
+            relationshipType,
+            trackedEntity: tei.trackedEntity,
+            attributes: tei.attributes,
+            trackedEntityType: tei.trackedEntityType,
+            enrollments: tei.enrollments,
+            orgUnit,
+            program,
+          };
+        }
+
+        if (!tei && !state.childTeis[patientOuProgram]) {
+          console.log("Child TEI not found for patient:", patientUuid);
+          const { attributes, trackedEntityType } =
+            state?.parentTeis[patientUuid];
+
+          state.childTeis[patientOuProgram] = {
+            relationshipType,
+            trackedEntityType,
+            enrollments: [
+              {
+                orgUnit,
+                program,
+                enrolledAt: new Date().toISOString().split("T")[0],
+                attributes: attributes.filter((attribute) =>
+                  [
+                    "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
+                  ].includes(attribute.attribute)
+                ),
+              },
+            ],
+            attributes,
+            orgUnit,
+            program,
+          };
+        }
+      });
+
+      return state;
+    })
+    .then(async (state) => {
+      await delay(2000);
+      return state;
+    })
 );
