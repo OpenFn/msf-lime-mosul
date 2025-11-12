@@ -1,8 +1,13 @@
 fn((state) => {
-  state.relationshipsMapping = Object.keys(state.childTeis)
-    .map((uuid) => {
-      const childTei = state.childTeis[uuid].trackedEntity;
-      const parentTei = state.parentTeis[uuid].trackedEntity;
+  state.relationshipsMapping = Object.values(state.childTeis)
+    .map((tei) => {
+      const omrsPatientUuid = tei?.attributes.find(
+        ({ attribute }) => attribute === "AYbfTPYMNJH"
+      )?.value;
+
+      const childTei = tei?.trackedEntity;
+      const parentTei = state.parentTeis[omrsPatientUuid]?.trackedEntity;
+      const relationshipType = tei?.relationshipType;
 
       if (childTei != parentTei) {
         return {
@@ -16,11 +21,12 @@ fn((state) => {
               trackedEntityInstance: childTei,
             },
           },
-          relationshipType: "cJJTZ51EK24", //TODO: Need to change this hardcoded id, because it will be different for d/t programs
+          relationshipType,
         };
       }
     })
     .filter(Boolean);
+
   return state;
 });
 // Check if relationship exist
