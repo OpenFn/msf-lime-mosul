@@ -79,11 +79,12 @@ fn((state) => {
 
   if (next.encounters?.length) {
     next.encounters = next.encounters.map((encounter) => {
-      const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+      const { uuid, patient, obs, form, encounterDatetime, visit } = removeLinks(
         removeNulls(encounter)
       );
 
       return {
+        visit,
         uuid,
         patient: {
           uuid: patient.uuid,
