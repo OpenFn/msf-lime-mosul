@@ -3,7 +3,7 @@ description: |
   staging project for main MSF workflows
 collections: []
 id: 7ea6221c-4599-428e-9565-d4f0e05c7803
-fetched_at: 2025-11-14T06:50:58.166Z
+fetched_at: 2025-11-14T09:20:52.690Z
 inserted_at: 2025-01-30T11:16:04Z
 updated_at: 2025-11-12T11:42:30Z
 env: main
@@ -7973,8 +7973,8 @@ workflows:
     name: "[WIP-144]wf2-omrs-dhis2"
   - concurrency: null
     inserted_at: 2025-11-13T11:10:53Z
-    updated_at: 2025-11-13T11:12:35Z
-    lock_version: 4
+    updated_at: 2025-11-14T07:36:55Z
+    lock_version: 5
     deleted_at: null
     id: 88b78eae-1e3a-40f3-944a-4e6c89d293ff
     jobs:
@@ -8155,11 +8155,12 @@ workflows:
 
             if (next.encounters?.length) {
               next.encounters = next.encounters.map((encounter) => {
-                const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+                const { uuid, patient, obs, form, encounterDatetime, visit } = removeLinks(
                   removeNulls(encounter)
                 );
 
                 return {
+                  visit,
                   uuid,
                   patient: {
                     uuid: patient.uuid,
