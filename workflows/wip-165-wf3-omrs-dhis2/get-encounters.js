@@ -36,27 +36,24 @@ each(
   $.patientUuids,
   get("encounter", { patient: $.data, v: "full" }).then((state) => {
     const patientUuid = state.references.at(-1);
-    const filteredEncounters = state.formUuids.map((formUuid) =>
-      state?.data?.results
-        .filter(
-          (e) =>
-            e.auditInfo.dateCreated >= state.cursor &&
-            e?.form?.uuid === formUuid
-        )
-        .sort(
-          (a, b) =>
-            new Date(b.auditInfo.dateCreated) -
-            new Date(a.auditInfo.dateCreated)
-        )
-    );
+    const filteredEncounters = state?.data?.results
+      .filter(
+        (e) =>
+          e.auditInfo.dateCreated >= state.cursor &&
+          state.formUuids.includes(e?.form?.uuid)
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.auditInfo.dateCreated) - new Date(a.auditInfo.dateCreated)
+      );
 
     // Why we only keep the latest one form encounter?
-    const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
+    // const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
     state.encounters ??= [];
-    state.encounters.push(...encounters);
+    state.encounters.push(...filteredEncounters.flat());
 
     console.log(
-      encounters.length,
+      state.encounters?.length,
       `# of filtered encounters found in OMRS for ${patientUuid}`
     );
     delay(1500);
@@ -74,41 +71,51 @@ fn((state) => {
     allResponse,
     patientUuids,
     patients,
+    encounters,
     ...next
   } = state;
 
-  if (next.encounters?.length) {
-    next.encounters = next.encounters.map((encounter) => {
-      const { uuid, patient, obs, form, encounterDatetime, visit } = removeLinks(
-        removeNulls(encounter)
-      );
+  if (encounters?.length) {
+    next.encountersByVisit = encounters
+      .map((encounter) => {
+        const { uuid, patient, obs, form, encounterDatetime, visit } =
+          removeLinks(removeNulls(encounter));
 
-      return {
-        visit,
-        uuid,
-        patient: {
-          uuid: patient.uuid,
-          display: patient.display,
-        },
-        obs: obs.map((o) => {
-          return {
-            uuid: o.uuid,
-            concept: o.concept,
-            display: o.display,
-            formFieldPath: o.formFieldPath,
-            value: o.value,
-          };
-        }),
-        form: {
-          uuid: form.uuid,
-          display: form.display,
-          description: form.description,
-          name: form.name,
-        },
-        encounterDatetime,
-      };
-    });
-    console.log(next.encounters.length, "# of new encounters to sync to dhis2");
+        return {
+          visit,
+          uuid,
+          patient: {
+            uuid: patient.uuid,
+            display: patient.display,
+          },
+          obs: obs.map((o) => {
+            return {
+              uuid: o.uuid,
+              concept: o.concept,
+              display: o.display,
+              formFieldPath: o.formFieldPath,
+              value: o.value,
+            };
+          }),
+          form: {
+            uuid: form.uuid,
+            display: form.display,
+            description: form.description,
+            name: form.name,
+          },
+          encounterDatetime,
+        };
+      })
+      .reduce((acc, curr) => {
+        const visitUuid = curr.visit?.uuid;
+        if (!acc[visitUuid]) {
+          acc[visitUuid] = [curr];
+        } else {
+          acc[visitUuid].push(curr);
+        }
+
+        return acc;
+      }, {});
   } else {
     console.log("No encounters found for cursor: ", next.cursor);
   }
