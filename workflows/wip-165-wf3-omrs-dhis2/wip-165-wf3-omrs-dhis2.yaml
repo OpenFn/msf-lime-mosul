@@ -12,7 +12,8 @@ steps:
           uuid: 95452617-f0d9-4e94-85f9-bd70b8013b6d
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
-    adaptor: "@openfn/language-common@2.3.0"
+    adaptors: ["@openfn/language-common@2.3.0", "@openfn/language-collections@0.7.16"]
+    configuration: "../../tmp/collections-creds.json"
     next:
       get-encounters:
         disabled: false
@@ -30,6 +31,7 @@ steps:
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: "../../tmp/openmrs-creds.json"
     next:
       get-teis-and-map-answers:
         disabled: false
@@ -41,6 +43,7 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     expression: ./create-events.js
   - id: custom-logic-for-events
     name: Custom Logic for Events
@@ -56,15 +59,20 @@ steps:
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: "../../tmp/openmrs-creds.json"
+    state: "../../tmp/wf3-omrs-dhis2-state.json"
     next:
       get-mappings-from-collection:
         disabled: false
+        condition: | 
+          !state.errors
         openfn:
           uuid: 32f81f0e-ac02-4c29-8e7f-259bc412175f
     expression: ./get-patients.js
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       get-encounters:
         disabled: false
@@ -76,6 +84,7 @@ steps:
   - id: get-teis-and-map-answers
     name: Get TEIs and Map Answers
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       custom-logic-for-events:
         disabled: false
@@ -87,6 +96,7 @@ steps:
   - id: get-tie
     name: Get Tie
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: "../../tmp/dhis2-creds.json"
     next:
       custom-logic-for-events:
         disabled: false
