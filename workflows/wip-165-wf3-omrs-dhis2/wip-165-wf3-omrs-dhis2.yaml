@@ -36,7 +36,7 @@ steps:
       get-teis-and-map-answers:
         disabled: false
         condition: |
-          !state.errors && state?.encounters?.length > 0
+          !state.errors && state?.encountersByVisit
         openfn:
           uuid: ab510a69-b607-43d5-880d-f771244eb30c
     expression: ./get-encounters.js
