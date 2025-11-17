@@ -28,6 +28,7 @@ get("tracker/trackedEntities", {
   filter: (state) => [
     `AYbfTPYMNJH:IN:${state.encountersPatientUuids.join(";")}`,
   ],
+  fields: "*",
 });
 
 fn((state) => {
@@ -41,7 +42,8 @@ fn((state) => {
         trackedEntity: tei.trackedEntity,
         attributes: tei.attributes,
         trackedEntityType: tei.trackedEntityType,
-        enrollments: tei.enrollments,
+        enrollment: tei.enrollments[0]?.enrollment,
+        events: tei.enrollments[0]?.events,
       };
     } else {
       console.log("Parent TEI Not Found for Patient:", patientUuid);

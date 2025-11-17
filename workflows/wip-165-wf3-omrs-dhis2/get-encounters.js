@@ -36,21 +36,24 @@ each(
   $.patientUuids,
   get("encounter", { patient: $.data, v: "full" }).then((state) => {
     const patientUuid = state.references.at(-1);
-    const filteredEncounters = state?.data?.results
-      .filter(
-        (e) =>
-          e.auditInfo.dateCreated >= state.cursor &&
-          state.formUuids.includes(e?.form?.uuid)
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.auditInfo.dateCreated) - new Date(a.auditInfo.dateCreated)
-      );
+    const filteredEncounters = state.formUuids.map((formUuid) =>
+      state?.data?.results
+        .filter(
+          (e) =>
+            e.auditInfo.dateCreated >= state.cursor &&
+            e?.form?.uuid === formUuid
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.auditInfo.dateCreated) -
+            new Date(a.auditInfo.dateCreated)
+        )
+    );
 
     // Why we only keep the latest one form encounter?
-    // const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
+    const encounters = filteredEncounters.map((e) => e[0]).filter(Boolean);
     state.encounters ??= [];
-    state.encounters.push(...filteredEncounters.flat());
+    state.encounters.push(...encounters);
 
     console.log(
       state.encounters?.length,
@@ -82,7 +85,7 @@ fn((state) => {
           removeLinks(removeNulls(encounter));
 
         return {
-          visit,
+          visit: { uuid: visit?.uuid },
           uuid,
           patient: {
             uuid: patient.uuid,
