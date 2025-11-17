@@ -36,24 +36,21 @@ each(
   $.patientUuids,
   get("encounter", { patient: $.data, v: "full" }).then((state) => {
     const patientUuid = state.references.at(-1);
-    const filteredEncounters = state.formUuids.map((formUuid) =>
-      state?.data?.results
-        .filter(
-          (e) =>
-            e.auditInfo.dateCreated >= state.cursor &&
-            e?.form?.uuid === formUuid
-        )
-        .sort(
-          (a, b) =>
-            new Date(b.auditInfo.dateCreated) -
-            new Date(a.auditInfo.dateCreated)
-        )
-    );
+    const filteredEncounters = state?.data?.results
+      .filter(
+        (e) =>
+          e.auditInfo.dateCreated >= state.cursor &&
+          state.formUuids.includes(e.form.uuid)
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.auditInfo.dateCreated) - new Date(a.auditInfo.dateCreated)
+      );
 
     // Why we only keep the latest one form encounter?
-    const encounters = filteredEncounters.map((e) => e[0]).filter(Boolean);
+    // const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
     state.encounters ??= [];
-    state.encounters.push(...encounters);
+    state.encounters.push(...filteredEncounters);
 
     console.log(
       state.encounters?.length,
@@ -79,13 +76,13 @@ fn((state) => {
   } = state;
 
   if (encounters?.length) {
-    next.encountersByVisit = encounters
+    const encountersByVisit = encounters
       .map((encounter) => {
         const { uuid, patient, obs, form, encounterDatetime, visit } =
           removeLinks(removeNulls(encounter));
 
         return {
-          visit: { uuid: visit?.uuid },
+          visit: { uuid: visit.uuid },
           uuid,
           patient: {
             uuid: patient.uuid,
@@ -110,15 +107,25 @@ fn((state) => {
         };
       })
       .reduce((acc, curr) => {
-        const visitUuid = curr.visit?.uuid;
-        if (!acc[visitUuid]) {
-          acc[visitUuid] = [curr];
+        const visitPerForm = `${curr.visit.uuid}-${curr.form.uuid}`;
+        if (!acc[visitPerForm]) {
+          acc[visitPerForm] = [curr];
         } else {
-          acc[visitUuid].push(curr);
+          acc[visitPerForm].push(curr);
         }
 
         return acc;
       }, {});
+
+    next.latestEncountersByVisit = Object.values(encountersByVisit)
+      .map((encounters) => encounters[0]) // Latest encounter per visit
+      .flat();
+
+    next.encountersPatientUuids = [
+      ...new Set(
+        next.latestEncountersByVisit.map((encounter) => encounter.patient.uuid)
+      ),
+    ];
   } else {
     console.log("No encounters found for cursor: ", next.cursor);
   }

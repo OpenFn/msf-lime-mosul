@@ -182,9 +182,7 @@ fn((state) => {
     state.missingRecords[uuid].encounters.push(data.uuid);
   };
 
-  const encounters = Object.values(state.encountersByVisit).flat();
-
-  state.eventsMapping = encounters
+  state.eventsMapping = state.latestEncountersByVisit
     .map((encounter) => {
       const form = state.formMaps[encounter.form.uuid];
 

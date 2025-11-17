@@ -10,18 +10,6 @@ const teiByPatientUuid = (patientUuid, teis) => {
   });
 };
 
-fn((state) => {
-  state.encountersPatientUuids = [
-    ...new Set(
-      Object.values(state.encountersByVisit)
-        .flat()
-        .map((encounter) => encounter.patient.uuid)
-    ),
-  ];
-
-  return state;
-});
-
 get("tracker/trackedEntities", {
   orgUnit: $.orgUnit,
   program: $.program,
@@ -47,8 +35,6 @@ fn((state) => {
       };
     } else {
       console.log("Parent TEI Not Found for Patient:", patientUuid);
-      state.missingParentTeis[patientUuid] =
-        state.encountersByPatient[patientUuid];
     }
   });
 
