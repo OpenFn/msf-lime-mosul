@@ -2216,15 +2216,6 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      Get-Mappings-from-Collection->Get-Encounters:
-        source_job: Get-Mappings-from-Collection
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-no-patients
-        condition_expression: |
-          !state.errors && state.patients.length === 0
-
-        enabled: true
       Upsert-TEIs->Get-Encounters:
         source_job: Upsert-TEIs
         target_job: Get-Encounters
@@ -2254,7 +2245,7 @@ workflows:
         condition_type: js_expression
         condition_label: has-encounters
         condition_expression: |
-          !state.errors && state?.encounters?.length > 0
+          !state.errors && state?.latestEncountersByVisit
 
         enabled: true
       cron->Get-Patients:
@@ -2287,6 +2278,15 @@ workflows:
         condition_label: has-events
         condition_expression: |
           state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
+
+        enabled: true
+      Get-Mappings-from-Collection->Get-Encounters:
+        source_job: Get-Mappings-from-Collection
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
 
         enabled: true
   wf1-dhis2-omrs-migration:
