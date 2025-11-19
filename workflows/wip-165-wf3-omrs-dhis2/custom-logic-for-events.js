@@ -1,6 +1,6 @@
 const formIdByName = (name, formMaps) => {
   const entry = Object.entries(formMaps).find(
-    ([formId, form]) => form.formName === name
+    ([formId, form]) => form.formName.includes(name)
   );
   return entry ? entry[0] : null;
 };
@@ -514,7 +514,7 @@ fn((state) => {
     const event =
       state.eventsByPatient[`${form.orgUnit}-${form.program}`]?.[
         patientNumber
-      ][0]?.event;
+      ][0]?.event; // TODO @Aisha can we filter by visit id
 
     return {
       event,
