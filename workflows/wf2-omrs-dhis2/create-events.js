@@ -1,12 +1,33 @@
+const buildTeiUrl = (baseUrl, { trackedEntity, program, orgUnit }) => {
+  return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${trackedEntity}&program=${program}&ou=${orgUnit}`;
+};
 // Create or update events for each encounter
 create(
   "tracker",
   {
     events: (state) => {
-      console.log(
-        "Creating events for: ",
-        JSON.stringify(state.eventsMapping, null, 2)
-      );
+      const baseUrl = state.configuration.hostUrl;
+
+      const groupedEvents = state.eventsMapping.reduce((acc, event) => {
+        const { trackedEntity, program, orgUnit } = event;
+        const key = `${trackedEntity}-${program}-${orgUnit}`;
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+        acc[key].push(event);
+        return acc;
+      }, {});
+      Object.entries(groupedEvents).forEach(([key, events]) => {
+        const [trackedEntity, program, orgUnit] = key.split("-");
+
+        const teiUrl = buildTeiUrl(baseUrl, {
+          trackedEntity,
+          program,
+          orgUnit,
+        });
+
+        console.log({ events, teiUrl });
+      });
       return state.eventsMapping;
     },
   },
