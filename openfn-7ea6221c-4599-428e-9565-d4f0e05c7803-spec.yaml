@@ -108,15 +108,6 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      Event-Mappings->Create-Events:
-        source_job: Event-Mappings
-        target_job: Create-Events
-        condition_type: js_expression
-        condition_label: has-events
-        condition_expression: |
-          state?.eventsMapping?.length > 0 && !state.errors
-
-        enabled: true
       cron->Get-Patients:
         source_trigger: cron
         target_job: Get-Patients
@@ -171,6 +162,15 @@ workflows:
         source_job: Get-Patients
         target_job: Mappings
         condition_type: on_job_success
+        enabled: true
+      Event-Mappings->Create-Events:
+        source_job: Event-Mappings
+        target_job: Create-Events
+        condition_type: js_expression
+        condition_label: has-events
+        condition_expression: |
+          state?.eventsMapping?.length > 0 && !state.errors
+
         enabled: true
       Get-Parent-and-Child-TEIs->Upsert-Child-TEIs:
         source_job: Get-Parent-and-Child-TEIs
