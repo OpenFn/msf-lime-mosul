@@ -1,6 +1,13 @@
 create(
   "tracker",
-  { trackedEntities: (state) => Object.values(state.childTeis) },
+  {
+    trackedEntities: (state) => {
+      const childTeis = Object.values(state.childTeis).map(
+        ({ relationshipType, ...tei }) => tei
+      );
+      return childTeis;
+    },
+  },
   {
     params: {
       atomicMode: "ALL",
@@ -39,11 +46,19 @@ each(
       (a) => a.attribute === "AYbfTPYMNJH"
     ).value;
 
+    const relationshipType = Object.values(state.formMaps).find(
+      (form) =>
+        form.programId === program &&
+        form.orgUnit === orgUnit &&
+        form.formName !== "F00-Registration"
+    )?.relationshipId;
     state.childTeis ??= {};
-    state.childTeis[patientUuid] = {
+    state.childTeis[`${orgUnit}-${program}-${patientUuid}`] = {
+      relationshipType,
       trackedEntity,
       events: enrollments?.[0]?.events ?? events,
       enrollment: enrollments?.[0]?.enrollment,
+      attributes,
       orgUnit,
       program,
     };

@@ -89,8 +89,12 @@ fn((state) => {
 
   const genderUpdated = latestGenderUpdate
     .map((answer) => {
-      const parentTei = parentTeis[answer?.person?.uuid].trackedEntity;
-      const childTei = childTeis[answer?.person?.uuid].trackedEntity;
+      const chilProgram = formMaps[answer.formUuid].programId;
+      const childOrgUnit = formMaps[answer.formUuid].orgUnit;
+      const personUuid = answer.person.uuid;
+      const parentTei = parentTeis[personUuid].trackedEntity;
+      const childTei =
+        childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`].trackedEntity;
 
       const mappings = [];
       const sharedMapping = {
@@ -113,8 +117,8 @@ fn((state) => {
         mappings.push({
           ...sharedMapping,
           trackedEntity: childTei,
-          program: formMaps[answer.formUuid].programId,
-          orgUnit: formMaps[answer.formUuid].orgUnit,
+          program: chilProgram,
+          orgUnit: childOrgUnit,
         });
       }
       if (parentTei) {
@@ -138,8 +142,13 @@ fn((state) => {
   // console.log({ latestEducationUpdate })
   const educationUpdated = latestEducationUpdate
     .map((answer) => {
-      const parentTei = parentTeis[answer?.person?.uuid]?.trackedEntity;
-      const childTei = childTeis[answer?.person?.uuid]?.trackedEntity;
+      const chilProgram = formMaps[answer.formUuid].programId;
+      const childOrgUnit = formMaps[answer.formUuid].orgUnit;
+      const personUuid = answer.person.uuid;
+      const parentTei = parentTeis[personUuid]?.trackedEntity;
+      const childTei =
+        childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
+          ?.trackedEntity;
       console.log({ parentTei, childTei });
       const mappings = [];
       const sharedMapping = {
@@ -168,8 +177,8 @@ fn((state) => {
       if (childTei) {
         mappings.push({
           trackedEntity: childTei,
-          program: formMaps[answer.formUuid].programId,
-          orgUnit: formMaps[answer.formUuid].orgUnit,
+          program: chilProgram,
+          orgUnit: childOrgUnit,
           ...sharedMapping,
         });
       }

@@ -667,8 +667,11 @@ fn((state) => {
       if (!form?.dataValueMap) {
         return null;
       }
+      const program = state.formMaps[encounter.form.uuid].programId;
+      const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
+      const patientOuProgram = `${orgUnit}-${program}-${encounter.patient.uuid}`;
       const { trackedEntity, enrollment, events } =
-        state.childTeis[encounter.patient.uuid] || {};
+        state.childTeis[patientOuProgram] || {};
 
       if (!trackedEntity || !enrollment) {
         handleMissingRecord(encounter, state);
@@ -721,13 +724,15 @@ fn((state) => {
 
       return {
         event: events?.find((e) => e.programStage === form.programStage)?.event,
-        program: state.formMaps[encounter.form.uuid]?.programId,
-        orgUnit: state.formMaps[encounter.form.uuid]?.orgUnit,
+        program,
+        orgUnit,
         trackedEntity,
         enrollment,
         occurredAt: encounter.encounterDatetime.replace("+0000", ""),
         programStage: form.programStage,
-        dataValues: [...formDataValues, ...customMapping],
+        dataValues: [...formDataValues, ...customMapping].filter(
+          (d) => d?.value
+        ),
       };
     })
     .filter(Boolean);
