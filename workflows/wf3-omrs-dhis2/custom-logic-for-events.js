@@ -93,10 +93,10 @@ export const f8 = (encounter) => {
       dataElement: "iQio7NYSA3m",
       value: timePart,
     },
-    // {
-    //   dataElement: "yprMS34o8s3",
-    //   value: datePart,
-    // },
+    {
+      dataElement: "yprMS34o8s3",
+      value: datePart,
+    },
   ];
 };
 
@@ -339,7 +339,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   return "";
 };
 
-const buildDataValues = (encounter, form, mappingConfig) => {
+export const buildDataValues = (encounter, form, mappingConfig) => {
   const { optsMap, optionSetKey, tei } = mappingConfig;
   let formMapping = [];
   // F08 Form Encounter Mapping
