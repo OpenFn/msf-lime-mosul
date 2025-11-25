@@ -81,6 +81,7 @@ export const f8 = (encounter) => {
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
 
+  if (!obsDatetime) return [];
   const datePart = obsDatetime.substring(0, 10);
   const timePart = obsDatetime.substring(11, 19);
   return [
