@@ -84,10 +84,6 @@ export const f8 = (encounter) => {
   const datePart = obsDatetime.substring(0, 10);
   const timePart = obsDatetime.substring(11, 19);
   return [
-    // {
-    //   dataElement: "yprMS34o8s3",
-    //   value: encounter.encounterDatetime,
-    // }, //Looks like this mapping was removed. To be confirmed
     {
       dataElement: "iQio7NYSA3m",
       value: timePart,
