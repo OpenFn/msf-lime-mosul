@@ -40,7 +40,7 @@ each(
       .filter(
         (e) =>
           e.auditInfo.dateCreated >= state.cursor &&
-          state.formUuids.includes(e.form.uuid)
+          state.formUuids.includes(e.form?.uuid)
       )
       .sort(
         (a, b) =>
@@ -88,7 +88,7 @@ fn((state) => {
             uuid: patient.uuid,
             display: patient.display,
           },
-          obs: obs.map((o) => {
+          obs: obs?.map((o) => {
             return {
               uuid: o.uuid,
               concept: o.concept,
@@ -98,10 +98,10 @@ fn((state) => {
             };
           }),
           form: {
-            uuid: form.uuid,
-            display: form.display,
-            description: form.description,
-            name: form.name,
+            uuid: form?.uuid,
+            display: form?.display,
+            description: form?.description,
+            name: form?.name,
           },
           encounterDatetime,
         };

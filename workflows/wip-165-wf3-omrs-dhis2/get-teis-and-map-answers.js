@@ -80,6 +80,9 @@ each(
       const patientNumber = event.dataValues.find(
         (dv) => dv.dataElement === "Pi1zytYdq6l"
       )?.value;
+      const visitUuid = event.dataValues.find(
+        (dv) => dv.dataElement === "rbFVBI2N6Ex"
+      )?.value;
 
       if (!acc[patientNumber]) {
         acc[patientNumber] = [];
@@ -87,6 +90,7 @@ each(
       acc[patientNumber].push({
         event: event.event,
         occuredAt: event.occuredAt,
+        visitUuid
       });
       return acc;
     }, {});

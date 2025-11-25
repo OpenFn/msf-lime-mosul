@@ -40,13 +40,13 @@ function f8(encounter) {
   const timePart = obsDatetime.substring(11, 19);
   return [
     {
-      dataElement: "yprMS34o8s3",
-      value: encounter.encounterDatetime,
-    },
-    {
       dataElement: "iQio7NYSA3m",
-      value: datePart,
+      value: timePart,
     },
+    // {
+    //   dataElement: "yprMS34o8s3",
+    //   value: datePart,
+    // }, //This mapping might have been removed, to be confirmed.
   ];
 }
 
@@ -309,6 +309,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
     f43Form,
   } = mappingConfig;
   let formMapping = [];
+  const visitUuid = encounter.visit.uuid;
 
   if ([f08Form, f09Form].includes(encounter.form.uuid)) {
     // F08 Form Encounter Mapping
@@ -459,6 +460,13 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       return { dataElement, value };
     })
     .filter((d) => d.value);
+  
+  dataValuesMapping.push({
+    "dataElement": "rbFVBI2N6Ex",
+    "value": visitUuid
+  })
+
+  //setting the visitUuid here as a data element
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
     Boolean
   );
@@ -511,11 +519,14 @@ fn((state) => {
       (a) => a.code === "patient_number"
     ).value;
 
-    const event =
-      state.eventsByPatient[`${form.orgUnit}-${form.program}`]?.[
-        patientNumber
-      ][0]?.event; // TODO @Aisha can we filter by visit id
-
+    const visitUuid = encounter.visit.uuid;
+    const event = state.eventsByPatient[`${form.orgUnit}-${form.program}`]?.
+              [ patientNumber ]?.
+              find(e => 
+                  e.visitUuid === visitUuid )?.event;
+    if (event) {
+      console.log("Event found:", event)
+    }
     return {
       event,
       program: form.programId,
