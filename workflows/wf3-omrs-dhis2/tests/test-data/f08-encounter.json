@@ -1,0 +1,16 @@
+{
+  "uuid": "33b0b342-d797-4fe2-ba9c-b488a51d3b49",
+  "display": "Consultation 05/23/2023",
+  "encounterDatetime": "2023-05-23T12:58:36.000+0000",
+  "patient": {
+    "uuid": "681f8785-c9ca-4dc8-a091-7b869316ff93",
+    "display": "100000Y - Patient Zero",
+    "links": [
+      {
+        "rel": "self",
+        "uri": "http://msf-ocg-openmrs3-dev.westeurope.cloudapp.azure.com/openmrs/ws/rest/v1/patient/681f8785-c9ca-4dc8-a091-7b869316ff93",
+        "resourceAlias": "patient"
+      }
+    ]
+  }
+}

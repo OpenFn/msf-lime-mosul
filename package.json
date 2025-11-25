@@ -1,0 +1,10 @@
+{
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@openfn/compiler": "^1.1.5",
+    "@openfn/language-common": "^3.2.0"
+  },
+  "type": "module"
+}
