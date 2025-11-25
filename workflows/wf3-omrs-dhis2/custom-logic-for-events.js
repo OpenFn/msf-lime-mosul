@@ -1,5 +1,5 @@
-const f08Form = "f0bb3bf7-4e0a-3545-afce-a6b33b0378e4";
-const f09Form = "6e1e468b-00b1-3e5d-a8cf-00f45b8fe261";
+const f08Form = "f87cdfde-7132-3006-89f7-ed291f84bcf0";
+const f09Form = "59f9aade-8d7b-3978-baa5-f05d50e379ea";
 const f23Form = "1b14d9e6-0569-304e-9d4e-f9df40762dff";
 const f24Form = "399cf41a-ea2a-39e3-8758-508e79729656";
 const f25Form = "c4db716a-f9d0-35df-a589-d5caf2dfb106";
@@ -84,18 +84,18 @@ function f8(encounter) {
   const datePart = obsDatetime.substring(0, 10);
   const timePart = obsDatetime.substring(11, 19);
   return [
-    {
-      dataElement: "yprMS34o8s3",
-      value: encounter.encounterDatetime,
-    },
+    // {
+    //   dataElement: "yprMS34o8s3",
+    //   value: encounter.encounterDatetime,
+    // }, //Looks like this mapping was removed. To be confirmed
     {
       dataElement: "iQio7NYSA3m",
-      value: datePart,
-    },
-    {
-      dataElement: "yprMS34o8s3",
       value: timePart,
     },
+    // {
+    //   dataElement: "yprMS34o8s3",
+    //   value: datePart,
+    // },
   ];
 }
 
