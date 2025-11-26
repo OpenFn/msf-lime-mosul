@@ -1,6 +1,6 @@
 const formIdByName = (name, formMaps) => {
-  const entry = Object.entries(formMaps).find(
-    ([formId, form]) => form.formName.includes(name)
+  const entry = Object.entries(formMaps).find(([formId, form]) =>
+    form.formName.includes(name)
   );
   return entry ? entry[0] : null;
 };
@@ -291,11 +291,11 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   return "";
 };
 
-const buildDataValues = (encounter, form, mappingConfig) => {
+const buildDataValues = (encounter, tei, mappingConfig) => {
   const {
     optsMap,
     optionSetKey,
-    tei,
+    form,
     f08Form,
     f09Form,
     f23Form,
@@ -460,11 +460,11 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       return { dataElement, value };
     })
     .filter((d) => d.value);
-  
+
   dataValuesMapping.push({
-    "dataElement": "rbFVBI2N6Ex",
-    "value": visitUuid
-  })
+    dataElement: "rbFVBI2N6Ex",
+    value: visitUuid,
+  });
 
   //setting the visitUuid here as a data element
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
@@ -487,56 +487,79 @@ fn((state) => {
   const f42Form = formIdByName("F42-ER Consultation", state.formMaps);
   const f43Form = formIdByName("F43-ER Exit", state.formMaps);
 
-  state.eventsMapping = state.latestEncountersByVisit.map((encounter) => {
-    const form = state.formMaps[encounter.form.uuid];
-
-    if (!form?.dataValueMap) {
-      return null;
+  const pairedEncounters = state.latestEncountersByVisit.reduce((acc, obj) => {
+    const program = state.formMaps[obj.form.uuid].programId;
+    const orgUnit = state.formMaps[obj.form.uuid].orgUnit;
+    const programStage = state.formMaps[obj.form.uuid].programStage;
+    const patientOuProgram = `${orgUnit}:${program}:${programStage}:${obj.patient.uuid}`;
+    if (!acc[patientOuProgram]) {
+      acc[patientOuProgram] = [];
     }
-    const tei = state.TEIs[encounter.patient.uuid];
+    acc[patientOuProgram].push(obj);
+    return acc;
+  }, {});
 
-    const dataValues = buildDataValues(encounter, form, {
-      optsMap: state.optsMap,
-      optionSetKey: state.optionSetKey,
-      tei,
-      f08Form,
-      f09Form,
-      f23Form,
-      f24Form,
-      f25Form,
-      f26Form,
-      f27Form,
-      f28Form,
-      f41Form,
-      f42Form,
-      f43Form,
-    });
+  state.eventsMapping = Object.entries(pairedEncounters).map(
+    ([patientKey, patientEncounters]) => {
+      const [orgUnit, program, programStage, patientUuid] =
+        patientKey.split(":");
 
-    const eventDate = encounter.encounterDatetime.replace("+0000", "");
-    const filteredDataValues = dataValues.filter((d) => d.value);
+      const tei = state.TEIs[patientUuid];
 
-    const patientNumber = tei?.attributes?.find(
-      (a) => a.code === "patient_number"
-    ).value;
+      const dataValues = patientEncounters
+        .map((encounter) => {
+          const form = state.formMaps[encounter.form.uuid];
+          if (!form?.dataValueMap) {
+            return null;
+          }
+          return buildDataValues(encounter, tei, {
+            optsMap: state.optsMap,
+            optionSetKey: state.optionSetKey,
+            form,
+            f08Form,
+            f09Form,
+            f23Form,
+            f24Form,
+            f25Form,
+            f26Form,
+            f27Form,
+            f28Form,
+            f41Form,
+            f42Form,
+            f43Form,
+          });
+        })
+        .flat()
+        .filter((d) => d.value);
 
-    const visitUuid = encounter.visit.uuid;
-    const event = state.eventsByPatient[`${form.orgUnit}-${form.program}`]?.
-              [ patientNumber ]?.
-              find(e => 
-                  e.visitUuid === visitUuid )?.event;
-    if (event) {
-      console.log("Event found:", event)
+      const latestEncounter = patientEncounters.sort(
+        (a, b) => new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
+      )[0];
+
+      const eventDate = latestEncounter?.encounterDatetime.replace("+0000", "");
+
+      const patientNumber = tei?.attributes?.find(
+        (a) => a.code === "patient_number"
+      ).value;
+
+      const visitUuid = latestEncounter.visit.uuid;
+      const event = state.eventsByPatient[`${orgUnit}-${program}`]?.[
+        patientNumber
+      ]?.find((e) => e.visitUuid === visitUuid)?.event;
+      if (event) {
+        console.log("Event found:", event);
+      }
+      return {
+        event,
+        program,
+        orgUnit,
+        occurredAt: eventDate,
+        programStage,
+        dataValues,
+        trackedEntity: tei.trackedEntity,
+      };
     }
-    return {
-      event,
-      program: form.programId,
-      orgUnit: form.orgUnit,
-      occurredAt: eventDate,
-      programStage: form.programStage,
-      dataValues: filteredDataValues,
-      trackedEntity: tei.trackedEntity,
-    };
-  });
+  );
 
   return state;
 });
