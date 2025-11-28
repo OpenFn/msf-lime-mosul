@@ -75,12 +75,13 @@ const ageInDays = (dob, encounterDate) => {
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
 
-function f8(encounter) {
+export const f8 = (encounter) => {
   const obsDatetime = findObsByConcept(
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
 
+  if (!obsDatetime) return [];
   const datePart = obsDatetime.substring(0, 10);
   const timePart = obsDatetime.substring(11, 19);
   return [
@@ -92,12 +93,12 @@ function f8(encounter) {
       dataElement: "iQio7NYSA3m",
       value: timePart,
     },
-    // {
-    //   dataElement: "yprMS34o8s3",
-    //   value: datePart,
-    // },
+    {
+      dataElement: "yprMS34o8s3",
+      value: datePart,
+    },
   ];
-}
+};
 
 function f27(encounter) {
   const admissionDate = findObsByConcept(
@@ -170,14 +171,14 @@ function f41(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
-  )?.value; 
-  console.log(obsDatetime)
+  )?.value;
+  console.log(obsDatetime);
   // what is obsdatetime?
   //TODO: extract time componenet and assign
   //TODO: set date component to eventDate attribute
   //TODO: use that when setting OccuredAt
   //TODO: Apply the same changes for f27
- const timePart = obsDatetime.substring(11, 19);
+  const timePart = obsDatetime.substring(11, 19);
   const datePart = obsDatetime.replace("+0000", "");
   if (!obsDatetime) return [];
 
@@ -191,7 +192,7 @@ function f41(encounter) {
       value: timePart,
     },
     {
-      eventDate: datePart
+      eventDate: datePart,
     },
   ];
 }
@@ -338,7 +339,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   return "";
 };
 
-const buildDataValues = (encounter, form, mappingConfig) => {
+export const buildDataValues = (encounter, form, mappingConfig) => {
   const { optsMap, optionSetKey, tei } = mappingConfig;
   let formMapping = [];
   // F08 Form Encounter Mapping

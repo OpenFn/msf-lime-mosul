@@ -1,0 +1,11 @@
+{
+  "scripts": {
+    "test": "node --experimental-vm-modules --test",
+    "test:only": "node --experimental-vm-modules --test --test-only"
+  },
+  "dependencies": {
+    "@openfn/compiler": "^1.1.5",
+    "@openfn/language-common": "^3.2.0"
+  },
+  "type": "module"
+}
