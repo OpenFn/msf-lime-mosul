@@ -70,16 +70,25 @@ each(
     return {
       orgUnit,
       program,
-      filter: [`Pi1zytYdq6l:IN:${patientNumbers.join(";")}`],
+      // filter: [
+      //   `Pi1zytYdq6l:IN:${patientNumbers.join(";")}`,
+      //   `fnH6H3biOkE:IN:${patientNumbers.join(";")}`
+      // ],
       fields: "*",
     };
   }).then((state) => {
-    const { orgUnit, program } = state.references.at(-1);
+    const { orgUnit, program, patientNumbers } = state.references.at(-1);
     state.eventsByPatient ??= {};
-    const grouped = state.data.instances.reduce((acc, event) => {
+    const grouped = state.data.instances?.reduce((acc, event) => {
       const patientNumber = event.dataValues.find(
-        (dv) => dv.dataElement === "Pi1zytYdq6l"
+        (dv) => dv.dataElement === "Pi1zytYdq6l" ||
+                dv.dataElement === "fnH6H3biOkE" ||
+                dv.dataElement === "kcSuQKfU5Zo" ||
+                dv.dataElement === "ci9C72RjN8Z"
       )?.value;
+      if (!patientNumber || !patientNumbers.includes(patientNumber)) {
+        return acc;
+      }
       const visitUuid = event.dataValues.find(
         (dv) => dv.dataElement === "rbFVBI2N6Ex"
       )?.value;
@@ -94,6 +103,8 @@ each(
       });
       return acc;
     }, {});
+    console.log(`Processing ${state.data.instances?.length || 0} events for ${orgUnit}-${program}`);
+    console.log("Grouped events by patient:", Object.keys(grouped).length, "patients");
     state.eventsByPatient[`${orgUnit}-${program}`] = grouped;
     return state;
   })

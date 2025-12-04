@@ -491,7 +491,7 @@ fn((state) => {
     const program = state.formMaps[obj.form.uuid].programId;
     const orgUnit = state.formMaps[obj.form.uuid].orgUnit;
     const programStage = state.formMaps[obj.form.uuid].programStage;
-    const patientOuProgram = `${orgUnit}:${program}:${programStage}:${obj.patient.uuid}`;
+    const patientOuProgram = `${orgUnit}:${program}:${programStage}:${obj.patient.uuid}:${obj.visit.uuid}`;
     if (!acc[patientOuProgram]) {
       acc[patientOuProgram] = [];
     }
