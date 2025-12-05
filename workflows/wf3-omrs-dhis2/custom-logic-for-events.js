@@ -170,14 +170,14 @@ function f41(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
-  )?.value; 
-  console.log(obsDatetime)
+  )?.value;
+  console.log(obsDatetime);
   // what is obsdatetime?
   //TODO: extract time componenet and assign
   //TODO: set date component to eventDate attribute
   //TODO: use that when setting OccuredAt
   //TODO: Apply the same changes for f27
- const timePart = obsDatetime.substring(11, 19);
+  const timePart = obsDatetime.substring(11, 19);
   const datePart = obsDatetime.replace("+0000", "");
   if (!obsDatetime) return [];
 
@@ -191,7 +191,7 @@ function f41(encounter) {
       value: timePart,
     },
     {
-      eventDate: datePart
+      eventDate: datePart,
     },
   ];
 }
@@ -312,6 +312,17 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       opt?.["DHIS2 Option Code"] ||
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
+
+    if (!opt) {
+      console.log(
+        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
+    if (matchingOption !== opt?.["DHIS2 Option Code"]) {
+      console.log(
+        `No DHIS2 Option Code found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
 
     // console.log({ matchingOptionSet, opt, matchingOption });
     // If we get errors on true/false, yes/no mappings remove && !matchingOptionSet

@@ -619,6 +619,16 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       opt?.["DHIS2 Option Code"] ||
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
+    if (!opt) {
+      console.log(
+        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
+    if (matchingOption !== opt?.["DHIS2 Option Code"]) {
+      console.log(
+        `No DHIS2 Option Code found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
 
     if (["FALSE", "No"].includes(matchingOption)) return "false";
     if (["TRUE", "Yes"].includes(matchingOption)) return "true";
