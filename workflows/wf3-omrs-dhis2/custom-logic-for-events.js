@@ -1,55 +1,9 @@
-const f08Form = "f87cdfde-7132-3006-89f7-ed291f84bcf0";
-const f09Form = "59f9aade-8d7b-3978-baa5-f05d50e379ea";
-const f23Form = "1b14d9e6-0569-304e-9d4e-f9df40762dff";
-const f24Form = "399cf41a-ea2a-39e3-8758-508e79729656";
-const f25Form = "c4db716a-f9d0-35df-a589-d5caf2dfb106";
-const f26Form = "afcf2993-233e-385b-8030-74a8b475eccd";
-const f27Form = "ac97ec76-5647-3153-b4e1-2eceae121e50";
-const f28Form = "893ef4b7-5ad1-39e7-8515-eab308ccd636";
-const f41Form = "a67db828-cf17-3514-b089-5206b5cfb223";
-const f42Form = "1a00bf19-b959-32c0-afc5-1a29583b3063";
-const f43Form = "b11a57cc-6730-3d6c-a5ec-7949b8af26bc";
-
-const encountersFormPairs = (encounters, formsUuids) => {
-  const {
-    f08Form,
-    f09Form,
-    f23Form,
-    f24Form,
-    f27Form,
-    f28Form,
-    f25Form,
-    f26Form,
-    f41Form,
-    f42Form,
-    f43Form,
-  } = formsUuids;
-  const f8f9Encounters = encounters.filter((e) =>
-    [f08Form, f09Form].includes(e.form.uuid)
+const formIdByName = (name, formMaps) => {
+  const entry = Object.entries(formMaps).find(([formId, form]) =>
+    form.formName.includes(name)
   );
-  const f23f24Encounters = encounters.filter((e) =>
-    [f23Form, f24Form].includes(e.form.uuid)
-  );
-
-  const f25f26Encounters = encounters.filter((e) =>
-    [f25Form, f26Form].includes(e.form.uuid)
-  );
-  const f27f28Encounters = encounters.filter((e) =>
-    [f27Form, f28Form].includes(e.form.uuid)
-  );
-
-  const f41f42f43Encounters = encounters.filter((e) =>
-    [f41Form, f42Form, f43Form].includes(e.form.uuid)
-  );
-  return {
-    f8f9Encounters,
-    f23f24Encounters,
-    f27f28Encounters,
-    f25f26Encounters,
-    f41f42f43Encounters,
-  };
+  return entry ? entry[0] : null;
 };
-
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const calculateAge = (dob) =>
   Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
@@ -81,13 +35,10 @@ function f8(encounter) {
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
 
+  if (!obsDatetime) return [];
   const datePart = obsDatetime.substring(0, 10);
   const timePart = obsDatetime.substring(11, 19);
   return [
-    // {
-    //   dataElement: "yprMS34o8s3",
-    //   value: encounter.encounterDatetime,
-    // }, //Looks like this mapping was removed. To be confirmed
     {
       dataElement: "iQio7NYSA3m",
       value: timePart,
@@ -95,7 +46,7 @@ function f8(encounter) {
     // {
     //   dataElement: "yprMS34o8s3",
     //   value: datePart,
-    // },
+    // }, //This mapping might have been removed, to be confirmed.
   ];
 }
 
@@ -104,6 +55,7 @@ function f27(encounter) {
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
+  if (!admissionDate) return [];
   const timePart = admissionDate.substring(11, 19);
   const datePart = admissionDate.replace("+0000", "");
   return [
@@ -116,6 +68,7 @@ function f27(encounter) {
     },
   ];
 }
+
 function f23(encounter) {
   // Define concept mappings object for cleaner reference
   const CONCEPT_ID = "f587c6a3-6a71-48ae-83b2-5e2417580b6f";
@@ -171,7 +124,7 @@ function f41(encounter) {
     encounter,
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
   )?.value;
-  console.log(obsDatetime);
+  if (!obsDatetime) return [];
   // what is obsdatetime?
   //TODO: extract time componenet and assign
   //TODO: set date component to eventDate attribute
@@ -179,7 +132,6 @@ function f41(encounter) {
   //TODO: Apply the same changes for f27
   const timePart = obsDatetime.substring(11, 19);
   const datePart = obsDatetime.replace("+0000", "");
-  if (!obsDatetime) return [];
 
   return [
     {
@@ -246,10 +198,10 @@ function f43(encounter, tei) {
   }
   return mappings;
 }
-function teiAttributeMapping(tei, attributeMap) {
+function mapAttribute(attributes, attributeMap) {
   const attrMapping = Object.entries(attributeMap)
     .map(([dataElement, attributeId]) => {
-      const value = tei?.attributes?.find(
+      const value = attributes?.find(
         (attr) => attr.attribute === attributeId
       )?.value;
 
@@ -267,6 +219,7 @@ const findObsByConcept = (encounter, conceptUuid) => {
       o.concept.uuid === conceptId &&
       (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
   );
+
   return answer;
 };
 
@@ -313,17 +266,6 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
       answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    if (!opt) {
-      console.log(
-        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
-      );
-    }
-    if (matchingOption !== opt?.["DHIS2 Option Code"]) {
-      console.log(
-        `No DHIS2 Option Code found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
-      );
-    }
-
     // console.log({ matchingOptionSet, opt, matchingOption });
     // If we get errors on true/false, yes/no mappings remove && !matchingOptionSet
     if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet)
@@ -349,17 +291,32 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   return "";
 };
 
-const buildDataValues = (encounter, form, mappingConfig) => {
-  const { optsMap, optionSetKey, tei } = mappingConfig;
+const buildDataValues = (encounter, tei, mappingConfig) => {
+  const {
+    optsMap,
+    optionSetKey,
+    form,
+    f08Form,
+    f09Form,
+    f23Form,
+    f24Form,
+    f25Form,
+    f26Form,
+    f27Form,
+    f28Form,
+    f41Form,
+    f42Form,
+    f43Form,
+  } = mappingConfig;
   let formMapping = [];
-  // F08 Form Encounter Mapping
-  if (encounter.form.uuid === f08Form) {
+  const visitUuid = encounter.visit.uuid;
+
+  if ([f08Form, f09Form].includes(encounter.form.uuid)) {
+    // F08 Form Encounter Mapping
     const f8Mapping = f8(encounter);
     formMapping.push(...f8Mapping);
-  }
 
-  // F09 Form Encounter Mapping
-  if (encounter.form.uuid === f09Form) {
+    // F09 Form Encounter Mapping
     const attributeMap = {
       Lg1LrNf9LQR: "qptKDiv9uPl",
       OVo3FxLURtH: "k26cdlS78i9",
@@ -370,18 +327,16 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       FsL5BjQocuo: "Xvzc9e0JJmp",
       Pi1zytYdq6l: "P4wdYGkldeG",
     };
-    const f09Mapping = teiAttributeMapping(tei, attributeMap);
+    const f09Mapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(...f09Mapping);
   }
 
-  // F23 Form Encounter Mapping
-  if (encounter.form.uuid === f23Form) {
+  if ([f23Form, f24Form].includes(encounter.form.uuid)) {
+    // F23 Form Encounter Mapping
     const f23Mapping = f23(encounter);
     formMapping.push(...f23Mapping);
-  }
 
-  // F24 Form Encounter Mapping
-  if (encounter.form.uuid === f24Form) {
+    // F24 Form Encounter Mapping
     const attributeMap = {
       Hww0CNYYt3E: "qptKDiv9uPl",
       // Z7vMFdnQxpE: "WDp4nVor9Z7",
@@ -389,7 +344,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       yE0dIWW0TXP: "rBtrjV1Mqkz",
       fnH6H3biOkE: "P4wdYGkldeG",
     };
-    const attributeMapping = teiAttributeMapping(tei, attributeMap);
+    const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const dob = tei?.attributes?.find(
       (attr) => attr.attribute === "WDp4nVor9Z7"
@@ -418,7 +373,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
     formMapping.push(...attributeMapping);
   }
 
-  if (encounter.form.uuid === f26Form) {
+  if ([f25Form, f26Form].includes(encounter.form.uuid)) {
     const attributeMap = {
       eDuqRYx3wLx: "qptKDiv9uPl",
       d7wOfzPBbQD: "T1iX2NuPyqS",
@@ -429,7 +384,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       Nd43pz1Oo62: "rBtrjV1Mqkz",
       kcSuQKfU5Zo: "P4wdYGkldeG",
     };
-    const attributeMapping = teiAttributeMapping(tei, attributeMap);
+    const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const dob = tei?.attributes?.find(
       (attr) => attr.attribute === "WDp4nVor9Z7"
@@ -446,14 +401,12 @@ const buildDataValues = (encounter, form, mappingConfig) => {
     formMapping.push(...attributeMapping);
   }
 
-  // F27 Form Encounter Mapping
-  if (encounter.form.uuid === f27Form) {
+  if ([f27Form, f28Form].includes(encounter.form.uuid)) {
+    // F27 Form Encounter Mapping
     const f27Mapping = f27(encounter);
     formMapping.push(...f27Mapping);
-  }
 
-  // F28 Form Encounter Mapping
-  if (encounter.form.uuid === f28Form) {
+    // F28 Form Encounter Mapping
     const attributeMap = {
       WP5vr8KB2lH: "qptKDiv9uPl",
       Y7qzoa4Qaiz: "YUIQIA2ClN6",
@@ -462,7 +415,7 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       sCKCNreiqEA: "Xvzc9e0JJmp",
       ci9C72RjN8Z: "P4wdYGkldeG",
     };
-    const attributeMapping = teiAttributeMapping(tei, attributeMap);
+    const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const f28Mapping = [
       {
@@ -473,20 +426,16 @@ const buildDataValues = (encounter, form, mappingConfig) => {
     formMapping.push(...attributeMapping, ...f28Mapping);
   }
 
-  // F41 Form Encounter Mapping
-  if (encounter.form.uuid === f41Form) {
+  if ([f41Form, f42Form, f43Form].includes(encounter.form.uuid)) {
+    // F41 Form Encounter Mapping
     const f41Mapping = f41(encounter);
     formMapping.push(...f41Mapping);
-  }
 
-  // F42 Form Encounter Mapping
-  if (encounter.form.uuid === f42Form) {
+    // F42 Form Encounter Mapping
     const f42Mapping = f42(encounter);
     formMapping.push(...f42Mapping);
-  }
 
-  // F43 Form Encounter Mapping
-  if (encounter.form.uuid === f43Form) {
+    // F43 Form Encounter Mapping
     const attributeMap = {
       eMXqL66pJSV: "qptKDiv9uPl",
       hT8pIot8b6Y: "k26cdlS78i9",
@@ -496,9 +445,10 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       xw5Vres1Ndt: "rBtrjV1Mqkz",
       iGHeO9F8CKm: "Xvzc9e0JJmp",
     };
-    const f43AttributeMapping = teiAttributeMapping(tei, attributeMap);
+    const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(...f43AttributeMapping, ...f43(encounter, tei));
   }
+
   const dataValuesMapping = Object.keys(form.dataValueMap)
     .map((dataElement) => {
       const value = findDataValue(encounter, dataElement, {
@@ -510,6 +460,13 @@ const buildDataValues = (encounter, form, mappingConfig) => {
       return { dataElement, value };
     })
     .filter((d) => d.value);
+
+  dataValuesMapping.push({
+    dataElement: "rbFVBI2N6Ex",
+    value: visitUuid,
+  });
+
+  //setting the visitUuid here as a data element
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
     Boolean
   );
@@ -518,88 +475,91 @@ const buildDataValues = (encounter, form, mappingConfig) => {
 };
 
 fn((state) => {
-  // Group encounters by patient UUID
-  const encountersByPatient = state.encounters?.reduce((acc, obj) => {
-    const key = obj.patient.uuid;
-    if (!acc[key]) {
-      acc[key] = [];
+  const f08Form = formIdByName("F08-ITFC Admission", state.formMaps);
+  const f09Form = formIdByName("F09-ITFC Discharge", state.formMaps);
+  const f23Form = formIdByName("F23-Neonatal Admission", state.formMaps);
+  const f24Form = formIdByName("F24-Neonatal Discharge", state.formMaps);
+  const f25Form = formIdByName("F25-Pediatrics Admission", state.formMaps);
+  const f26Form = formIdByName("F26-Pediatrics Discharge", state.formMaps);
+  const f27Form = formIdByName("F27-Adult Admission", state.formMaps);
+  const f28Form = formIdByName("F28-Adult Discharge", state.formMaps);
+  const f41Form = formIdByName("F41-ER Triage", state.formMaps);
+  const f42Form = formIdByName("F42-ER Consultation", state.formMaps);
+  const f43Form = formIdByName("F43-ER Exit", state.formMaps);
+
+  const pairedEncounters = state.latestEncountersByVisit.reduce((acc, obj) => {
+    const program = state.formMaps[obj.form.uuid].programId;
+    const orgUnit = state.formMaps[obj.form.uuid].orgUnit;
+    const programStage = state.formMaps[obj.form.uuid].programStage;
+    const patientOuProgram = `${orgUnit}:${program}:${programStage}:${obj.patient.uuid}:${obj.visit.uuid}`;
+    if (!acc[patientOuProgram]) {
+      acc[patientOuProgram] = [];
     }
-    acc[key].push(obj);
+    acc[patientOuProgram].push(obj);
     return acc;
   }, {});
 
-  state.eventsMapping = Object.entries(encountersByPatient)
-    .map(([patientUuid, patientEncounters]) => {
-      const pairedEncounters = Object.values(
-        encountersFormPairs(patientEncounters, {
-          f08Form,
-          f09Form,
-          f23Form,
-          f27Form,
-          f28Form,
-          f25Form,
-          f26Form,
-          f41Form,
-          f42Form,
-          f43Form,
-        })
-      );
+  state.eventsMapping = Object.entries(pairedEncounters).map(
+    ([patientKey, patientEncounters]) => {
+      const [orgUnit, program, programStage, patientUuid] =
+        patientKey.split(":");
 
-      return pairedEncounters
-        .filter(
-          (encounters) => encounters.length === 2 || encounters.length === 3
-        )
-        .map((encounters) => {
-          // Get the forms for both encounters
-          const form1 = state.formMaps[encounters[0].form.uuid];
-          const form2 = state.formMaps[encounters[1].form.uuid];
+      const tei = state.TEIs[patientUuid];
 
-          // Skip if either form doesn't have dataValueMap
-          if (!form1?.dataValueMap || !form2?.dataValueMap) {
+      const dataValues = patientEncounters
+        .map((encounter) => {
+          const form = state.formMaps[encounter.form.uuid];
+          if (!form?.dataValueMap) {
             return null;
           }
-
-          const tei = state.TEIs[patientUuid];
-
-          const dataValues = encounters
-            .map((encounter) => {
-              const form = state.formMaps[encounter.form.uuid];
-              if (!form?.dataValueMap) {
-                return null;
-              }
-
-              return buildDataValues(encounter, form, {
-                optsMap: state.optsMap,
-                optionSetKey: state.optionSetKey,
-                tei,
-              });
-            })
-            .flat();
-          const eventDate =
-            dataValues.find((d) => d.eventDate)?.eventDate ||
-            encounters[0].encounterDatetime.replace("+0000", "");
-          console.log({ dataValues, eventDate });
-          const filteredDataValues = dataValues.filter((d) => d.value);
-
-          return {
-            program: form1.programId,
-            orgUnit: form1.orgUnit,
-            occurredAt: eventDate,
-            programStage: form1.programStage,
-            dataValues: filteredDataValues,
-            trackedEntityInstance: tei.trackedEntity,
-          };
+          return buildDataValues(encounter, tei, {
+            optsMap: state.optsMap,
+            optionSetKey: state.optionSetKey,
+            form,
+            f08Form,
+            f09Form,
+            f23Form,
+            f24Form,
+            f25Form,
+            f26Form,
+            f27Form,
+            f28Form,
+            f41Form,
+            f42Form,
+            f43Form,
+          });
         })
-        .filter(Boolean);
-    })
-    .flat()
-    .filter(Boolean);
+        .flat()
+        .filter((d) => d.value);
+
+      const latestEncounter = patientEncounters.sort(
+        (a, b) => new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
+      )[0];
+
+      const eventDate = latestEncounter?.encounterDatetime.replace("+0000", "");
+
+      const patientNumber = tei?.attributes?.find(
+        (a) => a.code === "patient_number"
+      ).value;
+
+      const visitUuid = latestEncounter.visit.uuid;
+      const event = state.eventsByPatient[`${orgUnit}-${program}`]?.[
+        patientNumber
+      ]?.find((e) => e.visitUuid === visitUuid)?.event;
+      if (event) {
+        console.log("Event found:", event);
+      }
+      return {
+        event,
+        program,
+        orgUnit,
+        occurredAt: eventDate,
+        programStage,
+        dataValues,
+        trackedEntity: tei.trackedEntity,
+      };
+    }
+  );
 
   return state;
 });
-
-// fn((state) => {
-//   return {
-//     eventsMapping: state.eventsMapping,
-//   };
-// });

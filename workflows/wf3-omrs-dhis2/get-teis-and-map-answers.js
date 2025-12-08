@@ -1,32 +1,107 @@
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-//TODO: Group the encounters by patient and then get the TEI for each patient
-each(
-  $.encounters,
-  get("tracker/trackedEntities", (state) => ({
-    orgUnit: $.orgUnit,
-    program: $.program,
-    // orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
-    // program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
-    filter: [`AYbfTPYMNJH:Eq:${$.data.patient.uuid}`],
-    fields: "*,enrollments[*],enrollments[events[*]], attributes[*]",
-  })).then(async (state) => {
-    const encounter = state.references.at(-1);
-    console.log(encounter.patient.uuid, "Encounter patient uuid");
+const teiByPatientUuid = (patientUuid, teis) => {
+  return teis.find((tei) => {
+    const omrsPatientUuid = tei.attributes.find(
+      ({ attribute }) => attribute === "AYbfTPYMNJH"
+    )?.value;
 
-    const { trackedEntity, enrollments, attributes } =
-      state.data?.instances?.[0] || {};
-    if (trackedEntity && enrollments) {
-      state.TEIs ??= {};
-      state.TEIs[encounter.patient.uuid] = {
-        trackedEntity,
-        events: enrollments[0]?.events,
-        enrollment: enrollments[0]?.enrollment,
-        attributes,
+    return omrsPatientUuid === patientUuid;
+  });
+};
+
+get("tracker/trackedEntities", {
+  orgUnit: $.orgUnit,
+  program: $.program,
+  filter: (state) => [
+    `AYbfTPYMNJH:IN:${state.encountersPatientUuids.join(";")}`,
+  ],
+  fields: "*",
+});
+
+fn((state) => {
+  state.TEIs ??= {};
+  state.encountersPatientUuids.forEach((patientUuid) => {
+    const tei = teiByPatientUuid(patientUuid, state.data.instances);
+    if (tei?.trackedEntity) {
+      console.log("Parent TEI found:", tei.trackedEntity);
+
+      state.TEIs[patientUuid] = {
+        ...tei,
+        enrollment: tei.enrollments[0]?.enrollment,
+      };
+    } else {
+      console.log("Parent TEI Not Found for Patient:", patientUuid);
+    }
+  });
+
+  return state;
+});
+
+fn((state) => {
+  state.ouProgramTeis = state.latestEncountersByVisit.reduce((acc, obj) => {
+    const formUuid = obj.form.uuid;
+    // const patientUuid = obj.patient.uuid;
+    const patientNumber = obj.patient.display.split(" - ")[0];
+    const orgUnit = state.formMaps[formUuid].orgUnit;
+    const program = state.formMaps[formUuid].programId;
+    const key = `${orgUnit}-${program}`;
+    if (!acc[key]) {
+      acc[key] = {
+        orgUnit,
+        program,
+        patientNumbers: [patientNumber],
       };
     }
+    if (!acc[key].patientNumbers.includes(patientNumber)) {
+      acc[key].patientNumbers.push(patientNumber);
+    }
 
-    await delay(2000);
+    return acc;
+  }, {});
+
+  return state;
+});
+
+each(
+  (state) => Object.values(state.ouProgramTeis),
+  get("tracker/events", (state) => {
+    const { orgUnit, program } = state.data;
+    return {
+      orgUnit,
+      program,
+      fields: "*",
+    };
+  }).then((state) => {
+    const { orgUnit, program, patientNumbers } = state.references.at(-1);
+    state.eventsByPatient ??= {};
+    const grouped = state.data.instances?.reduce((acc, event) => {
+      const patientNumber = event.dataValues.find(
+        (dv) => dv.dataElement === "Pi1zytYdq6l" ||
+                dv.dataElement === "fnH6H3biOkE" ||
+                dv.dataElement === "kcSuQKfU5Zo" ||
+                dv.dataElement === "ci9C72RjN8Z"
+      )?.value;
+      if (!patientNumber || !patientNumbers.includes(patientNumber)) {
+        return acc;
+      }
+      const visitUuid = event.dataValues.find(
+        (dv) => dv.dataElement === "rbFVBI2N6Ex"
+      )?.value;
+
+      if (!acc[patientNumber]) {
+        acc[patientNumber] = [];
+      }
+      acc[patientNumber].push({
+        event: event.event,
+        occuredAt: event.occuredAt,
+        visitUuid
+      });
+      return acc;
+    }, {});
+    console.log(`Processing ${state.data.instances?.length || 0} events for ${orgUnit}-${program}`);
+    console.log("Grouped events by patient:", Object.keys(grouped).length, "patients");
+    state.eventsByPatient[`${orgUnit}-${program}`] = grouped;
     return state;
   })
 );

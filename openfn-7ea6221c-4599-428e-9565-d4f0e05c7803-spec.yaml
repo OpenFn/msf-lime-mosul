@@ -29,172 +29,34 @@ credentials:
     name: omrs-with-collections
     owner: mtuchi@openfn.org
 workflows:
-  "[WIP-165]wf3-omrs-dhis2":
-    name: '[WIP-165]wf3-omrs-dhis2'
-    jobs:
-      Get-Mappings-from-Collection:
-        name: Get Mappings from Collection
-        adaptor: '@openfn/language-common@2.3.0'
-        credential: mtuchi@openfn.org-mtuchi-collections-config
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/get-mappings-from-collection.js
-
-      Get-Encounters:
-        name: Get Encounters
-        adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/get-encounters.js
-
-      Create-Events:
-        name: Create Events
-        adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/create-events.js
-
-      Custom-Logic-for-Events:
-        name: Custom Logic for Events
-        adaptor: '@openfn/language-common@2.1.1'
-        credential: null
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/custom-logic-for-events.js
-
-      Get-Patients:
-        name: Get Patients
-        adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/get-patients.js
-
-      Upsert-TEIs:
-        name: Upsert TEIs
-        adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/upsert-teis.js
-
-      Get-TEIs-and-Map-Answers:
-        name: Get TEIs and Map Answers
-        adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/get-teis-and-map-answers.js
-
-      Get-Tie:
-        name: Get Tie
-        adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
-        body:
-          path: workflows/wip-165-wf3-omrs-dhis2/get-tie.js
-
-    triggers:
-      cron:
-        type: cron
-        cron_expression: '0 0 * * *'
-        enabled: false
-    edges:
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
-      Get-Patients->Get-Mappings-from-Collection:
-        source_job: Get-Patients
-        target_job: Get-Mappings-from-Collection
-        condition_type: on_job_success
-        enabled: true
-      Get-TEIs-and-Map-Answers->Custom-Logic-for-Events:
-        source_job: Get-TEIs-and-Map-Answers
-        target_job: Custom-Logic-for-Events
-        condition_type: js_expression
-        condition_label: has-teis
-        condition_expression: |
-          state.TEIs && !state.errors
-
-        enabled: true
-      Get-Encounters->Get-TEIs-and-Map-Answers:
-        source_job: Get-Encounters
-        target_job: Get-TEIs-and-Map-Answers
-        condition_type: js_expression
-        condition_label: has-encounters
-        condition_expression: |
-          !state.errors && state?.latestEncountersByVisit
-
-        enabled: true
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
-      Get-Mappings-from-Collection->Upsert-TEIs:
-        source_job: Get-Mappings-from-Collection
-        target_job: Upsert-TEIs
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
-      Get-Tie->Custom-Logic-for-Events:
-        source_job: Get-Tie
-        target_job: Custom-Logic-for-Events
-        condition_type: js_expression
-        condition_label: test-mode
-        condition_expression: |
-          state.testMode
-
-        enabled: true
-      Custom-Logic-for-Events->Create-Events:
-        source_job: Custom-Logic-for-Events
-        target_job: Create-Events
-        condition_type: js_expression
-        condition_label: has-events
-        condition_expression: |
-          state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
-
-        enabled: true
-      Get-Mappings-from-Collection->Get-Encounters:
-        source_job: Get-Mappings-from-Collection
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-no-patients
-        condition_expression: |
-          !state.errors && state.patients.length === 0
-
-        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
       Fetch-Metadata:
         name: Fetch Metadata
         adaptor: '@openfn/language-common@2.1.1'
-        credential: mtuchi@openfn.org-mtuchi-collections-config
+        credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/fetch-metadata.js
 
       Get-Teis-and-Locations:
         name: Get Teis and Locations
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: aisha@openfn.org-MSF-OMRS-admin
+        credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/create-patients.js
 
       Update-Teis:
         name: Update Teis
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/update-teis.js
 
@@ -208,7 +70,7 @@ workflows:
       Validate-TEIs-with-OMRS-Id:
         name: Validate TEIs with OMRS Id
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/validate-teis-with-omrs-id.js
 
@@ -266,49 +128,49 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/get-patients.js
 
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
-        credential: mtuchi@openfn.org-mtuchi-collections-config
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/mappings.js
 
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/get-encounters.js
 
       Get-Parent-and-Child-TEIs:
         name: Get Parent and Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/get-parent-and-child-teis.js
 
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/create-events.js
 
       Update-TEIs:
         name: Update TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/update-teis.js
 
@@ -322,14 +184,14 @@ workflows:
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/create-teis-relationship.js
 
       Upsert-Child-TEIs:
         name: Upsert Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf2-omrs-dhis2/upsert-child-teis.js
 
@@ -339,47 +201,6 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
-      Mappings->Upsert-TEIs:
-        source_job: Mappings
-        target_job: Upsert-TEIs
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
-      Mappings->Get-Encounters:
-        source_job: Mappings
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-no-patients
-        condition_expression: |
-          !state.errors && state.patients.length === 0
-
-        enabled: true
-      Create-Events->Update-TEIs:
-        source_job: Create-Events
-        target_job: Update-TEIs
-        condition_type: js_expression
-        condition_label: has-gender-updated
-        condition_expression: |
-          state?.teisToUpdate?.length > 0
-
-        enabled: true
       Get-Encounters->Get-Parent-and-Child-TEIs:
         source_job: Get-Encounters
         target_job: Get-Parent-and-Child-TEIs
@@ -426,27 +247,68 @@ workflows:
           state.childTeis && !state.errors
 
         enabled: true
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
+        enabled: true
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
+      Mappings->Get-Encounters:
+        source_job: Mappings
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
+
+        enabled: true
+      Create-Events->Update-TEIs:
+        source_job: Create-Events
+        target_job: Update-TEIs
+        condition_type: js_expression
+        condition_label: has-gender-updated
+        condition_expression: |
+          state?.teisToUpdate?.length > 0
+
+        enabled: true
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
     jobs:
       Get-Mappings-from-Collection:
         name: Get Mappings from Collection
         adaptor: '@openfn/language-common@2.3.0'
-        credential: mtuchi@openfn.org-mtuchi-collections-config
+        credential: null
         body:
           path: workflows/wf3-omrs-dhis2/get-mappings-from-collection.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: null
         body:
           path: workflows/wf3-omrs-dhis2/get-encounters.js
 
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf3-omrs-dhis2/create-events.js
 
@@ -460,28 +322,28 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: null
         body:
           path: workflows/wf3-omrs-dhis2/get-patients.js
 
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf3-omrs-dhis2/upsert-teis.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body:
           path: workflows/wf3-omrs-dhis2/get-teis-and-map-answers.js
 
       Get-Tie:
         name: Get Tie
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
+        credential: null
         body: |
           const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -537,15 +399,6 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
       Get-Patients->Get-Mappings-from-Collection:
         source_job: Get-Patients
         target_job: Get-Mappings-from-Collection
@@ -590,5 +443,14 @@ workflows:
         condition_label: test-mode
         condition_expression: |
           state.testMode
+
+        enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
 
         enabled: true
