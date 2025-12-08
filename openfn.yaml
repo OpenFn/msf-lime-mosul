@@ -2,9 +2,8 @@ project:
   uuid: 7ea6221c-4599-428e-9565-d4f0e05c7803
   endpoint: https://app.openfn.org
   env: project
-  fetched_at: 2025-11-20T15:27:46.264Z
   inserted_at: 2025-01-30T11:16:04Z
-  updated_at: 2025-11-20T15:19:14Z
+  updated_at: 2025-12-08T17:57:21Z
   id: msf-lime-mosul-staging
 workspace:
   workflowRoot: workflows
