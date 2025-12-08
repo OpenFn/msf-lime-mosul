@@ -66,14 +66,10 @@ fn((state) => {
 each(
   (state) => Object.values(state.ouProgramTeis),
   get("tracker/events", (state) => {
-    const { orgUnit, program, patientNumbers } = state.data;
+    const { orgUnit, program } = state.data;
     return {
       orgUnit,
       program,
-      // filter: [
-      //   `Pi1zytYdq6l:IN:${patientNumbers.join(";")}`,
-      //   `fnH6H3biOkE:IN:${patientNumbers.join(";")}`
-      // ],
       fields: "*",
     };
   }).then((state) => {
