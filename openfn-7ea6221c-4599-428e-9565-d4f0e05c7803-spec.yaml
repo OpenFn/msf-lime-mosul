@@ -36,21 +36,21 @@ workflows:
       Get-Teis-and-Locations:
         name: Get Teis and Locations
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf1-dhis2-omrs-migration/get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf1-dhis2-omrs-migration/create-patients.js
 
       Update-Teis:
         name: Update Teis
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf1-dhis2-omrs-migration/update-teis.js
 
@@ -64,7 +64,7 @@ workflows:
       Validate-TEIs-with-OMRS-Id:
         name: Validate TEIs with OMRS Id
         adaptor: '@openfn/language-openmrs@4.2.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf1-dhis2-omrs-migration/validate-teis-with-omrs-id.js
 
