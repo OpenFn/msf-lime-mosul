@@ -288,21 +288,21 @@ workflows:
       Get-Mappings-from-Collection:
         name: Get Mappings from Collection
         adaptor: '@openfn/language-common@2.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body:
           path: workflows/wf3-omrs-dhis2/get-mappings-from-collection.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf3-omrs-dhis2/get-encounters.js
 
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf3-omrs-dhis2/create-events.js
 
@@ -316,28 +316,28 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf3-omrs-dhis2/get-patients.js
 
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf3-omrs-dhis2/upsert-teis.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf3-omrs-dhis2/get-teis-and-map-answers.js
 
       Get-Tie:
         name: Get Tie
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -393,6 +393,15 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
       Get-Patients->Get-Mappings-from-Collection:
         source_job: Get-Patients
         target_job: Get-Mappings-from-Collection
@@ -437,14 +446,5 @@ workflows:
         condition_label: test-mode
         condition_expression: |
           state.testMode
-
-        enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
 
         enabled: true
