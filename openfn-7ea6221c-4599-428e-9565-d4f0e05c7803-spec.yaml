@@ -16,17 +16,11 @@ credentials:
   mtuchi@openfn.org-OpenMRS-Demo:
     name: OpenMRS Demo
     owner: mtuchi@openfn.org
-  mtuchi@openfn.org-dhis2-with-collections:
-    name: dhis2-with-collections
-    owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-collections-config:
     name: mtuchi-collections-config
     owner: mtuchi@openfn.org
   mtuchi@openfn.org-mtuchi-github-token:
     name: mtuchi-github-token
-    owner: mtuchi@openfn.org
-  mtuchi@openfn.org-omrs-with-collections:
-    name: omrs-with-collections
     owner: mtuchi@openfn.org
 workflows:
   wf1-dhis2-omrs-migration:
@@ -128,49 +122,49 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2-omrs-dhis2/get-patients.js
 
       Mappings:
         name: Mappings
         adaptor: '@openfn/language-common@2.1.1'
-        credential: null
+        credential: mtuchi@openfn.org-mtuchi-collections-config
         body:
           path: workflows/wf2-omrs-dhis2/mappings.js
 
       Upsert-TEIs:
         name: Upsert TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: null
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2-omrs-dhis2/get-encounters.js
 
       Get-Parent-and-Child-TEIs:
         name: Get Parent and Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/get-parent-and-child-teis.js
 
       Create-Events:
         name: Create Events
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/create-events.js
 
       Update-TEIs:
         name: Update TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/update-teis.js
 
@@ -184,14 +178,14 @@ workflows:
       Create-TEIs-Relationship:
         name: Create TEIs Relationship
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/create-teis-relationship.js
 
       Upsert-Child-TEIs:
         name: Upsert Child TEIs
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/upsert-child-teis.js
 
@@ -201,6 +195,47 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
+        enabled: true
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
+      Mappings->Get-Encounters:
+        source_job: Mappings
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-no-patients
+        condition_expression: |
+          !state.errors && state.patients.length === 0
+
+        enabled: true
+      Create-Events->Update-TEIs:
+        source_job: Create-Events
+        target_job: Update-TEIs
+        condition_type: js_expression
+        condition_label: has-gender-updated
+        condition_expression: |
+          state?.teisToUpdate?.length > 0
+
+        enabled: true
       Get-Encounters->Get-Parent-and-Child-TEIs:
         source_job: Get-Encounters
         target_job: Get-Parent-and-Child-TEIs
@@ -245,47 +280,6 @@ workflows:
         condition_label: has-child-teis
         condition_expression: |
           state.childTeis && !state.errors
-
-        enabled: true
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
-      Mappings->Upsert-TEIs:
-        source_job: Mappings
-        target_job: Upsert-TEIs
-        condition_type: js_expression
-        condition_label: has-patients
-        condition_expression: |
-          state.patients.length > 0 && !state.errors
-
-        enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
-      Mappings->Get-Encounters:
-        source_job: Mappings
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-no-patients
-        condition_expression: |
-          !state.errors && state.patients.length === 0
-
-        enabled: true
-      Create-Events->Update-TEIs:
-        source_job: Create-Events
-        target_job: Update-TEIs
-        condition_type: js_expression
-        condition_label: has-gender-updated
-        condition_expression: |
-          state?.teisToUpdate?.length > 0
 
         enabled: true
   wf3-omrs-dhis2:
