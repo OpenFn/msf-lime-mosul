@@ -26,10 +26,14 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
     omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
       ?.value;
 
-  const findOptCode = (optUuid) =>
-    optsMap.find((o) => o["value.uuid - External ID"] === optUuid)?.[
+  const findOptCode = (uuid) => {
+    const optionKey = `patient-${uuid}`;
+    const matchingOptionSet = state.optionSetKey[optionKey];
+    return optsMap.find((o) => o["value.uuid - External ID"] === uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet)?.[
       "DHIS2 Option Code"
     ];
+  };
 
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {

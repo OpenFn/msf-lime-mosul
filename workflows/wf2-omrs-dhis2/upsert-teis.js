@@ -35,14 +35,18 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   };
 
   const findOptCodeByUuid = (uuid) => {
-    return optsMap.find((o) => o["value.uuid - External ID"] === uuid)?.[
+    const optionKey = `patient-${uuid}`;
+    const matchingOptionSet = state.optionSetKey[optionKey];
+    return optsMap.find((o) => o["value.uuid - External ID"] === uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet)?.[
       "DHIS2 Option Code"
     ];
   };
 
   const findOptCode = (attrValue) => {
     if (typeof attrValue === "string") {
-      return findOptCodeByUuid(attrValue);
+      return attrValue
+      // return findOptCodeByUuid(attrValue);
     }
     if (typeof attrValue === "object") {
       const { uuid, display } = attrValue;
@@ -52,7 +56,9 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
           o["value.display - Answers"] === display
       )?.["DHIS2 Option Code"];
 
-      return optCodeByDisplay ?? findOptCodeByUuid(uuid);
+      // return optCodeByDisplay ?? findOptCodeByUuid(uuid);
+      return findOptCodeByUuid(uuid) ?? optCodeByDisplay;
+
     }
     return null;
   };
@@ -60,10 +66,12 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
     const attrValue = findAttrValue(patientMap[d]);
-
+    if (!findOptCode(attrValue)) {
+      console.log({attrValue})
+    }
     return {
       attribute: d,
-      value: findOptCode(attrValue) || attrValue,
+      value: findOptCode(attrValue),
     };
   });
 
@@ -174,8 +182,8 @@ fn((state) => {
 
   state.patientsMapping = state.patients.map((patient) => {
     const patientTei = findTeiByUuid(patient.uuid);
-
-    return buildTeiMapping(patient, patientTei, {
+    
+    const mapping = buildTeiMapping(patient, patientTei, {
       placeOflivingMap: state.placeOflivingMap,
       orgUnit: state.orgUnit,
       program: state.program,
@@ -185,12 +193,19 @@ fn((state) => {
       dhis2PatientNumber: state.dhis2PatientNumber,
       openmrsAutoId: state.openmrsAutoId,
     });
-  });
 
+    // Filter out null attributes or values
+    mapping.attributes = mapping.attributes.filter(
+    attr => attr.attribute != null && attr.attribute !== '' && 
+            attr.value != null && attr.value !== ''
+    );
+
+    return mapping;
+});
   return state;
 });
 
-// Bulk upsert
+//Bulk upsert
 create(
   "tracker",
   { trackedEntities: $.patientsMapping },

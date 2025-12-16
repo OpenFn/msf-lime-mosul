@@ -1334,7 +1334,3 @@ fn((state) => {
 
   return state;
 });
-
-fn((state) => {
-  return { eventMapping: state.eventsMapping };
-});
