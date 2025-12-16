@@ -23,12 +23,6 @@ credentials:
   - id: d2c62b09-c071-4cbe-95e5-b703aba863f3
     name: MSF OMRS admin
     owner: aisha@openfn.org
-  - id: bc29d45e-4f5c-4d96-9d13-44a7ffc02133
-    name: omrs-with-collections
-    owner: mtuchi@openfn.org
-  - id: 2fd93de5-3ce7-4ddb-8ade-273113429219
-    name: dhis2-with-collections
-    owner: mtuchi@openfn.org
 openfn:
   uuid: 7ea6221c-4599-428e-9565-d4f0e05c7803
   endpoint: https://app.openfn.org
@@ -46,249 +40,31 @@ options:
 workflows:
   - name: wf1-dhis2-omrs-migration
     steps:
-      - id: trigger
-        type: cron
-        openfn:
-          enabled: false
-          uuid: 836df7a7-d15f-4fc6-8f3d-5bb85c823218
-          cron_expression: 0 0 * * *
-        next:
-          fetch-metadata:
-            disabled: false
-            condition: true
-            openfn:
-              uuid: 4f025e3a-80af-47ff-8c25-8891eff0c486
-      - id: fetch-metadata
-        name: Fetch Metadata
+      - id: alert-admin-of-duplicate-teis
+        name: Alert Admin of Duplicate TEIs
         expression: >
-          cursor($.manualCursor || $.lastRunDateTime).then((state) => {
-            console.log("Date cursor to filter TEI extract ::", state.cursor);
-            return state;
-          });
+          fn(state => {
+            const code = 'DUPLICATE_PATIENT_NUMBERS';
+            const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;
+            const message = `${code}: ${description}`;
+            const patientNumbers = state.duplicatePatients.map(
+              patient =>
+                patient.attributes.find(attr => attr.code === 'patient_number').value
+            );
 
-
-          cursor("now", {
-            key: "lastRunDateTime",
-            format: (c) => {
-              const offset = 2; // GMT+2 (Geneva time)
-              c.setHours(c.getHours() + offset);
-              return c.toISOString().replace("Z", "");
-            },
-          }).then((state) => {
-            console.log("Next sync start date:", state.lastRunDateTime);
-            return state;
-          });
-
-
-          collections.get("mosul-metadata-mappings-staging").then((state) => {
-            state.optsMap = state.data
-              .filter((i) => i.key.includes("optsMap-value-"))
-              .map((i) => i.value);
-
-            state.identifiers = state.data
-              .filter((i) => i.key.includes("identifiers-value-"))
-              .map((i) => i.value);
-
-            state.fileDateModified = state.data.filter(
-              (i) => i.key === "fileDateModified"
-            )?.[0]?.value;
-
-            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
-
-            delete state.data;
-            delete state.references;
-            return state;
-          });
-
-
-          fn(({ identifiers, optsMap, formMaps, ...state }) => {
-            state.genderOptions = {
-              male: "M",
-              female: "F",
-              unknown: "U",
-              transgender_female: "O",
-              transgender_male: "O",
-              prefer_not_to_answer: "O",
-              gender_variant_non_conforming: "O",
+            const details = {
+              code,
+              description,
+              duplicatePatientNumbers: patientNumbers,
             };
-            // state.orgUnit = identifiers.find((i) => i.type === "ORG_UNIT")?.[
-            //   "dhis2 attribute id"
-            // ];
-            // state.program = identifiers.find((i) => i.type === "PROGRAM")?.[
-            //   "dhis2 attribute id"
-            // ];
-            state.orgUnit = "sUpt0j2GmBD"
-
-            state.program = "dWdzxMuKa8Z"
-            state.nationalityMap = optsMap
-              .filter((o) => o["DHIS2 DE full name"] === "Nationality")
-              .reduce((acc, value) => {
-                acc[value["DHIS2 Option Code"]] = value["value.uuid - External ID"];
-                return acc;
-              }, {});
-
-            state.statusMap = optsMap
-              .filter((o) => {
-                const fullName = o["DHIS2 DE full name"];
-                return fullName && fullName.includes(" status");
-              })
-              .reduce((acc, value) => {
-                acc[value["DHIS2 Option Code"]] = value["value.uuid - External ID"];
-                return acc;
-              }, {});
-
-            state.patientAttributes = Object.entries(formMaps.patient.dataValueMap)
-            .filter(([key]) => key !== "qptKDiv9uPl")
-            .reduce((acc, [key, value]) => {
-              acc[key] = value;
-              return acc;
-            }, {});
-            state.dhis2PatientNumber = identifiers.find(
-              (i) => i.type === "DHIS2_PATIENT_NUMBER"
-            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
-
-            state.dhis2PatientNumberAttributeId = identifiers.find(
-              (i) => i.type === "DHIS2_PATIENT_NUMBER"
-            )?.["dhis2 attribute id"]; //DHIS2 ID or DHIS2 Patient Number
-
-            state.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
-              "omrs identifierType"
-            ]; //MSF ID or OpenMRS Patient Number
-
-            state.openmrsAutoIdAttributeId = identifiers.find(
-              (i) => i.type === "OPENMRS_AUTO_ID"
-            )?.["dhis2 attribute id"]; //MSF ID or OpenMRS Patient Number
-
-            return state;
+            const e = new Error(message);
+            e.details = details;
+            console.error(e.details);
+            throw e;
           });
         adaptor: "@openfn/language-common@2.1.1"
         openfn:
-          uuid: c4616bf4-6a28-4307-8798-d5710dcfc75f
-          project_credential_id: null
-        next:
-          get-teis-and-locations:
-            disabled: false
-            openfn:
-              uuid: 947f7f92-1205-4fda-8595-4d8025786c35
-      - id: get-teis-and-locations
-        name: Get Teis and Locations
-        expression: >
-          const findDuplicatePatient = teis => {
-            const seen = new Map();
-            const duplicates = new Set();
-
-            teis.forEach(tei => {
-              const patientNumber = tei.attributes.find(
-                attr => attr.code === 'patient_number'
-              )?.value;
-
-              if (seen.get(patientNumber)) {
-                duplicates.add(patientNumber);
-              } else {
-                seen.set(patientNumber, tei);
-              }
-            });
-
-            return duplicates;
-          };
-
-          // Get teis that are "active" in the target program
-
-          get('tracker/trackedEntities', {
-            orgUnit: $.orgUnit,
-            program: $.program,
-            programStatus: 'ACTIVE',
-            updatedAfter: $.cursor,
-            skipPaging: true,
-          });
-
-
-          fn(state => {
-            console.log('# of TEIs found before filter ::', state.data.instances.length);
-            const uniqueTeis = [];
-            const duplicatePatients = [];
-            const missingPatientNumber = [];
-            const teisWithOMRSID = [];
-
-            const filteredTeis = state.data.instances.filter(
-              tei => tei.updatedAt >= state.cursor
-            );
-
-            console.log('Filtered TEIs ::', filteredTeis.length);
-            const duplicateIds = findDuplicatePatient(filteredTeis);
-
-            filteredTeis.forEach(tei => {
-              const patientNumber = tei.attributes.find(
-                attr => attr.code === 'patient_number'
-              )?.value;
-              const patientUid = tei.attributes.find(
-                attr => attr.code === 'patient_uid' || attr.displayName === 'OpenMRS patient UID'
-              )?.value;
-
-              if (patientUid) {
-                console.log(
-                  `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
-                );
-                teisWithOMRSID.push(tei)
-              }
-
-              if (!patientNumber) {
-                missingPatientNumber.push(tei);
-              } else if (duplicateIds.has(patientNumber)) {
-                duplicatePatients.push(tei);
-              } else {
-                uniqueTeis.push(tei);
-              }
-            });
-
-            console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
-            console.log('# Duplicate Patients found::', duplicatePatients.length);
-
-            // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
-            return {
-              ...state,
-              data: {},
-              references: [],
-              uniqueTeis,
-              teisWithOMRSID,
-              duplicatePatients,
-              missingPatientNumber,
-            };
-          });
-
-
-          get('optionGroups/kdef7pUey9f', {
-            fields: 'id,displayName,options[id,displayName,code]',
-          });
-
-
-          fn(({ data, ...state }) => {
-            state.locations = data;
-            return state;
-          });
-        adaptor: "@openfn/language-dhis2@5.0.1"
-        openfn:
-          uuid: 1845ba39-b556-452f-80db-c794c8b2bb9c
-          project_credential_id: null
-        next:
-          create-patients:
-            disabled: false
-            condition: |
-              state.uniqueTeis.length > 0 && !state.errors
-            openfn:
-              uuid: b4e06a4a-f873-407f-824a-39ad2006ccb9
-          alert-admin-of-duplicate-teis:
-            disabled: false
-            condition: |
-              state.duplicatePatients.length > 0 && !state.errors
-            openfn:
-              uuid: c0260aec-64c9-4f5b-8327-bca677cfdcba
-          validate-teis-with-omrs-id:
-            disabled: false
-            condition: |
-              !state.errors && state. teisWithOMRSID.length > 0
-            openfn:
-              uuid: 3c86df64-2a6a-42d0-8107-affe53db8190
+          uuid: eaa87fc7-1b9c-4c23-85ef-894fed073145
       - id: create-patients
         name: Create Patients
         expression: >
@@ -490,12 +266,254 @@ workflows:
         adaptor: "@openfn/language-openmrs@4.2.0"
         openfn:
           uuid: d26ee140-a7d7-424b-8d82-ed34d25174f2
-          project_credential_id: null
+          project_credential_id: efd2a233-caf8-4346-bc0c-6a25c24e1a08
         next:
           update-teis:
             disabled: false
             openfn:
               uuid: 05d88b14-52e6-4f24-8acc-ed0ba455c942
+      - id: fetch-metadata
+        name: Fetch Metadata
+        expression: >
+          cursor($.manualCursor || $.lastRunDateTime).then((state) => {
+            console.log("Date cursor to filter TEI extract ::", state.cursor);
+            return state;
+          });
+
+
+          cursor("now", {
+            key: "lastRunDateTime",
+            format: (c) => {
+              const offset = 2; // GMT+2 (Geneva time)
+              c.setHours(c.getHours() + offset);
+              return c.toISOString().replace("Z", "");
+            },
+          }).then((state) => {
+            console.log("Next sync start date:", state.lastRunDateTime);
+            return state;
+          });
+
+
+          collections.get("mosul-metadata-mappings-staging").then((state) => {
+            state.optsMap = state.data
+              .filter((i) => i.key.includes("optsMap-value-"))
+              .map((i) => i.value);
+
+            state.identifiers = state.data
+              .filter((i) => i.key.includes("identifiers-value-"))
+              .map((i) => i.value);
+
+            state.fileDateModified = state.data.filter(
+              (i) => i.key === "fileDateModified"
+            )?.[0]?.value;
+
+            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
+
+            delete state.data;
+            delete state.references;
+            return state;
+          });
+
+
+          fn(({ identifiers, optsMap, formMaps, ...state }) => {
+            state.genderOptions = {
+              male: "M",
+              female: "F",
+              unknown: "U",
+              transgender_female: "O",
+              transgender_male: "O",
+              prefer_not_to_answer: "O",
+              gender_variant_non_conforming: "O",
+            };
+            // state.orgUnit = identifiers.find((i) => i.type === "ORG_UNIT")?.[
+            //   "dhis2 attribute id"
+            // ];
+            // state.program = identifiers.find((i) => i.type === "PROGRAM")?.[
+            //   "dhis2 attribute id"
+            // ];
+            state.orgUnit = "sUpt0j2GmBD"
+
+            state.program = "dWdzxMuKa8Z"
+            state.nationalityMap = optsMap
+              .filter((o) => o["DHIS2 DE full name"] === "Nationality")
+              .reduce((acc, value) => {
+                acc[value["DHIS2 Option Code"]] = value["value.uuid - External ID"];
+                return acc;
+              }, {});
+
+            state.statusMap = optsMap
+              .filter((o) => {
+                const fullName = o["DHIS2 DE full name"];
+                return fullName && fullName.includes(" status");
+              })
+              .reduce((acc, value) => {
+                acc[value["DHIS2 Option Code"]] = value["value.uuid - External ID"];
+                return acc;
+              }, {});
+
+            state.patientAttributes = Object.entries(formMaps.patient.dataValueMap)
+            .filter(([key]) => key !== "qptKDiv9uPl")
+            .reduce((acc, [key, value]) => {
+              acc[key] = value;
+              return acc;
+            }, {});
+            state.dhis2PatientNumber = identifiers.find(
+              (i) => i.type === "DHIS2_PATIENT_NUMBER"
+            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
+
+            state.dhis2PatientNumberAttributeId = identifiers.find(
+              (i) => i.type === "DHIS2_PATIENT_NUMBER"
+            )?.["dhis2 attribute id"]; //DHIS2 ID or DHIS2 Patient Number
+
+            state.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
+              "omrs identifierType"
+            ]; //MSF ID or OpenMRS Patient Number
+
+            state.openmrsAutoIdAttributeId = identifiers.find(
+              (i) => i.type === "OPENMRS_AUTO_ID"
+            )?.["dhis2 attribute id"]; //MSF ID or OpenMRS Patient Number
+
+            return state;
+          });
+        adaptor: "@openfn/language-common@2.1.1"
+        openfn:
+          uuid: c4616bf4-6a28-4307-8798-d5710dcfc75f
+        next:
+          get-teis-and-locations:
+            disabled: false
+            openfn:
+              uuid: 947f7f92-1205-4fda-8595-4d8025786c35
+      - id: get-teis-and-locations
+        name: Get Teis and Locations
+        expression: >
+          const findDuplicatePatient = teis => {
+            const seen = new Map();
+            const duplicates = new Set();
+
+            teis.forEach(tei => {
+              const patientNumber = tei.attributes.find(
+                attr => attr.code === 'patient_number'
+              )?.value;
+
+              if (seen.get(patientNumber)) {
+                duplicates.add(patientNumber);
+              } else {
+                seen.set(patientNumber, tei);
+              }
+            });
+
+            return duplicates;
+          };
+
+          // Get teis that are "active" in the target program
+
+          get('tracker/trackedEntities', {
+            orgUnit: $.orgUnit,
+            program: $.program,
+            programStatus: 'ACTIVE',
+            updatedAfter: $.cursor,
+            skipPaging: true,
+          });
+
+
+          fn(state => {
+            console.log('# of TEIs found before filter ::', state.data.instances.length);
+            const uniqueTeis = [];
+            const duplicatePatients = [];
+            const missingPatientNumber = [];
+            const teisWithOMRSID = [];
+
+            const filteredTeis = state.data.instances.filter(
+              tei => tei.updatedAt >= state.cursor
+            );
+
+            console.log('Filtered TEIs ::', filteredTeis.length);
+            const duplicateIds = findDuplicatePatient(filteredTeis);
+
+            filteredTeis.forEach(tei => {
+              const patientNumber = tei.attributes.find(
+                attr => attr.code === 'patient_number'
+              )?.value;
+              const patientUid = tei.attributes.find(
+                attr => attr.code === 'patient_uid' || attr.displayName === 'OpenMRS patient UID'
+              )?.value;
+
+              if (patientUid) {
+                console.log(
+                  `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
+                );
+                teisWithOMRSID.push(tei)
+              }
+
+              if (!patientNumber) {
+                missingPatientNumber.push(tei);
+              } else if (duplicateIds.has(patientNumber)) {
+                duplicatePatients.push(tei);
+              } else {
+                uniqueTeis.push(tei);
+              }
+            });
+
+            console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
+            console.log('# Duplicate Patients found::', duplicatePatients.length);
+
+            // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
+            return {
+              ...state,
+              data: {},
+              references: [],
+              uniqueTeis,
+              teisWithOMRSID,
+              duplicatePatients,
+              missingPatientNumber,
+            };
+          });
+
+
+          get('optionGroups/kdef7pUey9f', {
+            fields: 'id,displayName,options[id,displayName,code]',
+          });
+
+
+          fn(({ data, ...state }) => {
+            state.locations = data;
+            return state;
+          });
+        adaptor: "@openfn/language-dhis2@5.0.1"
+        openfn:
+          uuid: 1845ba39-b556-452f-80db-c794c8b2bb9c
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+        next:
+          create-patients:
+            disabled: false
+            condition: |
+              state.uniqueTeis.length > 0 && !state.errors
+            openfn:
+              uuid: b4e06a4a-f873-407f-824a-39ad2006ccb9
+          alert-admin-of-duplicate-teis:
+            disabled: false
+            condition: |
+              state.duplicatePatients.length > 0 && !state.errors
+            openfn:
+              uuid: c0260aec-64c9-4f5b-8327-bca677cfdcba
+          validate-teis-with-omrs-id:
+            disabled: false
+            condition: |
+              !state.errors && state. teisWithOMRSID.length > 0
+            openfn:
+              uuid: 3c86df64-2a6a-42d0-8107-affe53db8190
+      - id: trigger
+        type: cron
+        openfn:
+          enabled: false
+          uuid: 836df7a7-d15f-4fc6-8f3d-5bb85c823218
+          cron_expression: 0 0 * * *
+        next:
+          fetch-metadata:
+            disabled: false
+            condition: true
+            openfn:
+              uuid: 4f025e3a-80af-47ff-8c25-8891eff0c486
       - id: update-teis
         name: Update Teis
         expression: >
@@ -565,33 +583,7 @@ workflows:
         adaptor: "@openfn/language-dhis2@5.0.1"
         openfn:
           uuid: f4702169-b017-43da-8e66-5ee3bfa305fb
-          project_credential_id: null
-      - id: alert-admin-of-duplicate-teis
-        name: Alert Admin of Duplicate TEIs
-        expression: >
-          fn(state => {
-            const code = 'DUPLICATE_PATIENT_NUMBERS';
-            const description = `Found ${state.duplicatePatients.length} TIEs with duplicate patient numbers`;
-            const message = `${code}: ${description}`;
-            const patientNumbers = state.duplicatePatients.map(
-              patient =>
-                patient.attributes.find(attr => attr.code === 'patient_number').value
-            );
-
-            const details = {
-              code,
-              description,
-              duplicatePatientNumbers: patientNumbers,
-            };
-            const e = new Error(message);
-            e.details = details;
-            console.error(e.details);
-            throw e;
-          });
-        adaptor: "@openfn/language-common@2.1.1"
-        openfn:
-          uuid: eaa87fc7-1b9c-4c23-85ef-894fed073145
-          project_credential_id: null
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
       - id: validate-teis-with-omrs-id
         name: Validate TEIs with OMRS Id
         expression: >
@@ -636,284 +628,16 @@ workflows:
         adaptor: "@openfn/language-openmrs@4.2.0"
         openfn:
           uuid: 97edd4ca-1cef-48af-827d-fd8d2450c4fe
-          project_credential_id: null
+          project_credential_id: efd2a233-caf8-4346-bc0c-6a25c24e1a08
+    history: []
     openfn:
       uuid: 37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0
-      concurrency: null
       inserted_at: 2025-02-11T14:25:57Z
-      updated_at: 2025-12-08T17:57:21Z
-      lock_version: 44
-      deleted_at: null
+      updated_at: 2025-12-11T13:57:23Z
+      lock_version: 45
     id: wf1-dhis2-omrs-migration
-    history: []
   - name: wf3-omrs-dhis2
     steps:
-      - id: trigger
-        type: cron
-        openfn:
-          enabled: false
-          uuid: cd9ea573-fb86-4ec4-8c39-200c7de22dfb
-          cron_expression: 0 0 * * *
-        next:
-          get-patients:
-            disabled: false
-            condition: true
-            openfn:
-              uuid: d681f4f9-4e4f-415f-a52c-a6fcd9f2740b
-      - id: get-mappings-from-collection
-        name: Get Mappings from Collection
-        expression: >
-          const isValidUUID = (id) => {
-            if (!id || typeof id !== "string") return false;
-
-            const UUID_PATTERN =
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            return UUID_PATTERN.test(id);
-          };
-
-
-          collections.get("mosul-metadata-mappings-staging").then((state) => {
-            state.optsMap = state.data
-              .filter((i) => i.key.includes("optsMap-value-"))
-              .map((i) => i.value);
-
-            state.identifiers = state.data
-              .filter((i) => i.key.includes("identifiers-value-"))
-              .map((i) => i.value);
-            state.syncedAt = state.data.find((i) => i.key === "syncedAt")?.value;
-            state.formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
-            state.placeOflivingMap = state.data.find(
-              (i) => i.key === "placeOflivingMap"
-            )?.value;
-            state.sourceFile = state.data.filter(
-              (i) => i.key === "sourceFile"
-            )?.[0]?.value;
-            state.fileDateModified = state.data.filter(
-              (i) => i.key === "fileDateModified"
-            )?.[0]?.value;
-            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
-
-            // TODO: Remove state.optionSetKey, when needed
-            // Build from state.formMaps
-            state.optionSetKey = state.data.filter(
-              (i) => i.key === "optionSetKey"
-            )?.[0]?.value;
-
-            delete state.data;
-            delete state.references;
-            return state;
-          });
-
-
-          fn((state) => {
-            const { formMetadata, identifiers, ...rest } = state;
-
-            rest.v2FormUuids = formMetadata
-              .filter(
-                (form) =>
-                  isValidUUID(form["OMRS form.uuid"]) &&
-                  form["OMRS Form Version"] === "v4-2025"
-              )
-              .map((form) => form["OMRS form.uuid"]);
-            rest.formUuids = formMetadata
-              .filter(
-                (form) =>
-                  isValidUUID(form["OMRS form.uuid"]) && form["Workflow"] === "WF3"
-              )
-              .map((form) => form["OMRS form.uuid"]);
-
-            // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-            //   'dhis2 attribute id'
-            // ];
-
-            rest.orgUnit = "sUpt0j2GmBD";
-
-            rest.program = "dWdzxMuKa8Z";
-
-            rest.patientProgramStage = state.formMaps.patient.programStage;
-
-            rest.dhis2PatientNumber = identifiers.find(
-              (i) => i.type === "DHIS2_PATIENT_NUMBER"
-            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
-
-            rest.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
-              "omrs identifierType"
-            ]; //MSF ID or OpenMRS Patient Number
-
-            return rest;
-          });
-        adaptor: "@openfn/language-common@2.3.0"
-        openfn:
-          uuid: 0acf6701-064d-412d-8672-db507c9e95c6
-          project_credential_id: null
-        next:
-          get-encounters:
-            disabled: false
-            condition: |
-              !state.errors && state.patients.length === 0
-            openfn:
-              uuid: d9d6c1fb-627e-491e-88b1-ed2575e77de3
-          upsert-teis:
-            disabled: false
-            condition: |
-              state.patients.length > 0 && !state.errors
-            openfn:
-              uuid: 7b001148-c273-49f5-9582-09979cbd4ca9
-      - id: get-encounters
-        name: Get Encounters
-        expression: >
-          function removeLinks(data) {
-            if (Array.isArray(data)) {
-              return data.map(removeLinks);
-            }
-
-            if (typeof data === "object" && data !== null) {
-              const { links, ...rest } = data;
-              return Object.fromEntries(
-                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
-              );
-            }
-
-            return data;
-          }
-
-
-          function removeNulls(data) {
-            if (Array.isArray(data)) {
-              return data.filter((item) => item !== null).map(removeNulls);
-            }
-
-            if (typeof data === "object" && data !== null) {
-              const result = {};
-              for (const [key, value] of Object.entries(data)) {
-                if (value !== null) {
-                  result[key] = removeNulls(value);
-                }
-              }
-              return result;
-            }
-
-            return data;
-          }
-
-          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
-          ms));
-
-          // Fetch patient encounters
-
-          each(
-            $.patientUuids,
-            get("encounter", { patient: $.data, v: "full" }).then((state) => {
-              const patientUuid = state.references.at(-1);
-
-              const filteredEncounters = state?.data?.results
-                .filter(
-                  (e) =>
-                    e.auditInfo.dateCreated >= state.cursor &&
-                    state.formUuids.includes(e?.form?.uuid)
-                )
-                .sort(
-                  (a, b) =>
-                    new Date(b.auditInfo.dateCreated) - new Date(a.auditInfo.dateCreated)
-                );
-
-              // Why we only keep the latest one form encounter?
-              // const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
-              state.encounters ??= [];
-              state.encounters.push(...filteredEncounters);
-
-              console.log(
-                state.encounters?.length,
-                `# of filtered encounters found in OMRS for ${patientUuid}`
-              );
-              delay(1500);
-
-              return state;
-            })
-          );
-
-
-          fn((state) => {
-            const {
-              data,
-              index,
-              response,
-              references,
-              allResponse,
-              patientUuids,
-              patients,
-              encounters,
-              ...next
-            } = state;
-
-            if (encounters?.length) {
-              const encountersByVisit = encounters
-                .map((encounter) => {
-                  const { uuid, patient, obs, form, encounterDatetime, visit } =
-                    removeLinks(removeNulls(encounter));
-
-                  return {
-                    visit: { uuid: visit.uuid },
-                    uuid,
-                    patient: {
-                      uuid: patient.uuid,
-                      display: patient.display,
-                    },
-                    obs: obs?.map((o) => {
-                      return {
-                        uuid: o.uuid,
-                        concept: o.concept,
-                        display: o.display,
-                        formFieldPath: o.formFieldPath,
-                        value: o.value,
-                      };
-                    }),
-                    form: {
-                      uuid: form?.uuid,
-                      display: form?.display,
-                      description: form?.description,
-                      name: form?.name,
-                    },
-                    encounterDatetime,
-                  };
-                })
-                .reduce((acc, curr) => {
-                  const visitPerForm = `${curr.visit.uuid}-${curr.form.uuid}`;
-                  if (!acc[visitPerForm]) {
-                    acc[visitPerForm] = [curr];
-                  } else {
-                    acc[visitPerForm].push(curr);
-                  }
-
-                  return acc;
-                }, {});
-
-              next.latestEncountersByVisit = Object.values(encountersByVisit)
-                .map((encounters) => encounters[0]) // Latest encounter per visit
-                .flat();
-
-              next.encountersPatientUuids = [
-                ...new Set(
-                  next.latestEncountersByVisit.map((encounter) => encounter.patient.uuid)
-                ),
-              ];
-            } else {
-              console.log("No encounters found for cursor: ", next.cursor);
-            }
-
-            return next;
-          });
-        adaptor: "@openfn/language-openmrs@4.3.0"
-        openfn:
-          uuid: 2b1e02ae-7546-480a-86cc-77a815f61256
-          project_credential_id: null
-        next:
-          get-teis-and-map-answers:
-            disabled: false
-            condition: |
-              !state.errors && state?.encounters?.length > 0
-            openfn:
-              uuid: bd5834d4-b481-47f0-b497-c56dbd05ed03
       - id: create-events
         name: Create Events
         expression: |
@@ -942,7 +666,7 @@ workflows:
         adaptor: "@openfn/language-dhis2@5.0.1"
         openfn:
           uuid: 2d668d2e-c513-4b58-88bb-8a2d3261d9a2
-          project_credential_id: null
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
       - id: custom-logic-for-events
         name: Custom Logic for Events
         expression: >
@@ -1529,7 +1253,6 @@ workflows:
         adaptor: "@openfn/language-common@2.1.1"
         openfn:
           uuid: 782cdfc3-9357-4763-8681-798ae1b29fd1
-          project_credential_id: null
         next:
           create-events:
             disabled: false
@@ -1538,6 +1261,260 @@ workflows:
               !state.testMode
             openfn:
               uuid: 168e2969-4f85-4c05-843c-445ca7102086
+      - id: get-encounters
+        name: Get Encounters
+        expression: >
+          function removeLinks(data) {
+            if (Array.isArray(data)) {
+              return data.map(removeLinks);
+            }
+
+            if (typeof data === "object" && data !== null) {
+              const { links, ...rest } = data;
+              return Object.fromEntries(
+                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
+              );
+            }
+
+            return data;
+          }
+
+
+          function removeNulls(data) {
+            if (Array.isArray(data)) {
+              return data.filter((item) => item !== null).map(removeNulls);
+            }
+
+            if (typeof data === "object" && data !== null) {
+              const result = {};
+              for (const [key, value] of Object.entries(data)) {
+                if (value !== null) {
+                  result[key] = removeNulls(value);
+                }
+              }
+              return result;
+            }
+
+            return data;
+          }
+
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
+          ms));
+
+          // Fetch patient encounters
+
+          each(
+            $.patientUuids,
+            get("encounter", { patient: $.data, v: "full" }).then((state) => {
+              const patientUuid = state.references.at(-1);
+
+              const filteredEncounters = state?.data?.results
+                .filter(
+                  (e) =>
+                    e.auditInfo.dateCreated >= state.cursor &&
+                    state.formUuids.includes(e?.form?.uuid)
+                )
+                .sort(
+                  (a, b) =>
+                    new Date(b.auditInfo.dateCreated) - new Date(a.auditInfo.dateCreated)
+                );
+
+              // Why we only keep the latest one form encounter?
+              // const encounters = filteredEncounters.map((e) => e[0]).filter((e) => e);
+              state.encounters ??= [];
+              state.encounters.push(...filteredEncounters);
+
+              console.log(
+                state.encounters?.length,
+                `# of filtered encounters found in OMRS for ${patientUuid}`
+              );
+              delay(1500);
+
+              return state;
+            })
+          );
+
+
+          fn((state) => {
+            const {
+              data,
+              index,
+              response,
+              references,
+              allResponse,
+              patientUuids,
+              patients,
+              encounters,
+              ...next
+            } = state;
+
+            if (encounters?.length) {
+              const encountersByVisit = encounters
+                .map((encounter) => {
+                  const { uuid, patient, obs, form, encounterDatetime, visit } =
+                    removeLinks(removeNulls(encounter));
+
+                  return {
+                    visit: { uuid: visit.uuid },
+                    uuid,
+                    patient: {
+                      uuid: patient.uuid,
+                      display: patient.display,
+                    },
+                    obs: obs?.map((o) => {
+                      return {
+                        uuid: o.uuid,
+                        concept: o.concept,
+                        display: o.display,
+                        formFieldPath: o.formFieldPath,
+                        value: o.value,
+                      };
+                    }),
+                    form: {
+                      uuid: form?.uuid,
+                      display: form?.display,
+                      description: form?.description,
+                      name: form?.name,
+                    },
+                    encounterDatetime,
+                  };
+                })
+                .reduce((acc, curr) => {
+                  const visitPerForm = `${curr.visit.uuid}-${curr.form.uuid}`;
+                  if (!acc[visitPerForm]) {
+                    acc[visitPerForm] = [curr];
+                  } else {
+                    acc[visitPerForm].push(curr);
+                  }
+
+                  return acc;
+                }, {});
+
+              next.latestEncountersByVisit = Object.values(encountersByVisit)
+                .map((encounters) => encounters[0]) // Latest encounter per visit
+                .flat();
+
+              next.encountersPatientUuids = [
+                ...new Set(
+                  next.latestEncountersByVisit.map((encounter) => encounter.patient.uuid)
+                ),
+              ];
+            } else {
+              console.log("No encounters found for cursor: ", next.cursor);
+            }
+
+            return next;
+          });
+        adaptor: "@openfn/language-openmrs@4.3.0"
+        openfn:
+          uuid: 2b1e02ae-7546-480a-86cc-77a815f61256
+          project_credential_id: efd2a233-caf8-4346-bc0c-6a25c24e1a08
+        next:
+          get-teis-and-map-answers:
+            disabled: false
+            condition: |
+              !state.errors && state?.encounters?.length > 0
+            openfn:
+              uuid: bd5834d4-b481-47f0-b497-c56dbd05ed03
+      - id: get-mappings-from-collection
+        name: Get Mappings from Collection
+        expression: >
+          const isValidUUID = (id) => {
+            if (!id || typeof id !== "string") return false;
+
+            const UUID_PATTERN =
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            return UUID_PATTERN.test(id);
+          };
+
+
+          collections.get("mosul-metadata-mappings-staging").then((state) => {
+            state.optsMap = state.data
+              .filter((i) => i.key.includes("optsMap-value-"))
+              .map((i) => i.value);
+
+            state.identifiers = state.data
+              .filter((i) => i.key.includes("identifiers-value-"))
+              .map((i) => i.value);
+            state.syncedAt = state.data.find((i) => i.key === "syncedAt")?.value;
+            state.formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
+            state.placeOflivingMap = state.data.find(
+              (i) => i.key === "placeOflivingMap"
+            )?.value;
+            state.sourceFile = state.data.filter(
+              (i) => i.key === "sourceFile"
+            )?.[0]?.value;
+            state.fileDateModified = state.data.filter(
+              (i) => i.key === "fileDateModified"
+            )?.[0]?.value;
+            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
+
+            // TODO: Remove state.optionSetKey, when needed
+            // Build from state.formMaps
+            state.optionSetKey = state.data.filter(
+              (i) => i.key === "optionSetKey"
+            )?.[0]?.value;
+
+            delete state.data;
+            delete state.references;
+            return state;
+          });
+
+
+          fn((state) => {
+            const { formMetadata, identifiers, ...rest } = state;
+
+            rest.v2FormUuids = formMetadata
+              .filter(
+                (form) =>
+                  isValidUUID(form["OMRS form.uuid"]) &&
+                  form["OMRS Form Version"] === "v4-2025"
+              )
+              .map((form) => form["OMRS form.uuid"]);
+            rest.formUuids = formMetadata
+              .filter(
+                (form) =>
+                  isValidUUID(form["OMRS form.uuid"]) && form["Workflow"] === "WF3"
+              )
+              .map((form) => form["OMRS form.uuid"]);
+
+            // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+            //   'dhis2 attribute id'
+            // ];
+
+            rest.orgUnit = "sUpt0j2GmBD";
+
+            rest.program = "dWdzxMuKa8Z";
+
+            rest.patientProgramStage = state.formMaps.patient.programStage;
+
+            rest.dhis2PatientNumber = identifiers.find(
+              (i) => i.type === "DHIS2_PATIENT_NUMBER"
+            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
+
+            rest.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
+              "omrs identifierType"
+            ]; //MSF ID or OpenMRS Patient Number
+
+            return rest;
+          });
+        adaptor: "@openfn/language-common@2.3.0"
+        openfn:
+          uuid: 0acf6701-064d-412d-8672-db507c9e95c6
+          project_credential_id: 90cddfa1-9b77-4625-a812-2a04d061522c
+        next:
+          get-encounters:
+            disabled: false
+            condition: |
+              !state.errors && state.patients.length === 0
+            openfn:
+              uuid: d9d6c1fb-627e-491e-88b1-ed2575e77de3
+          upsert-teis:
+            disabled: false
+            condition: |
+              state.patients.length > 0 && !state.errors
+            openfn:
+              uuid: 7b001148-c273-49f5-9582-09979cbd4ca9
       - id: get-patients
         name: Get Patients
         expression: >
@@ -1709,12 +1686,198 @@ workflows:
         adaptor: "@openfn/language-openmrs@4.3.0"
         openfn:
           uuid: 51485ee3-05c2-4690-8da6-9b962b6c19d5
-          project_credential_id: null
+          project_credential_id: efd2a233-caf8-4346-bc0c-6a25c24e1a08
         next:
           get-mappings-from-collection:
             disabled: false
             openfn:
               uuid: 15dc93e4-fb96-4cc5-b0c3-c0bd544bdc6d
+      - id: get-teis-and-map-answers
+        name: Get TEIs and Map Answers
+        expression: >
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
+          ms));
+
+
+          const teiByPatientUuid = (patientUuid, teis) => {
+            return teis.find((tei) => {
+              const omrsPatientUuid = tei.attributes.find(
+                ({ attribute }) => attribute === "AYbfTPYMNJH"
+              )?.value;
+
+              return omrsPatientUuid === patientUuid;
+            });
+          };
+
+
+          get("tracker/trackedEntities", {
+            orgUnit: $.orgUnit,
+            program: $.program,
+            filter: (state) => [
+              `AYbfTPYMNJH:IN:${state.encountersPatientUuids.join(";")}`,
+            ],
+            fields: "*",
+          });
+
+
+          fn((state) => {
+            state.TEIs ??= {};
+            state.encountersPatientUuids.forEach((patientUuid) => {
+              const tei = teiByPatientUuid(patientUuid, state.data.instances);
+              if (tei?.trackedEntity) {
+                console.log("Parent TEI found:", tei.trackedEntity);
+
+                state.TEIs[patientUuid] = {
+                  ...tei,
+                  enrollment: tei.enrollments[0]?.enrollment,
+                };
+              } else {
+                console.log("Parent TEI Not Found for Patient:", patientUuid);
+              }
+            });
+
+            return state;
+          });
+
+
+          fn((state) => {
+            state.ouProgramTeis = state.latestEncountersByVisit.reduce((acc, obj) => {
+              const formUuid = obj.form.uuid;
+              // const patientUuid = obj.patient.uuid;
+              const patientNumber = obj.patient.display.split(" - ")[0];
+              const orgUnit = state.formMaps[formUuid].orgUnit;
+              const program = state.formMaps[formUuid].programId;
+              const key = `${orgUnit}-${program}`;
+              if (!acc[key]) {
+                acc[key] = {
+                  orgUnit,
+                  program,
+                  patientNumbers: [patientNumber],
+                };
+              }
+              if (!acc[key].patientNumbers.includes(patientNumber)) {
+                acc[key].patientNumbers.push(patientNumber);
+              }
+
+              return acc;
+            }, {});
+
+            return state;
+          });
+
+
+          each(
+            (state) => Object.values(state.ouProgramTeis),
+            get("tracker/events", (state) => {
+              const { orgUnit, program } = state.data;
+              return {
+                orgUnit,
+                program,
+                fields: "*",
+              };
+            }).then((state) => {
+              const { orgUnit, program, patientNumbers } = state.references.at(-1);
+              state.eventsByPatient ??= {};
+              const grouped = state.data.instances?.reduce((acc, event) => {
+                const patientNumber = event.dataValues.find(
+                  (dv) => dv.dataElement === "Pi1zytYdq6l" ||
+                          dv.dataElement === "fnH6H3biOkE" ||
+                          dv.dataElement === "kcSuQKfU5Zo" ||
+                          dv.dataElement === "ci9C72RjN8Z"
+                )?.value;
+                if (!patientNumber || !patientNumbers.includes(patientNumber)) {
+                  return acc;
+                }
+                const visitUuid = event.dataValues.find(
+                  (dv) => dv.dataElement === "rbFVBI2N6Ex"
+                )?.value;
+
+                if (!acc[patientNumber]) {
+                  acc[patientNumber] = [];
+                }
+                acc[patientNumber].push({
+                  event: event.event,
+                  occuredAt: event.occuredAt,
+                  visitUuid
+                });
+                return acc;
+              }, {});
+              console.log(`Processing ${state.data.instances?.length || 0} events for ${orgUnit}-${program}`);
+              console.log("Grouped events by patient:", Object.keys(grouped).length, "patients");
+              state.eventsByPatient[`${orgUnit}-${program}`] = grouped;
+              return state;
+            })
+          );
+        adaptor: "@openfn/language-dhis2@5.0.1"
+        openfn:
+          uuid: 7a1831ef-a388-4565-bf44-d603fdd19871
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+        next:
+          custom-logic-for-events:
+            disabled: false
+            condition: |
+              state.TEIs && !state.errors
+            openfn:
+              uuid: 9eb6f99d-434c-4b47-ab4b-058a5930435c
+      - id: get-tie
+        name: Get Tie
+        expression: >
+          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+
+          const patientUid = "d464433d-41d5-482f-808c-7fe364847352"
+
+          //TODO: Group the encounters by patient and then get the TEI for each
+          patient
+
+          get('tracker/trackedEntities', state => ({
+            orgUnit: "sUpt0j2GmBD",
+            program: "dWdzxMuKa8Z",
+            // orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+            // program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
+            filter: [`AYbfTPYMNJH:Eq:${patientUid}`],
+            fields: '*,enrollments[*],enrollments[events[*]], attributes[*]',
+          })).then(async state => {
+            
+            console.log(patientUid, 'Encounter patient uuid');
+
+            const { trackedEntity, enrollments, attributes } = state.data?.instances?.[0] || {};
+            if (trackedEntity && enrollments) {
+              state.TEIs ??= {};
+              state.TEIs[patientUid] = {
+                trackedEntity,
+                events: enrollments[0]?.events,
+                enrollment: enrollments[0]?.enrollment,
+                attributes
+              };
+            }
+
+            await delay(2000);
+            return state;
+          })
+        adaptor: "@openfn/language-dhis2@5.0.1"
+        openfn:
+          uuid: 47c1397c-a146-4511-bada-7ab0bd07b123
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+        next:
+          custom-logic-for-events:
+            disabled: false
+            condition: |
+              state.testMode
+            openfn:
+              uuid: 80f9eb77-8bc4-4557-8c9b-907ab7408473
+      - id: trigger
+        type: cron
+        openfn:
+          enabled: false
+          uuid: cd9ea573-fb86-4ec4-8c39-200c7de22dfb
+          cron_expression: 0 0 * * *
+        next:
+          get-patients:
+            disabled: false
+            condition: true
+            openfn:
+              uuid: d681f4f9-4e4f-415f-a52c-a6fcd9f2740b
       - id: upsert-teis
         name: Upsert TEIs
         expression: >
@@ -1746,10 +1909,14 @@ workflows:
               omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
                 ?.value;
 
-            const findOptCode = (optUuid) =>
-              optsMap.find((o) => o["value.uuid - External ID"] === optUuid)?.[
+            const findOptCode = (uuid) => {
+              const optionKey = `patient-${uuid}`;
+              const matchingOptionSet = state.optionSetKey[optionKey];
+              return optsMap.find((o) => o["value.uuid - External ID"] === uuid &&
+                  o["DHIS2 Option Set UID"] === matchingOptionSet)?.[
                 "DHIS2 Option Code"
               ];
+            };
 
             const patientMap = formMaps.patient.dataValueMap;
             const statusAttrMaps = Object.keys(patientMap).map((d) => {
@@ -1908,7 +2075,7 @@ workflows:
         adaptor: "@openfn/language-dhis2@5.0.1"
         openfn:
           uuid: f628007a-5a2c-463f-9de3-d2e465f95aae
-          project_credential_id: null
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
         next:
           get-encounters:
             disabled: false
@@ -1916,1094 +2083,15 @@ workflows:
               state.patientUuids.length > 0 && !state.errors
             openfn:
               uuid: 1d37cfc8-1a71-4cc8-809d-583d6d8b8fca
-      - id: get-teis-and-map-answers
-        name: Get TEIs and Map Answers
-        expression: >
-          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
-          ms));
-
-
-          const teiByPatientUuid = (patientUuid, teis) => {
-            return teis.find((tei) => {
-              const omrsPatientUuid = tei.attributes.find(
-                ({ attribute }) => attribute === "AYbfTPYMNJH"
-              )?.value;
-
-              return omrsPatientUuid === patientUuid;
-            });
-          };
-
-
-          get("tracker/trackedEntities", {
-            orgUnit: $.orgUnit,
-            program: $.program,
-            filter: (state) => [
-              `AYbfTPYMNJH:IN:${state.encountersPatientUuids.join(";")}`,
-            ],
-            fields: "*",
-          });
-
-
-          fn((state) => {
-            state.TEIs ??= {};
-            state.encountersPatientUuids.forEach((patientUuid) => {
-              const tei = teiByPatientUuid(patientUuid, state.data.instances);
-              if (tei?.trackedEntity) {
-                console.log("Parent TEI found:", tei.trackedEntity);
-
-                state.TEIs[patientUuid] = {
-                  ...tei,
-                  enrollment: tei.enrollments[0]?.enrollment,
-                };
-              } else {
-                console.log("Parent TEI Not Found for Patient:", patientUuid);
-              }
-            });
-
-            return state;
-          });
-
-
-          fn((state) => {
-            state.ouProgramTeis = state.latestEncountersByVisit.reduce((acc, obj) => {
-              const formUuid = obj.form.uuid;
-              // const patientUuid = obj.patient.uuid;
-              const patientNumber = obj.patient.display.split(" - ")[0];
-              const orgUnit = state.formMaps[formUuid].orgUnit;
-              const program = state.formMaps[formUuid].programId;
-              const key = `${orgUnit}-${program}`;
-              if (!acc[key]) {
-                acc[key] = {
-                  orgUnit,
-                  program,
-                  patientNumbers: [patientNumber],
-                };
-              }
-              if (!acc[key].patientNumbers.includes(patientNumber)) {
-                acc[key].patientNumbers.push(patientNumber);
-              }
-
-              return acc;
-            }, {});
-
-            return state;
-          });
-
-
-          each(
-            (state) => Object.values(state.ouProgramTeis),
-            get("tracker/events", (state) => {
-              const { orgUnit, program } = state.data;
-              return {
-                orgUnit,
-                program,
-                fields: "*",
-              };
-            }).then((state) => {
-              const { orgUnit, program, patientNumbers } = state.references.at(-1);
-              state.eventsByPatient ??= {};
-              const grouped = state.data.instances?.reduce((acc, event) => {
-                const patientNumber = event.dataValues.find(
-                  (dv) => dv.dataElement === "Pi1zytYdq6l" ||
-                          dv.dataElement === "fnH6H3biOkE" ||
-                          dv.dataElement === "kcSuQKfU5Zo" ||
-                          dv.dataElement === "ci9C72RjN8Z"
-                )?.value;
-                if (!patientNumber || !patientNumbers.includes(patientNumber)) {
-                  return acc;
-                }
-                const visitUuid = event.dataValues.find(
-                  (dv) => dv.dataElement === "rbFVBI2N6Ex"
-                )?.value;
-
-                if (!acc[patientNumber]) {
-                  acc[patientNumber] = [];
-                }
-                acc[patientNumber].push({
-                  event: event.event,
-                  occuredAt: event.occuredAt,
-                  visitUuid
-                });
-                return acc;
-              }, {});
-              console.log(`Processing ${state.data.instances?.length || 0} events for ${orgUnit}-${program}`);
-              console.log("Grouped events by patient:", Object.keys(grouped).length, "patients");
-              state.eventsByPatient[`${orgUnit}-${program}`] = grouped;
-              return state;
-            })
-          );
-        adaptor: "@openfn/language-dhis2@5.0.1"
-        openfn:
-          uuid: 7a1831ef-a388-4565-bf44-d603fdd19871
-          project_credential_id: null
-        next:
-          custom-logic-for-events:
-            disabled: false
-            condition: |
-              state.TEIs && !state.errors
-            openfn:
-              uuid: 9eb6f99d-434c-4b47-ab4b-058a5930435c
-      - id: get-tie
-        name: Get Tie
-        expression: >
-          const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-
-          const patientUid = "d464433d-41d5-482f-808c-7fe364847352"
-
-          //TODO: Group the encounters by patient and then get the TEI for each
-          patient
-
-          get('tracker/trackedEntities', state => ({
-            orgUnit: "sUpt0j2GmBD",
-            program: "dWdzxMuKa8Z",
-            // orgUnit: state.formMaps[state.data.form.uuid].orgUnit, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
-            // program: state.formMaps[state.data.form.uuid].programId, //TODO: the org unit and program should be fetched from fromMap by mapping encounter.form.uuid
-            filter: [`AYbfTPYMNJH:Eq:${patientUid}`],
-            fields: '*,enrollments[*],enrollments[events[*]], attributes[*]',
-          })).then(async state => {
-            
-            console.log(patientUid, 'Encounter patient uuid');
-
-            const { trackedEntity, enrollments, attributes } = state.data?.instances?.[0] || {};
-            if (trackedEntity && enrollments) {
-              state.TEIs ??= {};
-              state.TEIs[patientUid] = {
-                trackedEntity,
-                events: enrollments[0]?.events,
-                enrollment: enrollments[0]?.enrollment,
-                attributes
-              };
-            }
-
-            await delay(2000);
-            return state;
-          })
-        adaptor: "@openfn/language-dhis2@5.0.1"
-        openfn:
-          uuid: 47c1397c-a146-4511-bada-7ab0bd07b123
-          project_credential_id: null
-        next:
-          custom-logic-for-events:
-            disabled: false
-            condition: |
-              state.testMode
-            openfn:
-              uuid: 80f9eb77-8bc4-4557-8c9b-907ab7408473
+    history: []
     openfn:
       uuid: fb49b01d-dba8-420a-9f4c-b9ca20984ee5
-      concurrency: null
       inserted_at: 2025-06-26T12:56:25Z
-      updated_at: 2025-12-08T17:57:21Z
-      lock_version: 52
-      deleted_at: null
+      updated_at: 2025-12-16T10:35:10Z
+      lock_version: 55
     id: wf3-omrs-dhis2
-    history: []
   - name: wf2-omrs-dhis2
     steps:
-      - id: trigger
-        type: cron
-        openfn:
-          enabled: false
-          uuid: d10691b1-666f-4e0f-8064-40d4ce8fdc32
-          cron_expression: 0 0 * * *
-        next:
-          get-patients:
-            disabled: false
-            condition: true
-            openfn:
-              uuid: e5a1e40b-a435-495b-8260-3ddf4e4b6f95
-      - id: get-patients
-        name: Get Patients
-        expression: >
-          function removeLinks(data) {
-            if (Array.isArray(data)) {
-              return data.map(removeLinks);
-            }
-
-            if (typeof data === "object" && data !== null) {
-              const { links, ...rest } = data;
-              return Object.fromEntries(
-                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
-              );
-            }
-
-            return data;
-          }
-
-
-          function removeNulls(data) {
-            if (Array.isArray(data)) {
-              return data.filter((item) => item !== null).map(removeNulls);
-            }
-
-            if (typeof data === "object" && data !== null) {
-              const result = {};
-              for (const [key, value] of Object.entries(data)) {
-                if (value !== null) {
-                  result[key] = removeNulls(value);
-                }
-              }
-              return result;
-            }
-
-            return data;
-          }
-
-
-          cursor($.lastRunDateTime || "2025-03-20T06:01:24.000Z");
-
-
-          cursor("today", {
-            key: "lastRunDateTime",
-            format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
-          });
-
-
-          searchPatient({ q: $.msfId || "IQ", v: "full", limit: "100" });
-
-
-          fn((state) => {
-            const { cursor, data } = state;
-            console.log("Filtering patients since cursor:", cursor);
-            console.log("Patient fetched", data.results.length);
-
-            state.patients = data.results
-              .filter(({ auditInfo }) => {
-                const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
-                return lastModified > cursor;
-              })
-              .map((p) => {
-                const { uuid, auditInfo, identifiers, person } = removeLinks(
-                  removeNulls(p)
-                );
-                const { dateCreated } = auditInfo;
-                const { age, birthdate, gender, names, addresses, attributes } = person;
-
-                return {
-                  uuid,
-                  person: {
-                    age,
-                    birthdate,
-                    gender,
-                    names,
-                    addresses: [addresses.find((a) => a.cityVillage)],
-                    attributes,
-                  },
-                  identifiers,
-                  auditInfo: { dateCreated },
-                };
-              });
-            state.searchPatientUuids = state.patients.map((p) => p.uuid);
-            console.log("# of patients to sync to dhis2 ::", state.patients.length);
-
-            return state;
-          });
-
-
-          // Fetch all encounters
-
-          http
-            .get("/ws/fhir2/R4/Encounter", {
-              query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
-            })
-            .then((state) => {
-              const { link, total } = state.data;
-              state.nextUrl = link
-                .find((l) => l.relation === "next")
-                ?.url.replace(/(_count=)\d+/, `$1${total}`)
-                .split("/openmrs")[1];
-
-              state.allResponse = state.data;
-              return state;
-            });
-
-          fnIf(
-            $.nextUrl,
-            http.get($.nextUrl).then((state) => {
-              console.log(`Fetched ${state.data.entry.length} remaining encounters`);
-              delete state.allResponse.link;
-              state.allResponse.entry.push(...state.data.entry);
-              return state;
-            })
-          );
-
-
-          fn((state) => {
-            console.log(
-              "Total # of encounters fetched: ",
-              state.allResponse?.entry?.length
-            );
-
-            const uuids = [
-              ...new Set(
-                state.allResponse?.entry?.map((p) =>
-                  p.resource?.subject?.reference?.replace("Patient/", "")
-                )
-              ),
-            ];
-            state.encounterPatientUuids = [...new Set(uuids)];
-
-            return state;
-          });
-
-
-          fn((state) => {
-            const {
-              cursor,
-              lastRunDateTime,
-              patients,
-              searchPatientUuids,
-              encounterPatientUuids,
-            } = state;
-
-            const onlyInSearchPatient = searchPatientUuids.filter(
-              (id) => !encounterPatientUuids.includes(id)
-            );
-
-            const onlyInR4Encounter = encounterPatientUuids.filter(
-              (id) => !searchPatientUuids.includes(id)
-            );
-            const inbothResults = searchPatientUuids.filter((id) =>
-              encounterPatientUuids.includes(id)
-            );
-            const patientUuids = [
-              ...new Set([...searchPatientUuids, ...encounterPatientUuids]),
-            ];
-
-            console.log("inbothResults", inbothResults.length);
-            console.log("patient-search-array", onlyInSearchPatient.length);
-            console.log("r4-encounter-array", onlyInR4Encounter.length);
-            console.log("combined uuids", patientUuids.length);
-
-            return { cursor, lastRunDateTime, patients, patientUuids };
-          });
-        adaptor: "@openfn/language-openmrs@4.3.0"
-        openfn:
-          uuid: 9cc0cbea-ba1a-4555-83a1-a191944f303e
-          project_credential_id: null
-        next:
-          mappings:
-            disabled: false
-            openfn:
-              uuid: 704bb712-f0be-4199-83b8-c84a3da5feb5
-      - id: mappings
-        name: Mappings
-        expression: >
-          const isValidUUID = (id) => {
-            if (!id || typeof id !== "string") return false;
-
-            const UUID_PATTERN =
-              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-            return UUID_PATTERN.test(id);
-          };
-
-
-          collections.get("mosul-metadata-mappings-main").then((state) => {
-            state.optsMap = state.data
-              .filter((i) => i.key.includes("optsMap-value-"))
-              .map((i) => i.value);
-
-            state.identifiers = state.data
-              .filter((i) => i.key.includes("identifiers-value-"))
-              .map((i) => i.value);
-            state.syncedAt = state.data.find((i) => i.key === "syncedAt")?.value;
-            state.formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
-            state.placeOflivingMap = state.data.find(
-              (i) => i.key === "placeOflivingMap"
-            )?.value;
-            state.sourceFile = state.data.filter(
-              (i) => i.key === "sourceFile"
-            )?.[0]?.value;
-            state.fileDateModified = state.data.filter(
-              (i) => i.key === "fileDateModified"
-            )?.[0]?.value;
-            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
-
-            // TODO: Remove state.optionSetKey, when needed
-            // Build from state.formMaps
-            state.optionSetKey = state.data.filter(
-              (i) => i.key === "optionSetKey"
-            )?.[0]?.value;
-
-            delete state.data;
-            delete state.references;
-            return state;
-          });
-
-
-          fn((state) => {
-            const { formMetadata, identifiers, ...rest } = state;
-
-            rest.v2FormUuids = formMetadata
-              .filter(
-                (form) =>
-                  isValidUUID(form["OMRS form.uuid"]) &&
-                  form["OMRS Form Version"] === "v4-2025"
-              )
-              .map((form) => form["OMRS form.uuid"]);
-            rest.formUuids = formMetadata
-              .filter(
-                (form) =>
-                  isValidUUID(form["OMRS form.uuid"]) && form["Workflow"] === "WF2"
-              )
-              .map((form) => form["OMRS form.uuid"]);
-
-            rest.patientProgramStage = "vN61drMkGqO";
-
-            rest.orgUnit = "sUpt0j2GmBD";
-            // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
-            //   'dhis2 attribute id'
-            // ];
-            rest.program = "dWdzxMuKa8Z";
-            // rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
-            //   'dhis2 attribute id'
-            // ];
-            // rest.patientProgramStage = state.formMaps.patient.programStage;
-
-            rest.dhis2PatientNumber = identifiers.find(
-              (i) => i.type === "DHIS2_PATIENT_NUMBER"
-            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
-
-            rest.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
-              "omrs identifierType"
-            ]; //MSF ID or OpenMRS Patient Number
-
-            return rest;
-          });
-        adaptor: "@openfn/language-common@2.1.1"
-        openfn:
-          uuid: 0a6f5426-9c6d-4214-8e05-55cb9e368e14
-          project_credential_id: null
-        next:
-          upsert-teis:
-            disabled: false
-            condition: |
-              state.patients.length > 0 && !state.errors
-            openfn:
-              uuid: 5953cda9-d8c3-454a-8a05-aac6c9c07eb5
-          get-encounters:
-            disabled: false
-            condition: |
-              !state.errors && state.patients.length === 0
-            openfn:
-              uuid: 0fd2390e-6faf-4da6-8d4a-220685fe22ae
-      - id: upsert-teis
-        name: Upsert TEIs
-        expression: >
-          function chunkArray(array, size) {
-            const chunks = [];
-            for (let i = 0; i < array.length; i += size) {
-              chunks.push(array.slice(i, i + size));
-            }
-            return chunks;
-          }
-
-
-          const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
-            const genderMap = {
-              M: "male",
-              O: "unknown",
-              F: "female",
-              U: "unknown",
-            };
-            const {
-              orgUnit,
-              program,
-              optsMap,
-              formMaps,
-              placeOflivingMap,
-              patientProgramStage,
-              dhis2PatientNumber,
-              openmrsAutoId,
-            } = mappingConfig;
-
-            const enrolledAt = omrsPatient.auditInfo.dateCreated.substring(0, 10);
-            const findIdentifierByUuid = (identifiers, targetUuid) =>
-              identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
-
-            const findAttrValue = (uuid) => {
-              return omrsPatient.person.attributes.find(
-                (a) => a.attributeType.uuid === uuid
-              )?.value;
-            };
-
-            const findOptCodeByUuid = (uuid) => {
-              return optsMap.find((o) => o["value.uuid - External ID"] === uuid)?.[
-                "DHIS2 Option Code"
-              ];
-            };
-
-            const findOptCode = (attrValue) => {
-              if (typeof attrValue === "string") {
-                return findOptCodeByUuid(attrValue);
-              }
-              if (typeof attrValue === "object") {
-                const { uuid, display } = attrValue;
-                const optCodeByDisplay = optsMap.find(
-                  (o) =>
-                    o["value.uuid - External ID"] === uuid &&
-                    o["value.display - Answers"] === display
-                )?.["DHIS2 Option Code"];
-
-                return optCodeByDisplay ?? findOptCodeByUuid(uuid);
-              }
-              return null;
-            };
-
-            const patientMap = formMaps.patient.dataValueMap;
-            const statusAttrMaps = Object.keys(patientMap).map((d) => {
-              const attrValue = findAttrValue(patientMap[d]);
-
-              return {
-                attribute: d,
-                value: findOptCode(attrValue) || attrValue,
-              };
-            });
-
-            const standardAttr = [
-              {
-                attribute: "fa7uwpCKIwa",
-                value: omrsPatient.person?.names[0]?.givenName,
-              },
-              {
-                attribute: "Jt9BhFZkvP2",
-                value: omrsPatient.person?.names[0]?.familyName,
-              },
-              {
-                attribute: "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
-                value:
-                  findIdentifierByUuid(omrsPatient.identifiers, dhis2PatientNumber) ||
-                  findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId), //map OMRS ID if no DHIS2 id
-              },
-              {
-                attribute: "ZBoxuExmxcZ", //MSF ID ==> "OpenMRS Patient Number"
-                value: findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId),
-              },
-              {
-                attribute: "AYbfTPYMNJH", //"OpenMRS Patient UID"
-                value: omrsPatient.uuid,
-              },
-
-              {
-                attribute: "T1iX2NuPyqS",
-                value: omrsPatient.person.age,
-              },
-              {
-                attribute: "WDp4nVor9Z7",
-                value: omrsPatient.person.birthdate?.slice(0, 10),
-              },
-              {
-                attribute: "rBtrjV1Mqkz", //Place of living
-                value: placeOflivingMap[omrsPatient.person?.addresses[0]?.cityVillage],
-              },
-            ];
-
-            //filter out attributes that don't have a value from dhis2
-            const filteredAttr = standardAttr.filter((a) => a.value);
-            const filteredStatusAttr = statusAttrMaps.filter((a) => a.value);
-
-            const payload = {
-              program,
-              orgUnit,
-              attributes: [...filteredAttr, ...filteredStatusAttr],
-            };
-            // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
-            const enrollments = [
-              {
-                orgUnit,
-                program,
-                enrolledAt,
-                programStage: patientProgramStage, //'MdTtRixaC1B',
-              },
-            ];
-
-            if (!patientTei) {
-              payload.trackedEntityType = "cHlzCA2MuEF";
-
-              payload.attributes.push({
-                attribute: "qptKDiv9uPl",
-                value: genderMap[omrsPatient.person.gender],
-              });
-              console.log("create enrollment");
-              payload.enrollments = enrollments;
-            }
-
-            if (patientTei) {
-              payload.trackedEntity = patientTei.trackedEntity;
-              payload.trackedEntityType = patientTei.trackedEntityType;
-            }
-
-            return payload;
-          };
-
-
-          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
-          ms));
-
-
-          each(
-            (state) => chunkArray(state.patients, 200),
-            get("tracker/trackedEntities", {
-              orgUnit: $.orgUnit,
-              filter: (state) => [
-                `AYbfTPYMNJH:IN:${state.data.map((patient) => patient.uuid).join(";")}`,
-              ],
-              program: $.program,
-              fields: "*",
-            }).then((state) => {
-              state.foundTrackedEntities ??= [];
-              state.foundTrackedEntities.push(...state.data.instances);
-              return state;
-            })
-          );
-
-
-          fn((state) => {
-            const findTeiByUuid = (patientUuid) => {
-              return state.foundTrackedEntities.find((tei) => {
-                return (
-                  tei.attributes.find(
-                    (attribute) => attribute.attribute === "AYbfTPYMNJH"
-                  )?.value === patientUuid
-                );
-              });
-            };
-
-            state.patientsMapping = state.patients.map((patient) => {
-              const patientTei = findTeiByUuid(patient.uuid);
-
-              return buildTeiMapping(patient, patientTei, {
-                placeOflivingMap: state.placeOflivingMap,
-                orgUnit: state.orgUnit,
-                program: state.program,
-                patientProgramStage: state.patientProgramStage,
-                formMaps: state.formMaps,
-                optsMap: state.optsMap,
-                dhis2PatientNumber: state.dhis2PatientNumber,
-                openmrsAutoId: state.openmrsAutoId,
-              });
-            });
-
-            return state;
-          });
-
-
-          // Bulk upsert
-
-          create(
-            "tracker",
-            { trackedEntities: $.patientsMapping },
-            {
-              params: {
-                atomicMode: "ALL",
-                importStrategy: "CREATE_AND_UPDATE",
-                async: false,
-              },
-            }
-          );
-
-          fn((state) => {
-            const {
-              data,
-              response,
-              references,
-              patients,
-              patientsUpsert,
-              placeOflivingMap,
-              identifiers,
-              ...next
-            } = state;
-            next.patientUuids = patients.map((p) => p.uuid);
-            return next;
-          });
-        adaptor: "@openfn/language-dhis2@5.0.1"
-        openfn:
-          uuid: 5f47a65c-b739-46d7-8fa3-8a722458d4a3
-          project_credential_id: null
-        next:
-          get-encounters:
-            disabled: false
-            condition: |
-              state.patientUuids.length > 0 && !state.errors
-            openfn:
-              uuid: 26954f83-daed-4f98-8011-c2c5bc24ecd3
-      - id: get-encounters
-        name: Get Encounters
-        expression: >
-          function removeLinks(data) {
-            if (Array.isArray(data)) {
-              return data.map(removeLinks);
-            }
-
-            if (typeof data === "object" && data !== null) {
-              const { links, ...rest } = data;
-              return Object.fromEntries(
-                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
-              );
-            }
-
-            return data;
-          }
-
-
-          function removeNulls(data) {
-            if (Array.isArray(data)) {
-              return data.filter((item) => item !== null).map(removeNulls);
-            }
-
-            if (typeof data === "object" && data !== null) {
-              const result = {};
-              for (const [key, value] of Object.entries(data)) {
-                if (value !== null) {
-                  result[key] = removeNulls(value);
-                }
-              }
-              return result;
-            }
-
-            return data;
-          }
-
-          // Fetch patient encounters
-
-          each(
-            $.patientUuids,
-            get("encounter", { patient: $.data, v: "full" }).then((state) => {
-              state.allEncounters ??= [];
-              state.allEncounters.push(
-                // v2FormsUuids are for mental health forms
-                // ...state.data.results.filter(e =>
-                //   state.v2FormUuids.includes(e?.form?.uuid)
-                // )
-                ...state.data.results.filter((e) =>
-                  state.formUuids.includes(e?.form?.uuid)
-                )
-              );
-
-              const patientUuid = state.references.at(-1);
-              const filteredEncounters = state.formUuids.map((formUuid) =>
-                state.data.results
-                  .filter(
-                    (e) =>
-                      e.auditInfo.dateCreated >= state.cursor &&
-                      e?.form?.uuid === formUuid
-                  )
-                  .sort(
-                    (a, b) =>
-                      new Date(b.auditInfo.dateCreated) -
-                      new Date(a.auditInfo.dateCreated)
-                  )
-              );
-
-              const encounters = filteredEncounters
-                .map((pe) => {
-                  const isLatestForm = pe.find((e) => {
-                    return state.formMaps[e?.form?.uuid]?.syncType === "latest";
-                  });
-                  if (isLatestForm) {
-                    return [isLatestForm];
-                  } else {
-                    const allPatientEncounter = pe.filter(
-                      (e) => state.formMaps[e?.form?.uuid]?.syncType === "all"
-                    );
-                    return allPatientEncounter;
-                  }
-                })
-                .flat();
-
-              state.encounters ??= [];
-              state.encounters.push(...encounters);
-
-              console.log(
-                encounters.length,
-                `# of filtered encounters found in OMRS for ${patientUuid}`
-              );
-
-              return state;
-            })
-          );
-
-
-          fn((state) => {
-            const {
-              data,
-              index,
-              response,
-              references,
-              allResponse,
-              patientUuids,
-              patients,
-              ...next
-            } = state;
-
-            if (next.encounters?.length) {
-              next.encounters = next.encounters.map((encounter) => {
-                const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
-                  removeNulls(encounter)
-                );
-
-                return {
-                  uuid,
-                  patient: {
-                    uuid: patient.uuid,
-                    display: patient.display,
-                  },
-                  obs: obs.map((o) => {
-                    return {
-                      uuid: o.uuid,
-                      concept: o.concept,
-                      display: o.display,
-                      formFieldPath: o.formFieldPath,
-                      value: o.value,
-                      person: o.person,
-                    };
-                  }),
-                  form: {
-                    uuid: form.uuid,
-                    display: form.display,
-                    description: form.description,
-                    name: form.name,
-                  },
-                  encounterDatetime,
-                };
-              });
-              console.log(next.encounters.length, "# of new encounters to sync to dhis2");
-            } else {
-              console.log("No encounters found for cursor: ", next.cursor);
-            }
-            next.allEncounters = next.allEncounters?.map((encounter) => {
-              const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
-                removeNulls(encounter)
-              );
-
-              return {
-                uuid,
-                patient: {
-                  uuid: patient.uuid,
-                  display: patient.display,
-                },
-                obs: obs.map((o) => {
-                  return {
-                    uuid: o.uuid,
-                    concept: o.concept,
-                    display: o.display,
-                    formFieldPath: o.formFieldPath,
-                    value: o.value,
-                    person: o.person,
-                  };
-                }),
-                form: {
-                  uuid: form.uuid,
-                  display: form.display,
-                  description: form.description,
-                  name: form.name,
-                },
-                encounterDatetime,
-              };
-            });
-
-            return next;
-          });
-        adaptor: "@openfn/language-openmrs@4.3.0"
-        openfn:
-          uuid: ea92d31b-95a2-4683-85d5-f591513dbccc
-          project_credential_id: null
-        next:
-          get-parent-and-child-teis:
-            disabled: false
-            condition: |
-              !state.errors && state.encounters.length > 0
-            openfn:
-              uuid: 44fda748-0643-46bb-8e89-4b75bec4bdbd
-      - id: get-parent-and-child-teis
-        name: Get Parent and Child TEIs
-        expression: >
-          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
-          ms));
-
-
-          const teiByPatientUuid = (patientUuid, teis) => {
-            return teis.find((tei) => {
-              const omrsPatientUuid = tei.attributes.find(
-                ({ attribute }) => attribute === "AYbfTPYMNJH"
-              )?.value;
-
-              return omrsPatientUuid === patientUuid;
-            });
-          };
-
-
-          fn((state) => {
-            // Group encounters by patient UUID
-            state.encountersByPatient = state.encounters.reduce((acc, obj) => {
-              const key = obj.patient.uuid;
-              if (!acc[key]) {
-                acc[key] = [];
-              }
-              acc[key].push(obj);
-              return acc;
-            }, {});
-
-            return state;
-          });
-
-
-          get("tracker/trackedEntities", {
-            orgUnit: $.orgUnit,
-            program: $.program,
-            filter: (state) => [
-              `AYbfTPYMNJH:IN:${Object.keys(state.encountersByPatient).join(";")}`,
-            ],
-          });
-
-
-          fn((state) => {
-            state.parentTeis ??= {};
-            state.missingParentTeis ??= {};
-
-            Object.keys(state.encountersByPatient).forEach((patientUuid) => {
-              const parentTei = teiByPatientUuid(patientUuid, state.data.instances);
-              if (parentTei?.trackedEntity) {
-                console.log("Parent TEI found:", parentTei.trackedEntity);
-
-                state.parentTeis[patientUuid] = {
-                  trackedEntity: parentTei.trackedEntity,
-                  attributes: parentTei.attributes,
-                  trackedEntityType: parentTei.trackedEntityType,
-                  enrollments: parentTei.enrollments,
-                };
-              } else {
-                console.log("Parent TEI Not Found for Patient:", patientUuid);
-                state.missingParentTeis[patientUuid] =
-                  state.encountersByPatient[patientUuid];
-              }
-            });
-
-            return state;
-          });
-
-
-          fn((state) => {
-            state.ouProgramEncounters = state.encounters.reduce((acc, obj) => {
-              const formUuid = obj.form.uuid;
-              const patientUuid = obj.patient.uuid;
-              const orgUnit = state.formMaps[formUuid].orgUnit;
-              const program = state.formMaps[formUuid].programId;
-              const key = `${orgUnit}-${program}`;
-              if (!acc[key]) {
-                acc[key] = {
-                  orgUnit,
-                  program,
-                  patientUuids: [patientUuid],
-                };
-              }
-              if (!acc[key].patientUuids.includes(patientUuid)) {
-                acc[key].patientUuids.push(patientUuid);
-              }
-              return acc;
-            }, {});
-
-            return state;
-          });
-
-
-          each(
-            (state) => Object.values(state.ouProgramEncounters),
-            get("tracker/trackedEntities", (state) => {
-              const { orgUnit, program, patientUuids } = state.data;
-              return {
-                orgUnit,
-                program,
-                filter: [`AYbfTPYMNJH:IN:${patientUuids.join(";")}`],
-                fields: "*",
-              };
-            })
-              .then((state) => {
-                state.childTeis ??= {};
-                state.encounters.forEach((encounter) => {
-                  const patientUuid = encounter.patient.uuid;
-                  const program = state.formMaps[encounter.form.uuid].programId;
-                  const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
-
-                  const tei = state.data.instances.find((tei) => {
-                    const omrsPatientUuid = tei.attributes.find(
-                      (attribute) => attribute.attribute === "AYbfTPYMNJH"
-                    )?.value;
-                    const teiProgram = tei.programOwners.find(
-                      (po) => po.trackedEntity === tei.trackedEntity
-                    )?.program;
-
-                    return (
-                      omrsPatientUuid === patientUuid &&
-                      teiProgram === program &&
-                      tei.orgUnit === orgUnit
-                    );
-                  });
-
-                  const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
-                  const relationshipType =
-                    state.formMaps[encounter.form.uuid]?.relationshipId;
-
-                  if (tei?.trackedEntity) {
-                    console.log("Child TEI found:", tei.trackedEntity);
-                    state.childTeis[patientOuProgram] = {
-                      relationshipType,
-                      trackedEntity: tei.trackedEntity,
-                      attributes: tei.attributes,
-                      trackedEntityType: tei.trackedEntityType,
-                      enrollments: tei.enrollments,
-                      orgUnit,
-                      program,
-                    };
-                  }
-
-                  if (!tei && !state.childTeis[patientOuProgram]) {
-                    console.log("Child TEI not found for patient:", patientUuid);
-                    const { attributes, trackedEntityType } =
-                      state?.parentTeis[patientUuid];
-
-                    state.childTeis[patientOuProgram] = {
-                      relationshipType,
-                      trackedEntityType,
-                      enrollments: [
-                        {
-                          orgUnit,
-                          program,
-                          enrolledAt: new Date().toISOString().split("T")[0],
-                          attributes: attributes.filter((attribute) =>
-                            [
-                              "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
-                            ].includes(attribute.attribute)
-                          ),
-                        },
-                      ],
-                      attributes,
-                      orgUnit,
-                      program,
-                    };
-                  }
-                });
-
-                return state;
-              })
-              .then(async (state) => {
-                await delay(2000);
-                return state;
-              })
-          );
-        adaptor: "@openfn/language-dhis2@5.0.1"
-        openfn:
-          uuid: 29e87d9d-53c4-47bf-885d-19a70b839120
-          project_credential_id: null
-        next:
-          upsert-child-teis:
-            disabled: false
-            condition: >
-              Object.keys(state?.childTeis)?.length > 0 &&
-              Object.keys(state?.parentTeis)?.length > 0
-            openfn:
-              uuid: a07cd9c9-a88e-4854-8186-23a9f98a8103
       - id: create-events
         name: Create Events
         expression: >
@@ -3216,7 +2304,7 @@ workflows:
         adaptor: "@openfn/language-dhis2@5.0.1"
         openfn:
           uuid: bc9ae464-bc1c-42ef-8d8d-24614ce5e4f1
-          project_credential_id: null
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
         next:
           update-teis:
             disabled: false
@@ -3224,21 +2312,76 @@ workflows:
               state?.teisToUpdate?.length > 0
             openfn:
               uuid: 30bc10fc-d40f-4704-81f4-a05fefc5e1e3
-      - id: update-teis
-        name: Update TEIs
-        expression: |
-          // Update TEIs
-          create(
-            "tracker",
-            { trackedEntities: $.teisToUpdate },
-            { params: { async: false, importStrategy: "UPDATE" } }
+      - id: create-teis-relationship
+        name: Create TEIs Relationship
+        expression: >
+          fn((state) => {
+            state.relationshipsMapping = Object.values(state.childTeis)
+              .map((tei) => {
+                const omrsPatientUuid = tei?.attributes.find(
+                  ({ attribute }) => attribute === "AYbfTPYMNJH"
+                )?.value;
+
+                const childTei = tei?.trackedEntity;
+                const parentTei = state.parentTeis[omrsPatientUuid]?.trackedEntity;
+                const relationshipType = tei?.relationshipType;
+
+                if (childTei != parentTei) {
+                  return {
+                    from: {
+                      trackedEntityInstance: {
+                        trackedEntityInstance: parentTei,
+                      },
+                    },
+                    to: {
+                      trackedEntityInstance: {
+                        trackedEntityInstance: childTei,
+                      },
+                    },
+                    relationshipType,
+                  };
+                }
+              })
+              .filter(Boolean);
+
+            return state;
+          });
+
+          // Check if relationship exist
+
+          each(
+            $.relationshipsMapping,
+            get("tracker/relationships", {
+              trackedEntity: $.data.from.trackedEntityInstance.trackedEntityInstance,
+            }).then((state) => {
+              const relationship = state.references.at(-1);
+              const toTei = relationship.to.trackedEntityInstance.trackedEntityInstance;
+              const hasRelationship = state.data.instances.find(
+                (r) => r.to.trackedEntity.trackedEntity === toTei
+              );
+              state.relationshipsToCreate ??= [];
+              if (!hasRelationship) {
+                state.relationshipsToCreate.push(relationship);
+              }
+              return state;
+            })
           );
 
-          fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
+
+          // Creating relationship between parent and child tei
+
+          each($.relationshipsToCreate || [], create("relationships", $.data));
         adaptor: "@openfn/language-dhis2@5.0.1"
         openfn:
-          uuid: 3d50b0ba-7959-4a1b-8468-99ffd140a2ba
-          project_credential_id: null
+          uuid: ff3980d5-2f46-41f0-8d63-ccb63328325d
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+        next:
+          event-mappings:
+            disabled: false
+            condition: |
+              state.childTeis && !state.errors
+            openfn:
+              uuid: d11da1ea-7d5d-4021-8ecb-9394be06623d
       - id: event-mappings
         name: Event Mappings
         expression: >
@@ -4608,15 +3751,9 @@ workflows:
 
             return state;
           });
-
-
-          fn((state) => {
-            return { eventMapping: state.eventsMapping };
-          });
         adaptor: "@openfn/language-common@2.1.1"
         openfn:
           uuid: c31699da-9417-464f-84de-b3295a49720b
-          project_credential_id: null
         next:
           create-events:
             disabled: false
@@ -4624,76 +3761,684 @@ workflows:
               state?.eventsMapping?.length > 0 && !state.errors
             openfn:
               uuid: a314d87c-3497-4036-831a-3227d85b8c6b
-      - id: create-teis-relationship
-        name: Create TEIs Relationship
+      - id: get-encounters
+        name: Get Encounters
         expression: >
-          fn((state) => {
-            state.relationshipsMapping = Object.values(state.childTeis)
-              .map((tei) => {
-                const omrsPatientUuid = tei?.attributes.find(
-                  ({ attribute }) => attribute === "AYbfTPYMNJH"
-                )?.value;
+          function removeLinks(data) {
+            if (Array.isArray(data)) {
+              return data.map(removeLinks);
+            }
 
-                const childTei = tei?.trackedEntity;
-                const parentTei = state.parentTeis[omrsPatientUuid]?.trackedEntity;
-                const relationshipType = tei?.relationshipType;
+            if (typeof data === "object" && data !== null) {
+              const { links, ...rest } = data;
+              return Object.fromEntries(
+                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
+              );
+            }
 
-                if (childTei != parentTei) {
-                  return {
-                    from: {
-                      trackedEntityInstance: {
-                        trackedEntityInstance: parentTei,
-                      },
-                    },
-                    to: {
-                      trackedEntityInstance: {
-                        trackedEntityInstance: childTei,
-                      },
-                    },
-                    relationshipType,
-                  };
+            return data;
+          }
+
+
+          function removeNulls(data) {
+            if (Array.isArray(data)) {
+              return data.filter((item) => item !== null).map(removeNulls);
+            }
+
+            if (typeof data === "object" && data !== null) {
+              const result = {};
+              for (const [key, value] of Object.entries(data)) {
+                if (value !== null) {
+                  result[key] = removeNulls(value);
                 }
-              })
-              .filter(Boolean);
+              }
+              return result;
+            }
 
-            return state;
-          });
+            return data;
+          }
 
-          // Check if relationship exist
+          // Fetch patient encounters
 
           each(
-            $.relationshipsMapping,
-            get("tracker/relationships", {
-              trackedEntity: $.data.from.trackedEntityInstance.trackedEntityInstance,
-            }).then((state) => {
-              const relationship = state.references.at(-1);
-              const toTei = relationship.to.trackedEntityInstance.trackedEntityInstance;
-              const hasRelationship = state.data.instances.find(
-                (r) => r.to.trackedEntity.trackedEntity === toTei
+            $.patientUuids,
+            get("encounter", { patient: $.data, v: "full" }).then((state) => {
+              state.allEncounters ??= [];
+              state.allEncounters.push(
+                // v2FormsUuids are for mental health forms
+                // ...state.data.results.filter(e =>
+                //   state.v2FormUuids.includes(e?.form?.uuid)
+                // )
+                ...state.data.results.filter((e) =>
+                  state.formUuids.includes(e?.form?.uuid)
+                )
               );
-              state.relationshipsToCreate ??= [];
-              if (!hasRelationship) {
-                state.relationshipsToCreate.push(relationship);
-              }
+
+              const patientUuid = state.references.at(-1);
+              const filteredEncounters = state.formUuids.map((formUuid) =>
+                state.data.results
+                  .filter(
+                    (e) =>
+                      e.auditInfo.dateCreated >= state.cursor &&
+                      e?.form?.uuid === formUuid
+                  )
+                  .sort(
+                    (a, b) =>
+                      new Date(b.auditInfo.dateCreated) -
+                      new Date(a.auditInfo.dateCreated)
+                  )
+              );
+
+              const encounters = filteredEncounters
+                .map((pe) => {
+                  const isLatestForm = pe.find((e) => {
+                    return state.formMaps[e?.form?.uuid]?.syncType === "latest";
+                  });
+                  if (isLatestForm) {
+                    return [isLatestForm];
+                  } else {
+                    const allPatientEncounter = pe.filter(
+                      (e) => state.formMaps[e?.form?.uuid]?.syncType === "all"
+                    );
+                    return allPatientEncounter;
+                  }
+                })
+                .flat();
+
+              state.encounters ??= [];
+              state.encounters.push(...encounters);
+
+              console.log(
+                encounters.length,
+                `# of filtered encounters found in OMRS for ${patientUuid}`
+              );
+
               return state;
             })
           );
 
 
-          // Creating relationship between parent and child tei
+          fn((state) => {
+            const {
+              data,
+              index,
+              response,
+              references,
+              allResponse,
+              patientUuids,
+              patients,
+              ...next
+            } = state;
 
-          each($.relationshipsToCreate || [], create("relationships", $.data));
-        adaptor: "@openfn/language-dhis2@5.0.1"
+            if (next.encounters?.length) {
+              next.encounters = next.encounters.map((encounter) => {
+                const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+                  removeNulls(encounter)
+                );
+
+                return {
+                  uuid,
+                  patient: {
+                    uuid: patient.uuid,
+                    display: patient.display,
+                  },
+                  obs: obs.map((o) => {
+                    return {
+                      uuid: o.uuid,
+                      concept: o.concept,
+                      display: o.display,
+                      formFieldPath: o.formFieldPath,
+                      value: o.value,
+                      person: o.person,
+                    };
+                  }),
+                  form: {
+                    uuid: form.uuid,
+                    display: form.display,
+                    description: form.description,
+                    name: form.name,
+                  },
+                  encounterDatetime,
+                };
+              });
+              console.log(next.encounters.length, "# of new encounters to sync to dhis2");
+            } else {
+              console.log("No encounters found for cursor: ", next.cursor);
+            }
+            next.allEncounters = next.allEncounters?.map((encounter) => {
+              const { uuid, patient, obs, form, encounterDatetime } = removeLinks(
+                removeNulls(encounter)
+              );
+
+              return {
+                uuid,
+                patient: {
+                  uuid: patient.uuid,
+                  display: patient.display,
+                },
+                obs: obs.map((o) => {
+                  return {
+                    uuid: o.uuid,
+                    concept: o.concept,
+                    display: o.display,
+                    formFieldPath: o.formFieldPath,
+                    value: o.value,
+                    person: o.person,
+                  };
+                }),
+                form: {
+                  uuid: form.uuid,
+                  display: form.display,
+                  description: form.description,
+                  name: form.name,
+                },
+                encounterDatetime,
+              };
+            });
+
+            return next;
+          });
+        adaptor: "@openfn/language-openmrs@4.3.0"
         openfn:
-          uuid: ff3980d5-2f46-41f0-8d63-ccb63328325d
-          project_credential_id: null
+          uuid: ea92d31b-95a2-4683-85d5-f591513dbccc
+          project_credential_id: efd2a233-caf8-4346-bc0c-6a25c24e1a08
         next:
-          event-mappings:
+          get-parent-and-child-teis:
             disabled: false
             condition: |
-              state.childTeis && !state.errors
+              !state.errors && state.encounters.length > 0
             openfn:
-              uuid: d11da1ea-7d5d-4021-8ecb-9394be06623d
+              uuid: 44fda748-0643-46bb-8e89-4b75bec4bdbd
+      - id: get-parent-and-child-teis
+        name: Get Parent and Child TEIs
+        expression: >
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
+          ms));
+
+
+          const teiByPatientUuid = (patientUuid, teis) => {
+            return teis.find((tei) => {
+              const omrsPatientUuid = tei.attributes.find(
+                ({ attribute }) => attribute === "AYbfTPYMNJH"
+              )?.value;
+
+              return omrsPatientUuid === patientUuid;
+            });
+          };
+
+
+          fn((state) => {
+            // Group encounters by patient UUID
+            state.encountersByPatient = state.encounters.reduce((acc, obj) => {
+              const key = obj.patient.uuid;
+              if (!acc[key]) {
+                acc[key] = [];
+              }
+              acc[key].push(obj);
+              return acc;
+            }, {});
+
+            return state;
+          });
+
+
+          get("tracker/trackedEntities", {
+            orgUnit: $.orgUnit,
+            program: $.program,
+            filter: (state) => [
+              `AYbfTPYMNJH:IN:${Object.keys(state.encountersByPatient).join(";")}`,
+            ],
+          });
+
+
+          fn((state) => {
+            state.parentTeis ??= {};
+            state.missingParentTeis ??= {};
+
+            Object.keys(state.encountersByPatient).forEach((patientUuid) => {
+              const parentTei = teiByPatientUuid(patientUuid, state.data.instances);
+              if (parentTei?.trackedEntity) {
+                console.log("Parent TEI found:", parentTei.trackedEntity);
+
+                state.parentTeis[patientUuid] = {
+                  trackedEntity: parentTei.trackedEntity,
+                  attributes: parentTei.attributes,
+                  trackedEntityType: parentTei.trackedEntityType,
+                  enrollments: parentTei.enrollments,
+                };
+              } else {
+                console.log("Parent TEI Not Found for Patient:", patientUuid);
+                state.missingParentTeis[patientUuid] =
+                  state.encountersByPatient[patientUuid];
+              }
+            });
+
+            return state;
+          });
+
+
+          fn((state) => {
+            state.ouProgramEncounters = state.encounters.reduce((acc, obj) => {
+              const formUuid = obj.form.uuid;
+              const patientUuid = obj.patient.uuid;
+              const orgUnit = state.formMaps[formUuid].orgUnit;
+              const program = state.formMaps[formUuid].programId;
+              const key = `${orgUnit}-${program}`;
+              if (!acc[key]) {
+                acc[key] = {
+                  orgUnit,
+                  program,
+                  patientUuids: [patientUuid],
+                };
+              }
+              if (!acc[key].patientUuids.includes(patientUuid)) {
+                acc[key].patientUuids.push(patientUuid);
+              }
+              return acc;
+            }, {});
+
+            return state;
+          });
+
+
+          each(
+            (state) => Object.values(state.ouProgramEncounters),
+            get("tracker/trackedEntities", (state) => {
+              const { orgUnit, program, patientUuids } = state.data;
+              return {
+                orgUnit,
+                program,
+                filter: [`AYbfTPYMNJH:IN:${patientUuids.join(";")}`],
+                fields: "*",
+              };
+            })
+              .then((state) => {
+                state.childTeis ??= {};
+                state.encounters.forEach((encounter) => {
+                  const patientUuid = encounter.patient.uuid;
+                  const program = state.formMaps[encounter.form.uuid].programId;
+                  const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
+
+                  const tei = state.data.instances.find((tei) => {
+                    const omrsPatientUuid = tei.attributes.find(
+                      (attribute) => attribute.attribute === "AYbfTPYMNJH"
+                    )?.value;
+                    const teiProgram = tei.programOwners.find(
+                      (po) => po.trackedEntity === tei.trackedEntity
+                    )?.program;
+
+                    return (
+                      omrsPatientUuid === patientUuid &&
+                      teiProgram === program &&
+                      tei.orgUnit === orgUnit
+                    );
+                  });
+
+                  const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
+                  const relationshipType =
+                    state.formMaps[encounter.form.uuid]?.relationshipId;
+
+                  if (tei?.trackedEntity) {
+                    console.log("Child TEI found:", tei.trackedEntity);
+                    state.childTeis[patientOuProgram] = {
+                      relationshipType,
+                      trackedEntity: tei.trackedEntity,
+                      attributes: tei.attributes,
+                      trackedEntityType: tei.trackedEntityType,
+                      enrollments: tei.enrollments,
+                      orgUnit,
+                      program,
+                    };
+                  }
+
+                  if (!tei && !state.childTeis[patientOuProgram]) {
+                    console.log("Child TEI not found for patient:", patientUuid);
+                    const { attributes, trackedEntityType } =
+                      state?.parentTeis[patientUuid];
+
+                    state.childTeis[patientOuProgram] = {
+                      relationshipType,
+                      trackedEntityType,
+                      enrollments: [
+                        {
+                          orgUnit,
+                          program,
+                          enrolledAt: new Date().toISOString().split("T")[0],
+                          attributes: attributes.filter((attribute) =>
+                            [
+                              "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
+                            ].includes(attribute.attribute)
+                          ),
+                        },
+                      ],
+                      attributes,
+                      orgUnit,
+                      program,
+                    };
+                  }
+                });
+
+                return state;
+              })
+              .then(async (state) => {
+                await delay(2000);
+                return state;
+              })
+          );
+        adaptor: "@openfn/language-dhis2@5.0.1"
+        openfn:
+          uuid: 29e87d9d-53c4-47bf-885d-19a70b839120
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+        next:
+          upsert-child-teis:
+            disabled: false
+            condition: >
+              Object.keys(state?.childTeis)?.length > 0 &&
+              Object.keys(state?.parentTeis)?.length > 0
+            openfn:
+              uuid: a07cd9c9-a88e-4854-8186-23a9f98a8103
+      - id: get-patients
+        name: Get Patients
+        expression: >
+          function removeLinks(data) {
+            if (Array.isArray(data)) {
+              return data.map(removeLinks);
+            }
+
+            if (typeof data === "object" && data !== null) {
+              const { links, ...rest } = data;
+              return Object.fromEntries(
+                Object.entries(rest).map(([key, value]) => [key, removeLinks(value)])
+              );
+            }
+
+            return data;
+          }
+
+
+          function removeNulls(data) {
+            if (Array.isArray(data)) {
+              return data.filter((item) => item !== null).map(removeNulls);
+            }
+
+            if (typeof data === "object" && data !== null) {
+              const result = {};
+              for (const [key, value] of Object.entries(data)) {
+                if (value !== null) {
+                  result[key] = removeNulls(value);
+                }
+              }
+              return result;
+            }
+
+            return data;
+          }
+
+
+          cursor($.lastRunDateTime || "2025-03-20T06:01:24.000Z");
+
+
+          cursor("today", {
+            key: "lastRunDateTime",
+            format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
+          });
+
+
+          searchPatient({ q: $.msfId || "IQ", v: "full", limit: "100" });
+
+
+          fn((state) => {
+            const { cursor, data } = state;
+            console.log("Filtering patients since cursor:", cursor);
+            console.log("Patient fetched", data.results.length);
+
+            state.patients = data.results
+              .filter(({ auditInfo }) => {
+                const lastModified = auditInfo?.dateChanged || auditInfo?.dateCreated;
+                return lastModified > cursor;
+              })
+              .map((p) => {
+                const { uuid, auditInfo, identifiers, person } = removeLinks(
+                  removeNulls(p)
+                );
+                const { dateCreated } = auditInfo;
+                const { age, birthdate, gender, names, addresses, attributes } = person;
+
+                return {
+                  uuid,
+                  person: {
+                    age,
+                    birthdate,
+                    gender,
+                    names,
+                    addresses: [addresses.find((a) => a.cityVillage)],
+                    attributes,
+                  },
+                  identifiers,
+                  auditInfo: { dateCreated },
+                };
+              });
+            state.searchPatientUuids = state.patients.map((p) => p.uuid);
+            console.log("# of patients to sync to dhis2 ::", state.patients.length);
+
+            return state;
+          });
+
+
+          // Fetch all encounters
+
+          http
+            .get("/ws/fhir2/R4/Encounter", {
+              query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
+            })
+            .then((state) => {
+              const { link, total } = state.data;
+              state.nextUrl = link
+                .find((l) => l.relation === "next")
+                ?.url.replace(/(_count=)\d+/, `$1${total}`)
+                .split("/openmrs")[1];
+
+              state.allResponse = state.data;
+              return state;
+            });
+
+          fnIf(
+            $.nextUrl,
+            http.get($.nextUrl).then((state) => {
+              console.log(`Fetched ${state.data.entry.length} remaining encounters`);
+              delete state.allResponse.link;
+              state.allResponse.entry.push(...state.data.entry);
+              return state;
+            })
+          );
+
+
+          fn((state) => {
+            console.log(
+              "Total # of encounters fetched: ",
+              state.allResponse?.entry?.length
+            );
+
+            const uuids = [
+              ...new Set(
+                state.allResponse?.entry?.map((p) =>
+                  p.resource?.subject?.reference?.replace("Patient/", "")
+                )
+              ),
+            ];
+            state.encounterPatientUuids = [...new Set(uuids)];
+
+            return state;
+          });
+
+
+          fn((state) => {
+            const {
+              cursor,
+              lastRunDateTime,
+              patients,
+              searchPatientUuids,
+              encounterPatientUuids,
+            } = state;
+
+            const onlyInSearchPatient = searchPatientUuids.filter(
+              (id) => !encounterPatientUuids.includes(id)
+            );
+
+            const onlyInR4Encounter = encounterPatientUuids.filter(
+              (id) => !searchPatientUuids.includes(id)
+            );
+            const inbothResults = searchPatientUuids.filter((id) =>
+              encounterPatientUuids.includes(id)
+            );
+            const patientUuids = [
+              ...new Set([...searchPatientUuids, ...encounterPatientUuids]),
+            ];
+
+            console.log("inbothResults", inbothResults.length);
+            console.log("patient-search-array", onlyInSearchPatient.length);
+            console.log("r4-encounter-array", onlyInR4Encounter.length);
+            console.log("combined uuids", patientUuids.length);
+
+            return { cursor, lastRunDateTime, patients, patientUuids };
+          });
+        adaptor: "@openfn/language-openmrs@4.3.0"
+        openfn:
+          uuid: 9cc0cbea-ba1a-4555-83a1-a191944f303e
+          project_credential_id: efd2a233-caf8-4346-bc0c-6a25c24e1a08
+        next:
+          mappings:
+            disabled: false
+            openfn:
+              uuid: 704bb712-f0be-4199-83b8-c84a3da5feb5
+      - id: mappings
+        name: Mappings
+        expression: >
+          const isValidUUID = (id) => {
+            if (!id || typeof id !== "string") return false;
+
+            const UUID_PATTERN =
+              /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            return UUID_PATTERN.test(id);
+          };
+
+
+          collections.get("mosul-metadata-mappings-main").then((state) => {
+            state.optsMap = state.data
+              .filter((i) => i.key.includes("optsMap-value-"))
+              .map((i) => i.value);
+
+            state.identifiers = state.data
+              .filter((i) => i.key.includes("identifiers-value-"))
+              .map((i) => i.value);
+            state.syncedAt = state.data.find((i) => i.key === "syncedAt")?.value;
+            state.formMetadata = state.data.find((i) => i.key === "formMetadata")?.value;
+            state.placeOflivingMap = state.data.find(
+              (i) => i.key === "placeOflivingMap"
+            )?.value;
+            state.sourceFile = state.data.filter(
+              (i) => i.key === "sourceFile"
+            )?.[0]?.value;
+            state.fileDateModified = state.data.filter(
+              (i) => i.key === "fileDateModified"
+            )?.[0]?.value;
+            state.formMaps = state.data.find((i) => i.key === "formMaps")?.value;
+
+            // TODO: Remove state.optionSetKey, when needed
+            // Build from state.formMaps
+            state.optionSetKey = state.data.filter(
+              (i) => i.key === "optionSetKey"
+            )?.[0]?.value;
+
+            delete state.data;
+            delete state.references;
+            return state;
+          });
+
+
+          fn((state) => {
+            const { formMetadata, identifiers, ...rest } = state;
+
+            rest.v2FormUuids = formMetadata
+              .filter(
+                (form) =>
+                  isValidUUID(form["OMRS form.uuid"]) &&
+                  form["OMRS Form Version"] === "v4-2025"
+              )
+              .map((form) => form["OMRS form.uuid"]);
+            rest.formUuids = formMetadata
+              .filter(
+                (form) =>
+                  isValidUUID(form["OMRS form.uuid"]) && form["Workflow"] === "WF2"
+              )
+              .map((form) => form["OMRS form.uuid"]);
+
+            rest.patientProgramStage = "vN61drMkGqO";
+
+            rest.orgUnit = "sUpt0j2GmBD";
+            // rest.orgUnit = identifiers.find(i => i.type === 'ORG_UNIT')?.[
+            //   'dhis2 attribute id'
+            // ];
+            rest.program = "dWdzxMuKa8Z";
+            // rest.program = identifiers.find(i => i.type === 'PROGRAM')?.[
+            //   'dhis2 attribute id'
+            // ];
+            // rest.patientProgramStage = state.formMaps.patient.programStage;
+
+            rest.dhis2PatientNumber = identifiers.find(
+              (i) => i.type === "DHIS2_PATIENT_NUMBER"
+            )?.["omrs identifierType"]; //DHIS2 ID or DHIS2 Patient Number
+
+            rest.openmrsAutoId = identifiers.find((i) => i.type === "OPENMRS_AUTO_ID")?.[
+              "omrs identifierType"
+            ]; //MSF ID or OpenMRS Patient Number
+
+            return rest;
+          });
+        adaptor: "@openfn/language-common@2.1.1"
+        openfn:
+          uuid: 0a6f5426-9c6d-4214-8e05-55cb9e368e14
+          project_credential_id: 90cddfa1-9b77-4625-a812-2a04d061522c
+        next:
+          upsert-teis:
+            disabled: false
+            condition: |
+              state.patients.length > 0 && !state.errors
+            openfn:
+              uuid: 5953cda9-d8c3-454a-8a05-aac6c9c07eb5
+          get-encounters:
+            disabled: false
+            condition: |
+              !state.errors && state.patients.length === 0
+            openfn:
+              uuid: 0fd2390e-6faf-4da6-8d4a-220685fe22ae
+      - id: trigger
+        type: cron
+        openfn:
+          enabled: false
+          uuid: d10691b1-666f-4e0f-8064-40d4ce8fdc32
+          cron_expression: 0 0 * * *
+        next:
+          get-patients:
+            disabled: false
+            condition: true
+            openfn:
+              uuid: e5a1e40b-a435-495b-8260-3ddf4e4b6f95
+      - id: update-teis
+        name: Update TEIs
+        expression: |
+          // Update TEIs
+          create(
+            "tracker",
+            { trackedEntities: $.teisToUpdate },
+            { params: { async: false, importStrategy: "UPDATE" } }
+          );
+
+          fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
+        adaptor: "@openfn/language-dhis2@5.0.1"
+        openfn:
+          uuid: 3d50b0ba-7959-4a1b-8468-99ffd140a2ba
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
       - id: upsert-child-teis
         name: Upsert Child TEIs
         expression: >
@@ -4770,18 +4515,271 @@ workflows:
         adaptor: "@openfn/language-dhis2@5.0.1"
         openfn:
           uuid: ba3e1803-acd8-4fe0-849f-6e0f4d120afd
-          project_credential_id: null
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
         next:
           create-teis-relationship:
             disabled: false
             openfn:
               uuid: b5de09be-bff1-45fb-8726-ad8e8e02c2ca
+      - id: upsert-teis
+        name: Upsert TEIs
+        expression: >
+          function chunkArray(array, size) {
+            const chunks = [];
+            for (let i = 0; i < array.length; i += size) {
+              chunks.push(array.slice(i, i + size));
+            }
+            return chunks;
+          }
+
+
+          const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
+            const genderMap = {
+              M: "male",
+              O: "unknown",
+              F: "female",
+              U: "unknown",
+            };
+            const {
+              orgUnit,
+              program,
+              optsMap,
+              formMaps,
+              placeOflivingMap,
+              patientProgramStage,
+              dhis2PatientNumber,
+              openmrsAutoId,
+            } = mappingConfig;
+
+            const enrolledAt = omrsPatient.auditInfo.dateCreated.substring(0, 10);
+            const findIdentifierByUuid = (identifiers, targetUuid) =>
+              identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
+
+            const findAttrValue = (uuid) => {
+              return omrsPatient.person.attributes.find(
+                (a) => a.attributeType.uuid === uuid
+              )?.value;
+            };
+
+            const findOptCodeByUuid = (uuid) => {
+              const optionKey = `patient-${uuid}`;
+              const matchingOptionSet = state.optionSetKey[optionKey];
+              return optsMap.find((o) => o["value.uuid - External ID"] === uuid &&
+                  o["DHIS2 Option Set UID"] === matchingOptionSet)?.[
+                "DHIS2 Option Code"
+              ];
+            };
+
+            const findOptCode = (attrValue) => {
+              if (typeof attrValue === "string") {
+                return attrValue
+                // return findOptCodeByUuid(attrValue);
+              }
+              if (typeof attrValue === "object") {
+                const { uuid, display } = attrValue;
+                const optCodeByDisplay = optsMap.find(
+                  (o) =>
+                    o["value.uuid - External ID"] === uuid &&
+                    o["value.display - Answers"] === display
+                )?.["DHIS2 Option Code"];
+
+                // return optCodeByDisplay ?? findOptCodeByUuid(uuid);
+                return findOptCodeByUuid(uuid) ?? optCodeByDisplay;
+
+              }
+              return null;
+            };
+
+            const patientMap = formMaps.patient.dataValueMap;
+            const statusAttrMaps = Object.keys(patientMap).map((d) => {
+              const attrValue = findAttrValue(patientMap[d]);
+              if (!findOptCode(attrValue)) {
+                console.log({attrValue})
+              }
+              return {
+                attribute: d,
+                value: findOptCode(attrValue),
+              };
+            });
+
+            const standardAttr = [
+              {
+                attribute: "fa7uwpCKIwa",
+                value: omrsPatient.person?.names[0]?.givenName,
+              },
+              {
+                attribute: "Jt9BhFZkvP2",
+                value: omrsPatient.person?.names[0]?.familyName,
+              },
+              {
+                attribute: "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
+                value:
+                  findIdentifierByUuid(omrsPatient.identifiers, dhis2PatientNumber) ||
+                  findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId), //map OMRS ID if no DHIS2 id
+              },
+              {
+                attribute: "ZBoxuExmxcZ", //MSF ID ==> "OpenMRS Patient Number"
+                value: findIdentifierByUuid(omrsPatient.identifiers, openmrsAutoId),
+              },
+              {
+                attribute: "AYbfTPYMNJH", //"OpenMRS Patient UID"
+                value: omrsPatient.uuid,
+              },
+
+              {
+                attribute: "T1iX2NuPyqS",
+                value: omrsPatient.person.age,
+              },
+              {
+                attribute: "WDp4nVor9Z7",
+                value: omrsPatient.person.birthdate?.slice(0, 10),
+              },
+              {
+                attribute: "rBtrjV1Mqkz", //Place of living
+                value: placeOflivingMap[omrsPatient.person?.addresses[0]?.cityVillage],
+              },
+            ];
+
+            //filter out attributes that don't have a value from dhis2
+            const filteredAttr = standardAttr.filter((a) => a.value);
+            const filteredStatusAttr = statusAttrMaps.filter((a) => a.value);
+
+            const payload = {
+              program,
+              orgUnit,
+              attributes: [...filteredAttr, ...filteredStatusAttr],
+            };
+            // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
+            const enrollments = [
+              {
+                orgUnit,
+                program,
+                enrolledAt,
+                programStage: patientProgramStage, //'MdTtRixaC1B',
+              },
+            ];
+
+            if (!patientTei) {
+              payload.trackedEntityType = "cHlzCA2MuEF";
+
+              payload.attributes.push({
+                attribute: "qptKDiv9uPl",
+                value: genderMap[omrsPatient.person.gender],
+              });
+              console.log("create enrollment");
+              payload.enrollments = enrollments;
+            }
+
+            if (patientTei) {
+              payload.trackedEntity = patientTei.trackedEntity;
+              payload.trackedEntityType = patientTei.trackedEntityType;
+            }
+
+            return payload;
+          };
+
+
+          const delay = (ms) => new Promise((resolve) => setTimeout(resolve,
+          ms));
+
+
+          each(
+            (state) => chunkArray(state.patients, 200),
+            get("tracker/trackedEntities", {
+              orgUnit: $.orgUnit,
+              filter: (state) => [
+                `AYbfTPYMNJH:IN:${state.data.map((patient) => patient.uuid).join(";")}`,
+              ],
+              program: $.program,
+              fields: "*",
+            }).then((state) => {
+              state.foundTrackedEntities ??= [];
+              state.foundTrackedEntities.push(...state.data.instances);
+              return state;
+            })
+          );
+
+
+          fn((state) => {
+            const findTeiByUuid = (patientUuid) => {
+              return state.foundTrackedEntities.find((tei) => {
+                return (
+                  tei.attributes.find(
+                    (attribute) => attribute.attribute === "AYbfTPYMNJH"
+                  )?.value === patientUuid
+                );
+              });
+            };
+
+            state.patientsMapping = state.patients.map((patient) => {
+              const patientTei = findTeiByUuid(patient.uuid);
+              
+              const mapping = buildTeiMapping(patient, patientTei, {
+                placeOflivingMap: state.placeOflivingMap,
+                orgUnit: state.orgUnit,
+                program: state.program,
+                patientProgramStage: state.patientProgramStage,
+                formMaps: state.formMaps,
+                optsMap: state.optsMap,
+                dhis2PatientNumber: state.dhis2PatientNumber,
+                openmrsAutoId: state.openmrsAutoId,
+              });
+
+              // Filter out null attributes or values
+              mapping.attributes = mapping.attributes.filter(
+              attr => attr.attribute != null && attr.attribute !== '' && 
+                      attr.value != null && attr.value !== ''
+              );
+
+              return mapping;
+          });
+            return state;
+          });
+
+
+          //Bulk upsert
+
+          create(
+            "tracker",
+            { trackedEntities: $.patientsMapping },
+            {
+              params: {
+                atomicMode: "ALL",
+                importStrategy: "CREATE_AND_UPDATE",
+                async: false,
+              },
+            }
+          );
+
+          fn((state) => {
+            const {
+              data,
+              response,
+              references,
+              patients,
+              patientsUpsert,
+              placeOflivingMap,
+              identifiers,
+              ...next
+            } = state;
+            next.patientUuids = patients.map((p) => p.uuid);
+            return next;
+          });
+        adaptor: "@openfn/language-dhis2@5.0.1"
+        openfn:
+          uuid: 5f47a65c-b739-46d7-8fa3-8a722458d4a3
+          project_credential_id: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+        next:
+          get-encounters:
+            disabled: false
+            condition: |
+              state.patientUuids.length > 0 && !state.errors
+            openfn:
+              uuid: 26954f83-daed-4f98-8011-c2c5bc24ecd3
+    history: []
     openfn:
       uuid: 648e9d15-3ccf-4751-aa83-94627d6de843
-      concurrency: null
       inserted_at: 2025-09-23T16:10:21Z
-      updated_at: 2025-12-08T17:57:21Z
-      lock_version: 34
-      deleted_at: null
+      updated_at: 2025-12-16T11:10:50Z
+      lock_version: 57
     id: wf2-omrs-dhis2
-    history: []
