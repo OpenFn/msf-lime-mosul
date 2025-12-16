@@ -326,7 +326,6 @@ workflows:
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf3-omrs-dhis2/upsert-teis.js
-
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
         adaptor: '@openfn/language-dhis2@5.0.1'
@@ -422,7 +421,7 @@ workflows:
         condition_type: js_expression
         condition_label: has-encounters
         condition_expression: |
-          !state.errors && state?.encounters?.length > 0
+          !state.errors && state?.latestEncountersByVisit?.length > 0
 
         enabled: true
       cron->Get-Patients:

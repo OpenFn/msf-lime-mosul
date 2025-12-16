@@ -36,8 +36,8 @@ function f8(encounter) {
   )?.value;
 
   if (!obsDatetime) return [];
-  const datePart = obsDatetime.substring(0, 10);
-  const timePart = obsDatetime.substring(11, 19);
+  const datePart = obsDatetime?.substring(0, 10);
+  const timePart = obsDatetime?.substring(11, 19);
   return [
     {
       dataElement: "iQio7NYSA3m",
@@ -56,8 +56,8 @@ function f27(encounter) {
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
   if (!admissionDate) return [];
-  const timePart = admissionDate.substring(11, 19);
-  const datePart = admissionDate.replace("+0000", "");
+  const timePart = admissionDate?.substring(11, 19);
+  const datePart = admissionDate?.replace("+0000", "");
   return [
     {
       dataElement: "eYvDzr2m8f5",
@@ -130,8 +130,8 @@ function f41(encounter) {
   //TODO: set date component to eventDate attribute
   //TODO: use that when setting OccuredAt
   //TODO: Apply the same changes for f27
-  const timePart = obsDatetime.substring(11, 19);
-  const datePart = obsDatetime.replace("+0000", "");
+  const timePart = obsDatetime?.substring(11, 19);
+  const datePart = obsDatetime?.replace("+0000", "");
 
   return [
     {
@@ -174,8 +174,8 @@ function f43(encounter, tei) {
     (attr) => attr.attribute === "WDp4nVor9Z7"
   )?.value;
 
-  const datePart = obsDatetime.substring(0, 10);
-  const timePart = obsDatetime.substring(11, 19);
+  const datePart = obsDatetime?.substring(0, 10);
+  const timePart = obsDatetime?.substring(11, 19);
 
   if (obsDatetime) {
     mappings.push(

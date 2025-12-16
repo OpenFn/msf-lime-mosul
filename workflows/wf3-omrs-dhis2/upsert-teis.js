@@ -1,3 +1,11 @@
+function chunkArray(array, size) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
+
 const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   const genderMap = {
     M: "male",
@@ -20,13 +28,13 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
   const findIdentifierByUuid = (identifiers, targetUuid) =>
     identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
 
-  const findOptsUuid = (uuid) =>
-    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
-      ?.value?.uuid ||
-    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
-      ?.value;
+  const findAttrValue = (uuid) => {
+    return omrsPatient.person.attributes.find(
+      (a) => a.attributeType.uuid === uuid
+    )?.value;
+  };
 
-  const findOptCode = (uuid) => {
+  const findOptCodeByUuid = (uuid) => {
     const optionKey = `patient-${uuid}`;
     const matchingOptionSet = state.optionSetKey[optionKey];
     return optsMap.find((o) => o["value.uuid - External ID"] === uuid &&
@@ -35,12 +43,35 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
     ];
   };
 
+  const findOptCode = (attrValue) => {
+    if (typeof attrValue === "string") {
+      return attrValue
+      // return findOptCodeByUuid(attrValue);
+    }
+    if (typeof attrValue === "object") {
+      const { uuid, display } = attrValue;
+      const optCodeByDisplay = optsMap.find(
+        (o) =>
+          o["value.uuid - External ID"] === uuid &&
+          o["value.display - Answers"] === display
+      )?.["DHIS2 Option Code"];
+
+      // return optCodeByDisplay ?? findOptCodeByUuid(uuid);
+      return findOptCodeByUuid(uuid) ?? optCodeByDisplay;
+
+    }
+    return null;
+  };
+
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
-    const optUid = findOptsUuid(patientMap[d]);
+    const attrValue = findAttrValue(patientMap[d]);
+    if (!findOptCode(attrValue)) {
+      console.log({attrValue})
+    }
     return {
       attribute: d,
-      value: findOptCode(optUid) || optUid,
+      value: findOptCode(attrValue),
     };
   });
 
@@ -92,24 +123,27 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
     attributes: [...filteredAttr, ...filteredStatusAttr],
   };
   // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
+  const enrollments = [
+    {
+      orgUnit,
+      program,
+      enrolledAt,
+      programStage: patientProgramStage, //'MdTtRixaC1B',
+    },
+  ];
 
   if (!patientTei) {
     payload.trackedEntityType = "cHlzCA2MuEF";
-    const enrollments = [
-      {
-        orgUnit,
-        program,
-        enrolledAt,
-        programStage: patientProgramStage, //'MdTtRixaC1B',
-      },
-    ];
+
     payload.attributes.push({
       attribute: "qptKDiv9uPl",
       value: genderMap[omrsPatient.person.gender],
     });
     console.log("create enrollment");
     payload.enrollments = enrollments;
-  } else {
+  }
+
+  if (patientTei) {
     payload.trackedEntity = patientTei.trackedEntity;
     payload.trackedEntityType = patientTei.trackedEntityType;
   }
@@ -119,17 +153,25 @@ const buildTeiMapping = (omrsPatient, patientTei, mappingConfig) => {
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-get("tracker/trackedEntities", {
-  orgUnit: $.orgUnit,
-  filter: (state) => [
-    `AYbfTPYMNJH:IN:${state.patients.map((patient) => patient.uuid).join(";")}`,
-  ],
-  program: $.program,
-});
+each(
+  (state) => chunkArray(state.patients, 200),
+  get("tracker/trackedEntities", {
+    orgUnit: $.orgUnit,
+    filter: (state) => [
+      `AYbfTPYMNJH:IN:${state.data.map((patient) => patient.uuid).join(";")}`,
+    ],
+    program: $.program,
+    fields: "*",
+  }).then((state) => {
+    state.foundTrackedEntities ??= [];
+    state.foundTrackedEntities.push(...state.data.instances);
+    return state;
+  })
+);
 
 fn((state) => {
   const findTeiByUuid = (patientUuid) => {
-    return state.data.instances.find((tei) => {
+    return state.foundTrackedEntities.find((tei) => {
       return (
         tei.attributes.find(
           (attribute) => attribute.attribute === "AYbfTPYMNJH"
@@ -140,8 +182,8 @@ fn((state) => {
 
   state.patientsMapping = state.patients.map((patient) => {
     const patientTei = findTeiByUuid(patient.uuid);
-
-    return buildTeiMapping(patient, patientTei, {
+    
+    const mapping = buildTeiMapping(patient, patientTei, {
       placeOflivingMap: state.placeOflivingMap,
       orgUnit: state.orgUnit,
       program: state.program,
@@ -151,23 +193,30 @@ fn((state) => {
       dhis2PatientNumber: state.dhis2PatientNumber,
       openmrsAutoId: state.openmrsAutoId,
     });
-  });
 
+    // Filter out null attributes or values
+    mapping.attributes = mapping.attributes.filter(
+    attr => attr.attribute != null && attr.attribute !== '' && 
+            attr.value != null && attr.value !== ''
+    );
+
+    return mapping;
+});
   return state;
 });
 
-// Bulk upsert
+//Bulk upsert
 create(
   "tracker",
   { trackedEntities: $.patientsMapping },
   {
     params: {
       atomicMode: "ALL",
+      importStrategy: "CREATE_AND_UPDATE",
       async: false,
     },
   }
 );
-
 fn((state) => {
   const {
     data,
