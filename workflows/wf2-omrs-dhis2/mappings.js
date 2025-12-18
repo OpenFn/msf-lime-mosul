@@ -1,3 +1,18 @@
+const dhis2Map = {
+  attr: {
+    ageInMonth: "ihH5ur7jquC",
+    firstName: "fa7uwpCKIwa",
+    lastName: "Jt9BhFZkvP2",
+    patientNumber: "P4wdYGkldeG", //DHIS2 ID -> "Patient Number"
+    omrsPatientNumber: "ZBoxuExmxcZ", //MSF ID -> "OpenMRS Patient Number"
+    omrsPatientUuid: "AYbfTPYMNJH", //"OpenMRS Patient UID"
+    ageInYears: "T1iX2NuPyqS",
+    birthdate: "WDp4nVor9Z7",
+    placeOflivingMap: "rBtrjV1Mqkz", //Place of living
+    sex: "qptKDiv9uPl",
+  },
+};
+
 const isValidUUID = (id) => {
   if (!id || typeof id !== "string") return false;
 
@@ -6,7 +21,7 @@ const isValidUUID = (id) => {
   return UUID_PATTERN.test(id);
 };
 
-collections.get("mosul-metadata-mappings-main").then((state) => {
+collections.get("mosul-metadata-mappings-staging").then((state) => {
   state.optsMap = state.data
     .filter((i) => i.key.includes("optsMap-value-"))
     .map((i) => i.value);
@@ -75,5 +90,6 @@ fn((state) => {
     "omrs identifierType"
   ]; //MSF ID or OpenMRS Patient Number
 
+  rest.dhis2Map = dhis2Map;
   return rest;
 });

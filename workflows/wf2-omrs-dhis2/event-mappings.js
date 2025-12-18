@@ -1,5 +1,6 @@
 const findAnswerByConcept = (encounter, conceptUuid) => {
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  //Mtuchi: Todo need to filter from optsMaps
   return answer?.value?.display;
 };
 
@@ -645,16 +646,20 @@ function mapF59(encounter, metadataMap) {
     "f501e482-d6cd-45d7-be5d-ef6e09461380"
   );
 
+  const dischargeDate = encounter.obs.find(
+    (o) => o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d"
+  )?.value;
+
   const usedDrug = findAnswerByConcept(
     encounter,
     "30837713-453e-4456-ac48-b3886acf02ac"
   );
-  const typeOfExit = findObsByConcept(
+  const typeOfExit = findAnswerByConcept(
     encounter,
     "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
   );
 
-  const typeOfExitOther = findObsByConcept(
+  const typeOfExitOther = findAnswerByConcept(
     encounter,
     "790b41ce-e1e7-11e8-b02f-0242ac130002"
   );
@@ -662,35 +667,36 @@ function mapF59(encounter, metadataMap) {
   return {
     event,
     programStage: "sBepdVG2c9O",
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
     dataValues: [
       {
-        dataElement: "Nfd45uVy6lc",
+        dataElement: "Nfd45uVy6lc", // TODO @Aisha not part of sBepdVG2c9O program stage
         value: ["full time", "part time"].some((keyword) =>
-          typeOfIncome.toLowerCase().includes(keyword)
+          typeOfIncome?.toLowerCase()?.includes(keyword)
         )
           ? "Employment"
           : null,
       },
 
       {
-        dataElement: "Ir0qLWsNv4n",
+        dataElement: "Ir0qLWsNv4n", // TODO @Aisha not part of sBepdVG2c9O program stage
         value: ["in the past", "currently"].some((keyword) =>
-          usedDrug.toLowerCase().includes(keyword)
+          usedDrug?.toLowerCase()?.includes(keyword)
         )
           ? "Yes"
-          : "No",
+          : null,
       },
       {
         dataElement: "JvgfNjNklmI",
-        value: encounter.encounterDatetime.replace("+0000", ""),
+        value: dischargeDate,
       },
       {
         dataElement: "LhgHv4gjW18",
-        value: typeOfExit?.value?.display,
+        value: typeOfExit,
       },
       {
         dataElement: "k64e6bcyPtH",
-        value: typeOfExitOther?.value?.display,
+        value: typeOfExitOther,
       },
     ],
   };
@@ -699,30 +705,35 @@ function mapF59(encounter, metadataMap) {
 function mapF60(encounter, metadataMap) {
   const { events } = metadataMap;
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
-  const typeOfExit = findObsByConcept(
+  const typeOfExit = findAnswerByConcept(
     encounter,
     "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
   );
 
-  const typeOfExitOther = findObsByConcept(
+  const typeOfExitOther = findAnswerByConcept(
     encounter,
     "790b41ce-e1e7-11e8-b02f-0242ac130002"
   );
+  const dischargeDate = encounter.obs.find(
+    (o) => o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d"
+  )?.value;
+
   return {
     event,
     programStage: "sBepdVG2c9O",
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
     dataValues: [
       {
         dataElement: "JvgfNjNklmI",
-        value: encounter.encounterDatetime.replace("+0000", ""),
+        value: dischargeDate,
       },
       {
         dataElement: "LhgHv4gjW18",
-        value: typeOfExit?.value?.display,
+        value: typeOfExit,
       },
       {
         dataElement: "k64e6bcyPtH",
-        value: typeOfExitOther?.value?.display,
+        value: typeOfExitOther,
       },
     ],
   };
@@ -1112,6 +1123,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     dataElement === "pN4iQH4AEzk"
   ) {
     console.log("Yes done by psychologist..");
+
     return "" + answer.value.uuid === "278401ee-3d6f-4c65-9455-f1c16d0a7a98";
   }
 
@@ -1132,8 +1144,6 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
 
     const matchingOptionSet = optionSetKey[optionKey];
-    console.log("matchingOptionSet:", matchingOptionSet);
-    console.log("Answer:", answer.value.uuid);
 
     const opt = optsMap.find(
       (o) =>
@@ -1141,7 +1151,14 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
+    console.log("<-");
+    console.log("optionKey", optionKey);
+    console.log("matchingOptionSet:", matchingOptionSet);
+    console.log("Answer Uuid:", answer.value.uuid);
+    console.log("Answer Display Value:", answer.value.display);
     console.log("Opt:", opt);
+    console.log("->");
+
     const matchingOption =
       opt?.["DHIS2 Option Code"] ||
       opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
@@ -1193,44 +1210,45 @@ const buildExitEvent = (encounter, tei) => {
     enrollment,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
+  console.log(encounter.form.name)
 
-  if (encounter.form.description.includes("F56-HBV Follow-up")) {
+  if (encounter.form.name.includes("F56-HBV Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF56(encounter, { events }),
     };
   }
-  if (encounter.form.description.includes("F58-HCV Follow-up")) {
+  if (encounter.form.name.includes("F58-HCV Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF58(encounter, { events }),
     };
   }
-  if (encounter.form.description.includes("F59-Social Work Baseline")) {
+  if (encounter.form.name.includes("F59-Social Work Baseline")) {
     exitEvent = {
       ...mapping,
       ...mapF59(encounter, { events }),
     };
   }
-  if (encounter.form.description.includes("F60-Social Work Follow-up")) {
+  if (encounter.form.name.includes("F60-Social Work Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF60(encounter, { events }),
     };
   }
-  if (encounter.form.description.includes("F61-Travel medicine")) {
+  if (encounter.form.name.includes("F61-Travel medicine")) {
     exitEvent = {
       ...mapping,
       ...mapF61(encounter, { events }),
     };
   }
-  if (encounter.form.description.includes("F62-Palliative care Baseline")) {
+  if (encounter.form.name.includes("F62-Palliative care Baseline")) {
     exitEvent = {
       ...mapping,
       ...mapF62(encounter, { events }),
     };
   }
-  if (encounter.form.description.includes("F63-Palliative care Follow-up")) {
+  if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF63(encounter, { events }),
@@ -1254,9 +1272,12 @@ fn((state) => {
 
     state.missingRecords[uuid].encounters.push(data.uuid);
   };
+  console.log("Total encounters:", state.encounters.length);
 
   state.eventsMapping = state.encounters
-    .map((encounter) => {
+    .map((encounter, index) => {
+      console.log(`Processing encounter ${index}:`, encounter.form.uuid);
+
       const form = state.formMaps[encounter.form.uuid];
       if (!form?.dataValueMap) {
         return null;
@@ -1268,9 +1289,15 @@ fn((state) => {
         state.childTeis[patientOuProgram] || {};
 
       if (!trackedEntity || !enrollment) {
+        console.log(
+          `❌ Missing TEI data for patient ${encounter.patient.uuid}`
+        );
+
         handleMissingRecord(encounter, state);
         return null;
       }
+      console.log(`✅ Processing encounter ${index} successfully`);
+
       let formDataValues = Object.keys(form.dataValueMap)
         .map((dataElement) => {
           const value = findDataValue(encounter, dataElement, {
@@ -1324,6 +1351,7 @@ fn((state) => {
         enrollment,
         events,
       });
+      console.log({exitFormEvent})
 
       const mappings = [formEvent, exitFormEvent];
 
@@ -1331,6 +1359,14 @@ fn((state) => {
     })
     .flat()
     .filter(Boolean);
+  console.log("Final eventsMapping length:", state.eventsMapping.length);
 
   return state;
+  return {
+    eventsMapping: state.eventsMapping,
+    encounters: state.encounters,
+    optsMap: state.optsMap,
+    optionSetKey: state.optionSetKey,
+    formMaps: state.formMaps,
+  };
 });

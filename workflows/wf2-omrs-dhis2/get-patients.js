@@ -144,10 +144,11 @@ fn((state) => {
     ...new Set([...searchPatientUuids, ...encounterPatientUuids]),
   ];
 
-  console.log("inbothResults", inbothResults.length);
-  console.log("patient-search-array", onlyInSearchPatient.length);
-  console.log("r4-encounter-array", onlyInR4Encounter.length);
-  console.log("combined uuids", patientUuids.length);
+  console.log({ inbothResults });
+  console.log("In both searchPatient() && R4/Encounter", inbothResults.length);
+  console.log("searchPatient() only", onlyInSearchPatient.length);
+  console.log("R4/Encounter only", onlyInR4Encounter.length);
+  console.log("searchPatient() + R4/Encounter Uuids", patientUuids.length);
 
   return { cursor, lastRunDateTime, patients, patientUuids };
 });

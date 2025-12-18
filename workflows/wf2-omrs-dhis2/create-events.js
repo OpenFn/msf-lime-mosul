@@ -1,6 +1,10 @@
 const buildTeiUrl = (baseUrl, { trackedEntity, program, orgUnit }) => {
   return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${trackedEntity}&program=${program}&ou=${orgUnit}`;
 };
+
+const buildEventsUrl = (baseUrl, { program, orgUnit }) => {
+  return `${baseUrl}/dhis-web-capture/index.html#/?orgUnitId=${orgUnit}&programId=${program}`;
+};
 // Create or update events for each encounter
 create(
   "tracker",
@@ -25,8 +29,9 @@ create(
           program,
           orgUnit,
         });
+        const eventsUrl = buildEventsUrl(baseUrl, { program, orgUnit });
 
-        console.log({ events, teiUrl });
+        console.log({ events, teiUrl, eventsUrl });
       });
       return state.eventsMapping;
     },

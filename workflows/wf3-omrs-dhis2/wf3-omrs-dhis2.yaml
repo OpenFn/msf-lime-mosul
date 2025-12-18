@@ -23,20 +23,20 @@ steps:
       get-teis-and-map-answers:
         disabled: false
         condition: |
-          !state.errors && state?.latestEncountersByVisit?.length > 0
+          !state.errors && state?.encountersPatientUuids?.length > 0
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
     adaptor: "@openfn/language-common@2.3.0"
     expression: ./get-mappings-from-collection.js
     next:
-      get-encounters:
-        disabled: false
-        condition: |
-          !state.errors && state.patients.length === 0
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"

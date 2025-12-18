@@ -3,7 +3,14 @@ create(
   {
     trackedEntities: (state) => {
       const childTeis = Object.values(state.childTeis).map(
-        ({ relationshipType, ...tei }) => tei
+        ({ relationshipType, ...tei }) => {
+          // Skip enrollment creation for program without registration
+          if (tei.program === "od0M4kEn5Rp" && tei.enrollments) {
+            const { enrollments, ...teiWithoutEnrollments } = tei;
+            return teiWithoutEnrollments;
+          }
+          return tei;
+        }
       );
       return childTeis;
     },
@@ -52,15 +59,21 @@ each(
         form.orgUnit === orgUnit &&
         form.formName !== "F00-Registration"
     )?.relationshipId;
+
+// Skip enrollment creation for program without registration
+    const skipEnrollment = program === "od0M4kEn5Rp";
+    
+
     state.childTeis ??= {};
     state.childTeis[`${orgUnit}-${program}-${patientUuid}`] = {
       relationshipType,
       trackedEntity,
       events: enrollments?.[0]?.events ?? events,
-      enrollment: enrollments?.[0]?.enrollment,
+      enrollment: skipEnrollment ? null : enrollments?.[0]?.enrollment,
       attributes,
       orgUnit,
       program,
+      skipEnrollment
     };
 
     return state;
