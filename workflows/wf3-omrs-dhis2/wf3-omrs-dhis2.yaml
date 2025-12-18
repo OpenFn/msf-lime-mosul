@@ -23,7 +23,7 @@ steps:
       get-teis-and-map-answers:
         disabled: false
         condition: |
-          !state.errors && state?.encounters?.length > 0
+          !state.errors && state?.latestEncountersByVisit?.length > 0
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
     adaptor: "@openfn/language-common@2.3.0"
