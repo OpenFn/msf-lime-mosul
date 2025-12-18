@@ -22,7 +22,6 @@ const findTeiByPatientUuid = (
     return true;
   });
 };
-
 fn((state) => {
   // Group encounters by patient UUID
   state.encountersByPatient = state.encounters.reduce((acc, obj) => {
@@ -51,10 +50,11 @@ get("tracker/trackedEntities", {
 });
 
 fn((state) => {
-  const encountersPatient = Object.keys(state.encountersByPatient);
-  encountersPatient.forEach((patientUuid) => {
+  state.parentTeis ??= {};
+  state.missingParentTeis ??= {};
+
+  Object.keys(state.encountersByPatient).forEach((patientUuid) => {
     const parentTei = findTeiByPatientUuid(patientUuid, state.data.instances);
-    const patientOuProgram = `${state.orgUnit}-${state.program}-${patientUuid}`;
     if (parentTei?.trackedEntity) {
       console.log("Parent TEI found:", parentTei.trackedEntity);
 
@@ -73,23 +73,21 @@ fn((state) => {
   state.childPrograms = state.encounters.reduce((acc, obj) => {
     const formUuid = obj.form.uuid;
     const patientUuid = obj.patient.uuid;
-    const orgUnit = state.formMaps[formUuid]?.orgUnit;
-    const program = state.formMaps[formUuid]?.programId;
-    const relationshipType = state.formMaps[formUuid]?.relationshipId;
-    const encounterKey = `${orgUnit}-${program}`;
+    const orgUnit = state.formMaps[formUuid].orgUnit;
+    const program = state.formMaps[formUuid].programId;
+    const key = `${orgUnit}-${program}`;
     const parentKey = `${state.orgUnit}-${state.program}`;
-    if (parentKey !== encounterKey) {
-      if (!acc[encounterKey]) {
-        acc[encounterKey] = {
+    if (parentKey !== key) {
+      if (!acc[key]) {
+        acc[key] = {
           orgUnit,
           program,
-          relationshipType,
           patientUuids: [patientUuid],
         };
       }
 
-      if (!acc[encounterKey].patientUuids.includes(patientUuid)) {
-        acc[encounterKey].patientUuids.push(patientUuid);
+      if (!acc[key].patientUuids.includes(patientUuid)) {
+        acc[key].patientUuids.push(patientUuid);
       }
     }
 
@@ -113,54 +111,76 @@ each(
     };
   })
     .then((state) => {
-      const { orgUnit, program, patientUuids, relationshipType } =
-        state.references.at(-1);
+      state.childTeis ??= {};
+      state.encounters
+        .filter((encounter) => {
+          const program = state.formMaps[encounter.form.uuid].programId;
+          const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
+          return state.program !== program && state.orgUnit !== orgUnit;
+        })
+        .forEach((encounter) => {
+          const patientUuid = encounter.patient.uuid;
+          const program = state.formMaps[encounter.form.uuid].programId;
+          const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
 
-      patientUuids.forEach((patientUuid) => {
-        const tei = findTeiByPatientUuid(
-          patientUuid,
-          state.data.instances,
-          program,
-          orgUnit
-        );
+          const tei = findTeiByPatientUuid(
+            patientUuid,
+            state.data.instances,
+            program,
+            orgUnit
+          );
 
-        const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
-        if (tei?.trackedEntity) {
-          console.log("Child TEI found:", tei.trackedEntity);
-          state.currChildTeis[patientOuProgram] = {
-            ...tei,
-            relationshipType,
-            orgUnit,
-            program,
-          };
-        }
-        if (!tei?.trackedEntity) {
-          console.log("Child TEI not found for patient:", patientUuid);
-          const parentTei =
-            state?.parentTeis[
-              `${state.orgUnit}-${state.program}-${patientUuid}`
-            ];
-          state.childTeisToCreate[patientOuProgram] = {
-            relationshipType,
-            trackedEntityType: parentTei?.trackedEntityType || "cHlzCA2MuEF",
-            enrollments: [
-              {
-                orgUnit,
-                program,
-                enrolledAt: new Date().toISOString().split("T")[0],
-                attributes: parentTei?.attributes.filter((attribute) =>
-                  [
-                    "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
-                  ].includes(attribute.attribute)
-                ),
-              },
-            ],
-            attributes: parentTei?.attributes || [],
-            orgUnit,
-            program,
-          };
-        }
-      });
+          const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
+          const relationshipType =
+            state.formMaps[encounter.form.uuid]?.relationshipId;
+
+          if (!relationshipType) {
+            console.log({ form: encounter.form.name });
+          }
+
+          if (tei?.trackedEntity) {
+            console.log("Child TEI found:", tei.trackedEntity);
+            state.childTeis[patientOuProgram] = {
+              relationshipType,
+              trackedEntity: tei.trackedEntity,
+              attributes: tei.attributes,
+              trackedEntityType: tei.trackedEntityType,
+              enrollments: tei.enrollments,
+              orgUnit,
+              program,
+            };
+          }
+
+          if (
+            !tei &&
+            !state.childTeis[patientOuProgram] &&
+            !state.missingParentTeis[patientUuid]
+          ) {
+            console.log("Child TEI not found for patient:", patientUuid);
+            const { attributes, trackedEntityType } =
+              state?.parentTeis[patientUuid];
+
+            state.childTeis[patientOuProgram] = {
+              relationshipType,
+              trackedEntityType,
+              enrollments: [
+                {
+                  orgUnit,
+                  program,
+                  enrolledAt: new Date().toISOString().split("T")[0],
+                  attributes: attributes.filter((attribute) =>
+                    [
+                      "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
+                    ].includes(attribute.attribute)
+                  ),
+                },
+              ],
+              attributes,
+              orgUnit,
+              program,
+            };
+          }
+        });
 
       return state;
     })

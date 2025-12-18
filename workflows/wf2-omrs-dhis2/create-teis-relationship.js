@@ -60,6 +60,7 @@ each(
     if (!hasRelationship) {
       state.relationshipsToCreate.push(relationship);
     }
+    console.log({ toCreate: state.relationshipsToCreate })
     return state;
   })
 );

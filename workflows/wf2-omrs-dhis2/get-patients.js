@@ -158,6 +158,7 @@ fn((state) => {
     ...new Set([...searchPatientUuids, ...encounterPatientUuids]),
   ];
 
+  console.log({ inbothResults });
   console.log("In both searchPatient() && R4/Encounter", inbothResults.length);
   console.log("searchPatient() only", onlyInSearchPatient.length);
   console.log("R4/Encounter only", onlyInR4Encounter.length);

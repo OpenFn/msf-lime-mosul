@@ -1,22 +1,28 @@
-// F64-specific age attributes
-const f64AgeInYearsAttr = "Rv8WM2mTuS5"; //dhis2Map.attr.ageInYears
-const f64AgeInMonthsAttr = "k26cdlS78i9";
+// Patient Attributes
+const genderAttr = "qptKDiv9uPl"
+const ageInMonthsAttr = "ihH5ur7jquC"
+const ageInYearsAttr = "T1iX2NuPyqS"
+const currentStatusAttr = "YUIQIA2ClN6"
+const legalStatusAttr = "Qq6xQ2s6LO8"
+const placeOfLivingAttr = "rBtrjV1Mqkz"
+const nationalityAttr = "Xvzc9e0JJmp"
+const patientNoAttr = "P4wdYGkldeG"
+const dobAttr = "WDp4nVor9Z7"
 
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const calculateAge = (dob) =>
   Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
 
-const teiAge = (tei, attr) => {
-  const { ageInYears, birthdate } = attr;
+const teiAge = (tei) => {
   let age = tei?.attributes?.find(
-    (attr) => attr.attribute === ageInYears
+    (attr) => attr.attribute === ageInYearsAttr
   )?.value;
 
   if (!age) {
-    const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === birthdate
+    const birthdate = tei?.attributes?.find(
+      (attr) => attr.attribute === dobAttr
     )?.value;
-    age = calculateAge(dob);
+    age = calculateAge(birthdate);
   }
   return age;
 };
@@ -27,6 +33,7 @@ const formIdByName = (name, formMaps) => {
   );
   return entry ? entry[0] : null;
 };
+
 
 const ageInDays = (dob, encounterDate) => {
   const birth = new Date(dob);
@@ -41,9 +48,10 @@ function f8(encounter) {
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
 
+
   if (obsDatetime) {
     const datePart = obsDatetime.substring(0, 10);
-    const timePart = obsDatetime.substring(11, 16);
+    const timePart = obsDatetime.substring(11, 19);
     return [
       {
         dataElement: "iQio7NYSA3m",
@@ -64,7 +72,7 @@ function f27(encounter) {
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
   if (!admissionDate) return [];
-  const timePart = admissionDate.substring(11, 16);
+  const timePart = admissionDate.substring(11, 19);
   const datePart = admissionDate.replace("+0000", "");
   return [
     {
@@ -182,7 +190,7 @@ function f41(encounter) {
   //TODO: set date component to eventDate attribute
   //TODO: use that when setting OccuredAt
   //TODO: Apply the same changes for f27
-  const timePart = obsDatetime.substring(11, 16);
+  const timePart = obsDatetime.substring(11, 19);
   const datePart = obsDatetime.replace("+0000", "");
 
   return [
@@ -223,12 +231,13 @@ function f43(encounter, tei, dhis2Attr) {
   )?.value;
 
   const birthdate = tei?.attributes?.find(
-    (attr) => attr.attribute === dhis2Attr.birthdate
+    (attr) => attr.attribute === dobAttr
   )?.value;
+
 
   if (obsDatetime) {
     const datePart = obsDatetime.substring(0, 10);
-    const timePart = obsDatetime.substring(11, 16);
+    const timePart = obsDatetime.substring(11, 19);
     mappings.push(
       {
         dataElement: "tR7XL9TPVkr",
@@ -970,6 +979,8 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   return "";
 };
 
+
+
 const buildDataValues = (encounter, tei, mappingConfig) => {
   const {
     optsMap,
@@ -1003,14 +1014,14 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     // F09 Form Encounter Mapping
 
     const attributeMap = {
-      Lg1LrNf9LQR: dhis2Map.attr.sex,
-      OVo3FxLURtH: dhis2Map.attr.ageInMonth,
-      f3n6kIB9IbI: dhis2Map.attr.ageInYears, // TODO:we see this in metadata "Rv8WM2mTuS5",
-      oc9zlhOoWmP: dhis2Map.attr.currentStatus,
-      DbyD9bbGIvE: dhis2Map.attr.legalStatus,
-      fiPFww1viBB: dhis2Map.attr.placeOfLivingAttr,
-      FsL5BjQocuo: dhis2Map.attr.nationalityAttr,
-      Pi1zytYdq6l: dhis2Map.attr.patientNumber,
+      Lg1LrNf9LQR: genderAttr,
+      OVo3FxLURtH: ageInMonthsAttr,
+      f3n6kIB9IbI: ageInYearsAttr, // TODO:we see this in metadata "Rv8WM2mTuS5",
+      oc9zlhOoWmP: currentStatusAttr,
+      DbyD9bbGIvE: legalStatusAttr,
+      fiPFww1viBB: placeOfLivingAttr,
+      FsL5BjQocuo: nationalityAttr,
+      Pi1zytYdq6l: patientNoAttr,
     };
     const f09Mapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(...f09Mapping);
@@ -1023,16 +1034,16 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
     // F24 Form Encounter Mapping
     const attributeMap = {
-      Hww0CNYYt3E: dhis2Map.attr.sex,
-      // Z7vMFdnQxpE: dhis2Map.attr.birthdate,
-      // L97SmAK11DN: dhis2Map.attr.ageInYears,
-      yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr,
-      fnH6H3biOkE: dhis2Map.attr.patientNumber,
+      Hww0CNYYt3E: genderAttr,
+      // Z7vMFdnQxpE: dobAttr,
+      // L97SmAK11DN: ageInYearsAttr,
+      yE0dIWW0TXP: placeOfLivingAttr,
+      fnH6H3biOkE: patientNoAttr,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.birthdate
+      (attr) => attr.attribute === dobAttr
     )?.value;
 
     if (dob) {
@@ -1044,7 +1055,7 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     }
     if (!dob) {
       const age = tei?.attributes?.find(
-        (attr) => attr.attribute === dhis2Map.attr.ageInYears
+        (attr) => attr.attribute === ageInYearsAttr
       )?.value;
 
       const ageInMonths = age * 12;
@@ -1060,19 +1071,19 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
   if ([f25Form, f26Form].includes(encounter.form.uuid)) {
     const attributeMap = {
-      eDuqRYx3wLx: dhis2Map.attr.sex,
-      d7wOfzPBbQD: dhis2Map.attr.ageInYears,
-      y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
+      eDuqRYx3wLx: genderAttr,
+      d7wOfzPBbQD: ageInYearsAttr,
+      y9pK9sVcbU9: ageInMonthsAttr,
       // b7z6xIpzkim: "",
-      CDuiRuOcfzj: dhis2Map.attr.currentStatus,
-      JMhFzB97fcS: dhis2Map.attr.legalStatus,
-      Nd43pz1Oo62: dhis2Map.attr.placeOfLivingAttr,
-      kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
+      CDuiRuOcfzj: currentStatusAttr,
+      JMhFzB97fcS: legalStatusAttr,
+      Nd43pz1Oo62: placeOfLivingAttr,
+      kcSuQKfU5Zo: patientNoAttr,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.birthdate
+      (attr) => attr.attribute === dobAttr
     )?.value;
 
     const f26Mapping = f26(encounter, optsMap, optionSetKey);
@@ -1095,12 +1106,12 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
     // F28 Form Encounter Mapping
     const attributeMap = {
-      WP5vr8KB2lH: dhis2Map.attr.sex,
-      Y7qzoa4Qaiz: dhis2Map.attr.currentStatus,
-      XCUd9xOGXkn: dhis2Map.attr.legalStatus,
-      onKT21rxH6Z: dhis2Map.attr.placeOfLivingAttr,
-      sCKCNreiqEA: dhis2Map.attr.nationalityAttr,
-      ci9C72RjN8Z: dhis2Map.attr.patientNumber,
+      WP5vr8KB2lH: genderAttr,
+      Y7qzoa4Qaiz: currentStatusAttr,
+      XCUd9xOGXkn: legalStatusAttr,
+      onKT21rxH6Z: placeOfLivingAttr,
+      sCKCNreiqEA: nationalityAttr,
+      ci9C72RjN8Z: patientNoAttr,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
@@ -1124,13 +1135,13 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
     // F43 Form Encounter Mapping
     const attributeMap = {
-      eMXqL66pJSV: dhis2Map.attr.sex,
-      hT8pIot8b6Y: dhis2Map.attr.ageInMonth,
-      BA7aQjiwlrL: dhis2Map.attr.ageInYears, // in metadata->"Rv8WM2mTuS5",
-      KRNhyZHeGGM: dhis2Map.attr.currentStatus,
-      fUxvDvbPKlU: dhis2Map.attr.legalStatus,
-      xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr,
-      iGHeO9F8CKm: dhis2Map.attr.nationalityAttr,
+      eMXqL66pJSV: genderAttr,
+      hT8pIot8b6Y: ageInMonthsAttr,
+      BA7aQjiwlrL: ageInYearsAttr, // in metadata->"Rv8WM2mTuS5",
+      KRNhyZHeGGM: currentStatusAttr,
+      fUxvDvbPKlU: legalStatusAttr,
+      xw5Vres1Ndt: placeOfLivingAttr,
+      iGHeO9F8CKm: nationalityAttr,
     };
     const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(
@@ -1335,7 +1346,7 @@ fn((state) => {
 
       const tei = state.TEIs[patientUuid];
       if (!tei) {
-        console.log({ patientUuid });
+        console.log({ patientUuid })
       }
 
       const dataValues = patientEncounters

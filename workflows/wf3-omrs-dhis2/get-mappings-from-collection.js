@@ -9,13 +9,11 @@ const dhis2Map = {
     ageInYears: "T1iX2NuPyqS",
     birthdate: "WDp4nVor9Z7",
     placeOflivingMap: "rBtrjV1Mqkz", //Place of living
-    nationalityAttr: "Xvzc9e0JJmp", //"Nationality"
     sex: "qptKDiv9uPl",
-    currentStatus: "YUIQIA2ClN6",
-    legalStatus: "Qq6xQ2s6LO8",
   },
   de: {},
 };
+
 
 const isValidUUID = (id) => {
   if (!id || typeof id !== "string") return false;
@@ -92,6 +90,6 @@ fn((state) => {
     "omrs identifierType"
   ]; //MSF ID or OpenMRS Patient Number
 
-  rest.dhis2Map = dhis2Map;
+  rest.dhis2Map = dhis2Map
   return rest;
 });

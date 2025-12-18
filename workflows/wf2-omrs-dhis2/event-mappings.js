@@ -1644,44 +1644,42 @@ function mapF59(encounter, metadataMap) {
     "790b41ce-e1e7-11e8-b02f-0242ac130002"
   );
 
-  return [
-    {
-      event,
-      programStage: "sBepdVG2c9O",
-      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-      dataValues: [
-        {
-          dataElement: "Nfd45uVy6lc", // TODO @Aisha not part of sBepdVG2c9O program stage
-          value: ["full time", "part time"].some((keyword) =>
-            typeOfIncome?.toLowerCase()?.includes(keyword)
-          )
-            ? "Employment"
-            : null,
-        },
+  return {
+    event,
+    programStage: "sBepdVG2c9O",
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+    dataValues: [
+      {
+        dataElement: "Nfd45uVy6lc", // TODO @Aisha not part of sBepdVG2c9O program stage
+        value: ["full time", "part time"].some((keyword) =>
+          typeOfIncome?.toLowerCase()?.includes(keyword)
+        )
+          ? "Employment"
+          : null,
+      },
 
-        {
-          dataElement: "Ir0qLWsNv4n", // TODO @Aisha not part of sBepdVG2c9O program stage
-          value: ["in the past", "currently"].some((keyword) =>
-            usedDrug?.toLowerCase()?.includes(keyword)
-          )
-            ? "Yes"
-            : null,
-        },
-        {
-          dataElement: "JvgfNjNklmI",
-          value: dischargeDate,
-        },
-        {
-          dataElement: "LhgHv4gjW18",
-          value: typeOfExit,
-        },
-        {
-          dataElement: "k64e6bcyPtH",
-          value: typeOfExitOther,
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+      {
+        dataElement: "Ir0qLWsNv4n", // TODO @Aisha not part of sBepdVG2c9O program stage
+        value: ["in the past", "currently"].some((keyword) =>
+          usedDrug?.toLowerCase()?.includes(keyword)
+        )
+          ? "Yes"
+          : null,
+      },
+      {
+        dataElement: "JvgfNjNklmI",
+        value: dischargeDate,
+      },
+      {
+        dataElement: "LhgHv4gjW18",
+        value: typeOfExit,
+      },
+      {
+        dataElement: "k64e6bcyPtH",
+        value: typeOfExitOther,
+      },
+    ],
+  };
 }
 
 function mapF60(encounter, metadataMap) {
@@ -1700,27 +1698,25 @@ function mapF60(encounter, metadataMap) {
     (o) => o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d"
   )?.value;
 
-  return [
-    {
-      event,
-      programStage: "sBepdVG2c9O",
-      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-      dataValues: [
-        {
-          dataElement: "JvgfNjNklmI",
-          value: dischargeDate,
-        },
-        {
-          dataElement: "LhgHv4gjW18",
-          value: typeOfExit,
-        },
-        {
-          dataElement: "k64e6bcyPtH",
-          value: typeOfExitOther,
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  return {
+    event,
+    programStage: "sBepdVG2c9O",
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+    dataValues: [
+      {
+        dataElement: "JvgfNjNklmI",
+        value: dischargeDate,
+      },
+      {
+        dataElement: "LhgHv4gjW18",
+        value: typeOfExit,
+      },
+      {
+        dataElement: "k64e6bcyPtH",
+        value: typeOfExitOther,
+      },
+    ],
+  };
 }
 
 function mapF61(encounter, metadataMap) {
@@ -2153,13 +2149,13 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
-    // console.log("<-");
-    // console.log("optionKey", optionKey);
-    // console.log("matchingOptionSet:", matchingOptionSet);
-    // console.log("Answer Uuid:", answer.value.uuid);
-    // console.log("Answer Display Value:", answer.value.display);
-    // console.log("Opt:", opt);
-    // console.log("->");
+    console.log("<-");
+    console.log("optionKey", optionKey);
+    console.log("matchingOptionSet:", matchingOptionSet);
+    console.log("Answer Uuid:", answer.value.uuid);
+    console.log("Answer Display Value:", answer.value.display);
+    console.log("Opt:", opt);
+    console.log("->");
 
     const matchingOption =
       opt?.["DHIS2 Option Code"] ||
@@ -2213,82 +2209,57 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
     enrollment,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
+  console.log(encounter.form.name)
 
-  if (encounter.form.name.includes("F49-NCDs Baseline")) {
-    const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = {
-      events,
-      programStage,
-      dhis2Map,
-      optionSetKey,
-      optsMap,
+  if (encounter.form.name.includes("F56-HBV Follow-up")) {
+    exitEvent = {
+      ...mapping,
+      ...mapF56(encounter, { events }),
     };
     const eventsMap = mapF49(encounter, metadataMap);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.name.includes("F50-NCDs Follow-up")) {
-    const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = {
-      events,
-      programStage,
-      dhis2Map,
+  if (encounter.form.name.includes("F58-HCV Follow-up")) {
+    exitEvent = {
+      ...mapping,
+      ...mapF58(encounter, { events }),
     };
     const eventsMap = mapF50(encounter, metadataMap);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.name.includes("F55-HBV Baseline")) {
-    const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = { events, programStage, dhis2Map };
-    const eventsMap = mapF55(encounter, metadataMap);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F56-HBV Follow-up")) {
-    const eventsMap = mapF56(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F58-HCV Follow-up")) {
-    const eventsMap = mapF58(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
   if (encounter.form.name.includes("F59-Social Work Baseline")) {
-    const eventsMap = mapF59(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
+    exitEvent = {
+      ...mapping,
+      ...mapF59(encounter, { events }),
+    };
   }
   if (encounter.form.name.includes("F60-Social Work Follow-up")) {
-    const eventsMap = mapF60(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
+    exitEvent = {
+      ...mapping,
+      ...mapF60(encounter, { events }),
+    };
   }
   if (encounter.form.name.includes("F61-Travel medicine")) {
-    const eventsMap = mapF61(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
+    exitEvent = {
+      ...mapping,
+      ...mapF61(encounter, { events }),
+    };
   }
   if (encounter.form.name.includes("F62-Palliative care Baseline")) {
-    const eventsMap = mapF62(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
+    exitEvent = {
+      ...mapping,
+      ...mapF62(encounter, { events }),
+    };
   }
   if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
-    const eventsMap = mapF63(encounter, { events });
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
+    exitEvent = {
+      ...mapping,
+      ...mapF63(encounter, { events }),
+    };
   }
 
   return exitEvents;
@@ -2394,22 +2365,14 @@ fn((state) => {
         ),
       };
 
-      const exitFormEvents = buildExitEvent(
-        encounter,
-        {
-          program,
-          orgUnit,
-          trackedEntity,
-          enrollment,
-          events,
-        },
-        {
-          formMaps: state.formMaps,
-          dhis2Map: state.dhis2Map,
-          optionSetKey: state.optionSetKey,
-          optsMap: state.optsMap,
-        }
-      );
+      const exitFormEvent = buildExitEvent(encounter, {
+        program,
+        orgUnit,
+        trackedEntity,
+        enrollment,
+        events,
+      });
+      console.log({exitFormEvent})
 
       const mappings = [formEvent, ...exitFormEvents];
 
@@ -2420,4 +2383,11 @@ fn((state) => {
   console.log("Final eventsMapping length:", state.eventsMapping.length);
 
   return state;
+  return {
+    eventsMapping: state.eventsMapping,
+    encounters: state.encounters,
+    optsMap: state.optsMap,
+    optionSetKey: state.optionSetKey,
+    formMaps: state.formMaps,
+  };
 });
