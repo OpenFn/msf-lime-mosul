@@ -566,6 +566,76 @@ function mapF38(encounter) {
   return f38Mapping;
 }
 
+function mapF49(encounter) {
+  const mappings = [];
+  if (encounter.form.description.includes("F49-MHPSS Baseline v2")) {
+    const dataValues = [
+      { dataElement: "IgRurcU3NO7", value: "" },
+      { dataElement: "VKLjFBla0PL", value: "" },
+      { dataElement: "SjNE9mM7Yu4", value: "" },
+      { dataElement: "mjnK3aUJuTa", value: "" },
+      { dataElement: "onGHyvZ2RmZ", value: "" },
+      { dataElement: "E9BaT4zG4J4", value: "" },
+      { dataElement: "iFvba0J2evJ", value: "" },
+      { dataElement: "J21496i94EP", value: "" },
+      { dataElement: "JznJsvXpTnK", value: "" },
+      { dataElement: "pGT54AYo27j", value: "" },
+      { dataElement: "ajFiLhKjK53", value: "" },
+      { dataElement: "ymMmDdzmXJB", value: "" },
+      { dataElement: "Pl71DwAselm", value: "" },
+      { dataElement: "eQfdTbag11h", value: "" },
+      { dataElement: "WpyNugbQKYk", value: "" },
+      { dataElement: "n36Fq9tLoWJ", value: "" },
+      { dataElement: "yHYhmy1H46g", value: "" },
+      { dataElement: "zWqzSMJlxCz", value: "" },
+      { dataElement: "CqqksYsDFDE", value: "" },
+      { dataElement: "QkgnTdel3HA", value: "" },
+      { dataElement: "uXKjVsrotpW", value: "" },
+      { dataElement: "EAhwOfxv3Zx", value: "" },
+      { dataElement: "UGcyXNE5aDG", value: "" },
+      { dataElement: "aFc9FG0PaRf", value: "" },
+      { dataElement: "J62aIKRxrBQ", value: "" },
+      { dataElement: "b6dGoMJm1jO", value: "" },
+      { dataElement: "clnZXAAKStw", value: "" },
+      { dataElement: "Ff5TAZQB2Gx", value: "" },
+      { dataElement: "jy6y43zcjIF", value: "" },
+      { dataElement: "nroQVwfad5s", value: "" },
+      { dataElement: "zzlWrNP7L9F", value: "" },
+      { dataElement: "gPplT1Gk1uB", value: "" },
+      { dataElement: "QJXo4pwCxJR", value: "" },
+      { dataElement: "YAkbJFXtTFU", value: "" },
+      { dataElement: "nqINkxxSTe1", value: "" },
+      { dataElement: "pG7e3WfYoTL", value: "" },
+      { dataElement: "BdSAkE2x4k2", value: "" },
+      { dataElement: "qd60Le4nrd6", value: "" },
+      { dataElement: "dV5ngpIQymO", value: "" },
+      { dataElement: "tK9u009wENy", value: "" },
+      { dataElement: "AosqYtkFCzH", value: "" },
+      { dataElement: "Ucg0LjdAiqu", value: "" },
+      { dataElement: "bG9RawjSauF", value: "" },
+      { dataElement: "pdzQ3dYXcKh", value: "" },
+      { dataElement: "NqrNohB1MRq", value: "" },
+      { dataElement: "zmn2V11p3SW", value: "" },
+      { dataElement: "DWYLDxxZpK5", value: "" },
+      { dataElement: "pfOVAvGLYVi", value: "" },
+      { dataElement: "iY9Y8G4uOod", value: "" },
+      { dataElement: "q3QvzsuauGq", value: "" },
+      { dataElement: "ekSky9wr0MO", value: "" },
+      { dataElement: "zgSRhgLfTn4", value: "" },
+      { dataElement: "nimcdwULYjp", value: "" },
+      { dataElement: "NfDhplV9xJA", value: "" },
+      { dataElement: "LBWHFdwKzKO", value: "" },
+      { dataElement: "VIXCChJKawm", value: "" },
+      { dataElement: "wrVSDgmMj4j", value: "" },
+      { dataElement: "Atg3aAfVv2V", value: "" },
+      { dataElement: "a35jmcOCCwc", value: "" },
+      { dataElement: "eurWUL2l6Gw", value: "" },
+      { dataElement: "iXRsVYYypkU", value: "" },
+      { dataElement: "xnpdL9cgpDH", value: "" },
+      { dataElement: "NYEmxR8LW75", value: "" },
+    ];
+  }
+}
 function mapF55(encounter) {
   if (encounter.form.description.includes("F55-HBV Baseline")) {
     const encounterDate = encounter.encounterDatetime.replace("+0000", "");
@@ -1210,7 +1280,7 @@ const buildExitEvent = (encounter, tei) => {
     enrollment,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
-  console.log(encounter.form.name)
+  console.log(encounter.form.name);
 
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
     exitEvent = {
@@ -1351,7 +1421,7 @@ fn((state) => {
         enrollment,
         events,
       });
-      console.log({exitFormEvent})
+      console.log({ exitFormEvent });
 
       const mappings = [formEvent, exitFormEvent];
 
