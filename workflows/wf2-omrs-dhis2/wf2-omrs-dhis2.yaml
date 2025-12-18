@@ -6,7 +6,6 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: "../../tmp/dhis2-creds.json"
     expression: ./create-events.js
     next:
       update-teis:

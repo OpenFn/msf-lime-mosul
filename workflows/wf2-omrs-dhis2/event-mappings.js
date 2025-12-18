@@ -2209,7 +2209,7 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
     enrollment,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
-  console.log(encounter.form.name);
+  console.log(encounter.form.name)
 
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
     exitEvent = {
@@ -2372,7 +2372,7 @@ fn((state) => {
         enrollment,
         events,
       });
-      console.log({ exitFormEvent });
+      console.log({exitFormEvent})
 
       const mappings = [formEvent, ...exitFormEvents];
 
