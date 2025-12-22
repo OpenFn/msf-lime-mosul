@@ -590,76 +590,462 @@ function mapF38(encounter) {
   return f38Mapping;
 }
 
-function mapF49(encounter) {
-  const mappings = [];
-  if (encounter.form.description.includes("F49-MHPSS Baseline v2")) {
-    const dataValues = [
-      { dataElement: "IgRurcU3NO7", value: "" },
-      { dataElement: "VKLjFBla0PL", value: "" },
-      { dataElement: "SjNE9mM7Yu4", value: "" },
-      { dataElement: "mjnK3aUJuTa", value: "" },
-      { dataElement: "onGHyvZ2RmZ", value: "" },
-      { dataElement: "E9BaT4zG4J4", value: "" },
-      { dataElement: "iFvba0J2evJ", value: "" },
-      { dataElement: "J21496i94EP", value: "" },
-      { dataElement: "JznJsvXpTnK", value: "" },
-      { dataElement: "pGT54AYo27j", value: "" },
-      { dataElement: "ajFiLhKjK53", value: "" },
-      { dataElement: "ymMmDdzmXJB", value: "" },
-      { dataElement: "Pl71DwAselm", value: "" },
-      { dataElement: "eQfdTbag11h", value: "" },
-      { dataElement: "WpyNugbQKYk", value: "" },
-      { dataElement: "n36Fq9tLoWJ", value: "" },
-      { dataElement: "yHYhmy1H46g", value: "" },
-      { dataElement: "zWqzSMJlxCz", value: "" },
-      { dataElement: "CqqksYsDFDE", value: "" },
-      { dataElement: "QkgnTdel3HA", value: "" },
-      { dataElement: "uXKjVsrotpW", value: "" },
-      { dataElement: "EAhwOfxv3Zx", value: "" },
-      { dataElement: "UGcyXNE5aDG", value: "" },
-      { dataElement: "aFc9FG0PaRf", value: "" },
-      { dataElement: "J62aIKRxrBQ", value: "" },
-      { dataElement: "b6dGoMJm1jO", value: "" },
-      { dataElement: "clnZXAAKStw", value: "" },
-      { dataElement: "Ff5TAZQB2Gx", value: "" },
-      { dataElement: "jy6y43zcjIF", value: "" },
-      { dataElement: "nroQVwfad5s", value: "" },
-      { dataElement: "zzlWrNP7L9F", value: "" },
-      { dataElement: "gPplT1Gk1uB", value: "" },
-      { dataElement: "QJXo4pwCxJR", value: "" },
-      { dataElement: "YAkbJFXtTFU", value: "" },
-      { dataElement: "nqINkxxSTe1", value: "" },
-      { dataElement: "pG7e3WfYoTL", value: "" },
-      { dataElement: "BdSAkE2x4k2", value: "" },
-      { dataElement: "qd60Le4nrd6", value: "" },
-      { dataElement: "dV5ngpIQymO", value: "" },
-      { dataElement: "tK9u009wENy", value: "" },
-      { dataElement: "AosqYtkFCzH", value: "" },
-      { dataElement: "Ucg0LjdAiqu", value: "" },
-      { dataElement: "bG9RawjSauF", value: "" },
-      { dataElement: "pdzQ3dYXcKh", value: "" },
-      { dataElement: "NqrNohB1MRq", value: "" },
-      { dataElement: "zmn2V11p3SW", value: "" },
-      { dataElement: "DWYLDxxZpK5", value: "" },
-      { dataElement: "pfOVAvGLYVi", value: "" },
-      { dataElement: "iY9Y8G4uOod", value: "" },
-      { dataElement: "q3QvzsuauGq", value: "" },
-      { dataElement: "ekSky9wr0MO", value: "" },
-      { dataElement: "zgSRhgLfTn4", value: "" },
-      { dataElement: "nimcdwULYjp", value: "" },
-      { dataElement: "NfDhplV9xJA", value: "" },
-      { dataElement: "LBWHFdwKzKO", value: "" },
-      { dataElement: "VIXCChJKawm", value: "" },
-      { dataElement: "wrVSDgmMj4j", value: "" },
-      { dataElement: "Atg3aAfVv2V", value: "" },
-      { dataElement: "a35jmcOCCwc", value: "" },
-      { dataElement: "eurWUL2l6Gw", value: "" },
-      { dataElement: "iXRsVYYypkU", value: "" },
-      { dataElement: "xnpdL9cgpDH", value: "" },
-      { dataElement: "NYEmxR8LW75", value: "" },
-    ];
-  }
+function mapF49(encounter, { mappings }) {
+  const { events, programStage, dhis2Map } = mappings;
+  const event = events?.find((e) => e.programStage === programStage)?.event;
+
+  const consultationDate = encounter.obs.find(
+    (o) => o.concept.uuid === "d329cd4b-a10f-4a4d-96b5-c907bf87e721"
+  )?.value;
+  const isReadmission =
+    encounter.obs
+      .find((o) => o.concept.uuid === "4dae5b12-070f-4153-b1ca-fbec906106e1")
+      ?.value.toLowerCase() === "re-admission";
+
+  const diagnosisMap = (encounter, extId, answerUuid) => {
+    const diagnosis = encounter.obs.find((o) => o.concept.uuid === extId)?.value
+      ?.display;
+    if (diagnosis) {
+      return diagnosis;
+    }
+    const diagnosisAtAdmission = encounter.obs.find((o) => {
+      o.value.uuid === answerUuid &&
+        o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e";
+    })?.value;
+    if (diagnosisAtAdmission) {
+      return "uknown";
+    }
+    return "no";
+  };
+  const observedComplications = filterObsByConcept(
+    encounter,
+    "ec9ffc6e-22c9-4489-ab88-c517460e7838"
+  ).map((o) => o.value.display);
+
+  const medications = filterObsByConcept(
+    encounter,
+    "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef"
+  ).map((o) => o.value.display);
+
+  const specialistTypes = filterObsByConcept(
+    encounter,
+    "8fb3bb7d-c935-4b57-8444-1b953470e109"
+  ).map((o) => o.value.display);
+
+  const ifOtherSpecialistTypes = filterObsByConcept(
+    encounter,
+    "790b41ce-e1e7-11e8-b02f-0242ac130002"
+  ).map((o) => o.value.display);
+  const defaultDataValues = [
+    { dataElement: dhis2Map.ncdEventDate, value: consultationDate },
+    { dataElement: "SjNE9mM7Yu4", value: isReadmission },
+    {
+      dataElement: "mjnK3aUJuTa",
+      value: diagnosisMap(
+        encounter,
+        "fad7b56b-7633-4467-9e6a-17328278b580",
+        "10f3b49c-c3dc-4aa7-857f-3f9bb7df8dd0"
+      ),
+    },
+    {
+      dataElement: dhis2Map.diabetesTypeI,
+      value: diagnosisMap(
+        encounter,
+        "f9bd6164-18e9-41ce-97cd-45ff85d6f124",
+        "ed1150fd-278f-4012-b3d7-a795ac9fac82"
+      ),
+    },
+    {
+      dataElement: dhis2Map.diabetesTypeII,
+      value: diagnosisMap(
+        encounter,
+        "db973d66-e027-4238-87c9-fa6e53026d12",
+        "f1ee73b2-08cb-4373-80ac-357a704d3608"
+      ),
+    },
+    {
+      dataElement: dhis2Map.gestationalDiabetes,
+      value: diagnosisMap(
+        encounter,
+        "3a5da658-2750-4872-9499-3c9e858f5eb6",
+        "diabetes mellitus in pregnancy"
+      ),
+    },
+    {
+      dataElement: "J21496i94EP",
+      value: () => {
+        const hypothyroidism = encounter.obs.find(
+          (o) => o.concept.uuid === "10ea847e-58c7-4da0-a112-ee1f0883e31b"
+        );
+        if (hypothyroidism) {
+          return hypothyroidism;
+        }
+        if (diagnosisAtAdmission === "hypothyroidism") {
+          return "unknown";
+        }
+        return "no";
+      },
+    },
+    {
+      dataElement: dhis2Map.chronicKidneyDisease,
+      value: diagnosisMap(
+        encounter,
+        "42e81b70-63ab-4387-aebe-90e20db918e7",
+        "chronic kidney disease"
+      ),
+    },
+    {
+      dataElement: dhis2Map.asthma,
+      value: diagnosisMap(
+        encounter,
+        "82a5dadc-77ea-4765-b766-fb1e0336a736",
+        "c10a05bc-e814-4693-a789-1eb884270381"
+      ),
+    },
+    {
+      dataElement: dhis2Map.copd,
+      value: diagnosisMap(
+        encounter,
+        "68b7e054-046a-4ec1-8c6a-b05d0480da47",
+        "0d9a7323-b54a-4d2b-a231-e34fa54e3a54"
+      ),
+    },
+    {
+      dataElement: dhis2Map.cardiovascularDisease,
+      value: diagnosisMap(
+        encounter,
+        "5078ef27-0826-46c2-ac50-30ebf25cb686",
+        "6541ddce-0e3c-4b7d-ad52-2bfe18e24dd5"
+      ),
+    },
+    {
+      dataElement: dhis2Map.otherCardiovascularDisorder,
+      value: diagnosisMap(
+        encounter,
+        "ada7c7aa-261c-4808-b3ec-1236952ad1da",
+        "ada7c7aa-261c-4808-b3ec-1236952ad1da"
+      ),
+    },
+    {
+      dataElement: dhis2Map.heartfailure,
+      value: diagnosisMap(
+        encounter,
+        "fe989a53-9788-46e9-a170-f1f4b7abfddf",
+        "6a7a9d6a-e8b6-4ffb-8321-a56e9e4473e0"
+      ),
+    },
+    {
+      dataElement: dhis2Map.epilepsy,
+      value: diagnosisMap(
+        encounter,
+        "09334f94-5efd-49f0-b494-68b9192f2fd8",
+        "681cf0bc-5213-492a-8470-0a0b3cc324dd"
+      ),
+    },
+    {
+      dataElement: dhis2Map.otherNCD,
+      value: diagnosisMap(
+        encounter,
+        "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
+        "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc" // Other noncommunicable diseases
+      ),
+    },
+    {
+      dataElement: dhis2Map.depression,
+      value: diagnosisMap(
+        encounter,
+        "d48039ad-1700-406d-b9c2-b3bf355d61f9",
+        "2066f043-2f21-4c19-8c04-77301d7404f9"
+      ),
+    },
+    {
+      dataElement: dhis2Map.psychosis,
+      value: diagnosisMap(
+        encounter,
+        "6c0beb80-d7bd-4580-8f36-b6ffee8661fe",
+        "10336195-ecd9-45bc-b6b4-b08ff1498e1b"
+      ),
+    },
+    {
+      dataElement: dhis2Map.stressRelated,
+      value: diagnosisMap(
+        encounter,
+        "7aff0f40-e039-43fb-971d-0c07ed9fcde1",
+        "7aff0f40-e039-43fb-971d-0c07ed9fcde1" //stress-related disorder diagnosis status
+      ),
+    },
+    {
+      dataElement: dhis2Map.substanceDisorder,
+      value: diagnosisMap(
+        encounter,
+        "43024c85-60c3-4dd0-acde-33d259ad1e33",
+        "fcc01124-3d7b-4e6f-be35-50233a7f64cb" //substance-related disorders
+      ),
+    },
+    {
+      dataElement: dhis2Map.childAdolescence,
+      value: diagnosisMap(
+        encounter,
+        "d30db8b8-f8fb-450c-9562-629195212a45",
+        "fef73529-e631-4620-920b-ff7fc5d458da" //child & adolescent disorder diagnosis status
+      ),
+    },
+    {
+      dataElement: dhis2Map.selfHarm,
+      value: diagnosisMap(
+        encounter,
+        "af23b916-3e95-4bd4-8804-a4b1649ff365",
+        "b27187bd-e94a-4dbc-9a77-46c0cefad25a" //Self-harming behavior / Suicide attempt
+      ),
+    },
+    {
+      dataElement: dhis2Map.otherMH,
+      value: diagnosisMap(
+        encounter,
+        "88fc3c44-9ad1-4d33-b4ea-d2223c906f42",
+        "88fc3c44-9ad1-4d33-b4ea-d2223c906f42" //"Other mental health diseases"
+      ),
+    },
+
+    {
+      dataElement: dhis2Map.observedComplication1,
+      value: observedComplications?.[0],
+    },
+    {
+      dataElement: dhis2Map.observedComplication2,
+      value: observedComplications?.[1],
+    },
+    {
+      dataElement: dhis2Map.observedComplication3,
+      value: observedComplications?.[2],
+    },
+    {
+      dataElement: dhis2Map.observedComplication4,
+      value: observedComplications?.[3],
+    },
+
+    {
+      dataElement: dhis2Map.medication1,
+      value: medications?.[0],
+    },
+    {
+      dataElement: dhis2Map.medication2,
+      value: medications?.[1],
+    },
+    {
+      dataElement: dhis2Map.medication3,
+      value: medications?.[2],
+    },
+    {
+      dataElement: dhis2Map.medication4,
+      value: medications?.[3],
+    },
+    {
+      dataElement: dhis2Map.medication5,
+      value: medications?.[4],
+    },
+    {
+      dataElement: dhis2Map.medication6,
+      value: medications?.[5],
+    },
+    {
+      dataElement: dhis2Map.medication7,
+      value: medications?.[6],
+    },
+    {
+      dataElement: dhis2Map.medication8,
+      value: medications?.[7],
+    },
+    {
+      dataElement: dhis2Map.medication9,
+      value: medications?.[8],
+    },
+    {
+      dataElement: dhis2Map.medication10,
+      value: medications?.[9],
+    },
+    {
+      dataElement: dhis2Map.specialistType1,
+      value: specialistTypes?.[0],
+    },
+    {
+      dataElement: dhis2Map.specialistType2,
+      value: specialistTypes?.[1],
+    },
+    {
+      dataElement: dhis2Map.specialistType3,
+      value: specialistTypes?.[2],
+    },
+
+    {
+      dataElement: dhis2Map.ifOtherSpecialistType1,
+      value: ifOtherSpecialistTypes?.[0],
+    },
+    {
+      dataElement: dhis2Map.ifOtherSpecialistType2,
+      value: ifOtherSpecialistTypes?.[1],
+    },
+    {
+      dataElement: dhis2Map.ifOtherSpecialistType3,
+      value: ifOtherSpecialistTypes?.[2],
+    },
+  ];
+  return [
+    {
+      event,
+      programStage,
+      dataValues: defaultDataValues,
+    },
+    {
+      event,
+      programStage: "RVgciZl54Aj",
+      dataValues: [
+        {
+          dataElement: dhis2Map.estDeliveryDate,
+          value: findAnswerByConcept(
+            encounter,
+            "4cc41121-74da-42ac-ab89-e8878db66020"
+          ),
+        },
+        {
+          dataElement: dhis2Map.antenatalConsultation,
+          value: findAnswerByConcept(
+            encounter,
+            "bf704b21-d203-4fb8-9b90-a2c29caad61b"
+          ),
+        },
+        {
+          dataElement: dhis2Map.contraception,
+          value: findAnswerByConcept(
+            encounter,
+            "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14"
+          ),
+        },
+        {
+          dataElement: dhis2Map.pregnancyMethod,
+          value: findAnswerByConcept(
+            encounter,
+            "6afb5d27-3e86-42ff-bad1-38f90897e0b6"
+          ),
+        },
+      ],
+    },
+    {
+      event,
+      programStage: "zqmLGzSPv3T",
+      dataValues: [
+        {
+          dataElement: dhis2Map.extremistFootExam,
+          value: encounter.obs.find(
+            (o) => o.concept.uuid === "3fe91b1d-3c94-4752-ac36-75d4e6af379c"
+          )?.value,
+        },
+        {
+          dataElement: dhis2Map.hba1cValue,
+          value: encounter.obs.find(
+            (o) => o.concept.uuid === "033ff20d-4cc5-4da0-ad5e-c42ce25df1e1"
+          )?.value,
+        },
+        {
+          dataElement: dhis2Map.totalCholesterolValue,
+          value: findAnswerByConcept(
+            encounter,
+            "9265064e-104f-431d-b50d-4cd8b7a39526"
+          ),
+        },
+        {
+          dataElement: dhis2Map.creatinineDone,
+          value: findAnswerByConcept(
+            encounter,
+            "b20c05db-cc1e-41f8-abbe-cdd8fcef82cc"
+          ),
+        },
+        {
+          dataElement: dhis2Map.creatinineMgPerDl,
+          value: encounter.obs.find(
+            (o) => o.concept.uuid === "bc6f8c3a-80ad-46f2-ad76-bd4189ea61c7"
+          )?.value,
+        },
+        {
+          dataElement: dhis2Map.creatinineUmolPerl,
+          value: encounter.obs.find(
+            (o) => o.concept.uuid === "397b7cc1-9687-4796-a2a6-52d04f963e71"
+          )?.value,
+        },
+        {
+          dataElement: dhis2Map.creatinineEgfr,
+          value: encounter.obs.find(
+            (o) => o.concept.uuid === "910cf2bc-b9fe-4997-845f-409583bbd2fd"
+          )?.value,
+        },
+        {
+          dataElement: dhis2Map.creatinineMlPerMin,
+          value: encounter.obs.find(
+            (o) => o.concept.uuid === "ee8dd465-4f0c-4f81-9c9f-8dd1e419a9d8"
+          )?.value,
+        },
+
+        {
+          dataElement: dhis2Map.urineAnalysis,
+          value: findAnswerByConcept(
+            encounter,
+            "19d395d5-9e2f-4f9b-9723-1fd64e879421"
+          ),
+        },
+        {
+          dataElement: dhis2Map.altDone,
+          value: findAnswerByConcept(
+            encounter,
+            "41e0892a-3962-4ee6-8adc-b65322da183b"
+          ),
+        },
+        {
+          dataElement: dhis2Map.kDone,
+          value: findAnswerByConcept(
+            encounter,
+            "e2826aa6-af7b-49cd-b3a3-5ffae92c202d"
+          ),
+        },
+        {
+          dataElement: dhis2Map.tshDone,
+          value: findAnswerByConcept(
+            encounter,
+            "1b1ddab9-1463-4b79-9d25-b591bca6127e"
+          ),
+        },
+        {
+          dataElement: dhis2Map.inrDone,
+          value: findAnswerByConcept(
+            encounter,
+            "382d6a15-1e60-43a3-8ee5-bb0f7b11b17b"
+          ),
+        },
+        {
+          dataElement: dhis2Map.ldlDone,
+          value: findAnswerByConcept(
+            encounter,
+            "1ecf8c4a-c70c-4fa6-b840-2e13cdb217fe"
+          ),
+        },
+        {
+          dataElement: dhis2Map.ecg,
+          value: findAnswerByConcept(
+            encounter,
+            "f5b2b5ff-47bb-41e1-bbcc-3d7b2ecb373f"
+          ),
+        },
+        {
+          dataElement: dhis2Map.echo,
+          value: findAnswerByConcept(
+            encounter,
+            "b754e7bb-d425-4f62-988e-3bccc2abf332"
+          ),
+        },
+      ],
+    },
+  ];
 }
+
 function mapF55(encounter) {
   if (encounter.form.description.includes("F55-HBV Baseline")) {
     const encounterDate = encounter.encounterDatetime.replace("+0000", "");
@@ -1316,6 +1702,7 @@ const formEncounters = (formDescription, encounters) => {
 };
 
 const buildExitEvent = (encounter, tei, metadataMap) => {
+  const { formMaps, dhis2Map } = metadataMap;
   const { program, orgUnit, trackedEntity, enrollment, events } = tei;
   const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
 
@@ -1327,8 +1714,14 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
     enrollment,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
-  console.log(encounter.form.name);
 
+  if (encounter.form.name.includes("F49-NCDs Baseline")) {
+    const programStage = formMaps[encounter.form.uuid].programStage;
+    exitEvent = {
+      ...mapping,
+      ...mapF49(encounter, { events, programStage, dhis2Map }),
+    };
+  }
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
     exitEvent = {
       ...mapping,
@@ -1483,13 +1876,20 @@ fn((state) => {
         ),
       };
 
-      const exitFormEvent = buildExitEvent(encounter, {
-        program,
-        orgUnit,
-        trackedEntity,
-        enrollment,
-        events,
-      });
+      const exitFormEvent = buildExitEvent(
+        encounter,
+        {
+          program,
+          orgUnit,
+          trackedEntity,
+          enrollment,
+          events,
+        },
+        {
+          formMaps: state.formMaps,
+          dhis2Map: state.dhis2Map,
+        }
+      );
       console.log({ exitFormEvent });
 
       const mappings = [formEvent, ...exitFormEvents];
@@ -1500,12 +1900,13 @@ fn((state) => {
     .filter(Boolean);
   console.log("Final eventsMapping length:", state.eventsMapping.length);
 
-  return state;
+  // return state;
   return {
+    dhis2Map: state.dhis2Map,
     eventsMapping: state.eventsMapping,
+    // optionSetKey: state.optionSetKey,
     encounters: state.encounters,
-    optsMap: state.optsMap,
-    optionSetKey: state.optionSetKey,
-    formMaps: state.formMaps,
+    // optsMap: state.optsMap,
+    // formMaps: state.formMaps,
   };
 });
