@@ -121,7 +121,7 @@ fn((state) => {
       if (childTei) {
         mappings.push({
           ...sharedMapping,
-          trackedEntityInstance: childTei,
+          trackedEntity: childTei,
           program: chilProgram,
           orgUnit: childOrgUnit,
         });
@@ -129,7 +129,7 @@ fn((state) => {
       if (parentTei) {
         mappings.push({
           ...sharedMapping,
-          trackedEntityInstance: parentTei,
+          trackedEntity: parentTei,
           program,
           orgUnit,
         });
@@ -173,7 +173,7 @@ fn((state) => {
 
       if (parentTei) {
         mappings.push({
-          trackedEntityInstance: parentTei,
+          trackedEntity: parentTei,
           program,
           orgUnit,
           ...sharedMapping,
@@ -181,7 +181,7 @@ fn((state) => {
       }
       if (childTei) {
         mappings.push({
-          trackedEntityInstance: childTei,
+          trackedEntity: childTei,
           program: chilProgram,
           orgUnit: childOrgUnit,
           ...sharedMapping,
