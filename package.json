@@ -1,8 +1,8 @@
 {
   "scripts": {
-    "wf2": "openfn workflows/wf2-omrs-dhis2/wf2-omrs-dhis2.yaml -o tmp/wf2-omrs-dhis2-output.json",
-    "wf2:state": "openfn workflows/wf2-omrs-dhis2/wf2-omrs-dhis2.yaml -s tmp/wf2-omrs-dhis2-state.json -o tmp/wf2-omrs-dhis2-output.json",
-    "wf3": "openfn workflows/wf3-omrs-dhis2/wf3-omrs-dhis2.yaml -s tmp/wf3-omrs-dhis2-state.json -o tmp/wf3-omrs-dhis2-output.json",
+    "wf2": "openfn .projects/wf2-omrs-dhis2/workflow.yaml -o .projects/wf2-omrs-dhis2/output.json",
+    "wf2:state": "openfn .projects/wf2-omrs-dhis2/workflow.yaml -s .projects/wf2-omrs-dhis2/state.json -o .projects/wf2-omrs-dhis2/output.json",
+    "wf3": "openfn .projects/wf3-omrs-dhis2/workflow.yaml -s .projects/wf3-omrs-dhis2/state.json -o .projects/wf3-omrs-dhis2/output.json",
     "wf2:cache": "pnpm wf2:state --cache-steps",
     "wf3:cache": "pnpm wf3 --cache-steps"
   }
