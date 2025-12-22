@@ -9,7 +9,7 @@ fn((state) => {
       const parentTei = state.parentTeis[omrsPatientUuid]?.trackedEntity;
       const relationshipType = tei?.relationshipType;
 
-      if (childTei != parentTei) {
+      if (childTei != parentTei && parentTei) {
         return {
           from: {
             trackedEntityInstance: {
