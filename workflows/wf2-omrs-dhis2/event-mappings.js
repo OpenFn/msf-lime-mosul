@@ -866,6 +866,7 @@ function mapF49(encounter, { mappings }) {
       value: ifOtherSpecialistTypes?.[2],
     },
   ];
+
   return [
     {
       event,
@@ -1668,50 +1669,52 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
 
-  if (encounter.form.name.includes("F49-NCDs Baseline")) {
+  console.log(encounter.form.name);
+  if (encounter.form.description.includes("F49-NCDs Baseline")) {
+    console.log("F49-NCDs Baseline");
     const programStage = formMaps[encounter.form.uuid].programStage;
     exitEvent = {
       ...mapping,
       ...mapF49(encounter, { events, programStage, dhis2Map }),
     };
   }
-  if (encounter.form.name.includes("F56-HBV Follow-up")) {
+  if (encounter.form.description.includes("F56-HBV Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF56(encounter, { events }),
     };
   }
-  if (encounter.form.name.includes("F58-HCV Follow-up")) {
+  if (encounter.form.description.includes("F58-HCV Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF58(encounter, { events }),
     };
   }
-  if (encounter.form.name.includes("F59-Social Work Baseline")) {
+  if (encounter.form.description.includes("F59-Social Work Baseline")) {
     exitEvent = {
       ...mapping,
       ...mapF59(encounter, { events }),
     };
   }
-  if (encounter.form.name.includes("F60-Social Work Follow-up")) {
+  if (encounter.form.description.includes("F60-Social Work Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF60(encounter, { events }),
     };
   }
-  if (encounter.form.name.includes("F61-Travel medicine")) {
+  if (encounter.form.description.includes("F61-Travel medicine")) {
     exitEvent = {
       ...mapping,
       ...mapF61(encounter, { events }),
     };
   }
-  if (encounter.form.name.includes("F62-Palliative care Baseline")) {
+  if (encounter.form.description.includes("F62-Palliative care Baseline")) {
     exitEvent = {
       ...mapping,
       ...mapF62(encounter, { events }),
     };
   }
-  if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
+  if (encounter.form.description.includes("F63-Palliative care Follow-up")) {
     exitEvent = {
       ...mapping,
       ...mapF63(encounter, { events }),
@@ -1831,13 +1834,13 @@ fn((state) => {
     .filter(Boolean);
   console.log("Final eventsMapping length:", state.eventsMapping.length);
 
-  // return state;
+  return state;
   return {
     dhis2Map: state.dhis2Map,
     eventsMapping: state.eventsMapping,
     // optionSetKey: state.optionSetKey,
     encounters: state.encounters,
     // optsMap: state.optsMap,
-    // formMaps: state.formMaps,
+    formMaps: state.formMaps,
   };
 });

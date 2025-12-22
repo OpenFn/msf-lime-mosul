@@ -114,7 +114,7 @@ each(
         .filter((encounter) => {
           const program = state.formMaps[encounter.form.uuid].programId;
           const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
-          return state.program !== program && state.orgUnit !== orgUnit;
+          return !(state.program === program && state.orgUnit === orgUnit);
         })
         .forEach((encounter) => {
           const patientUuid = encounter.patient.uuid;
@@ -131,10 +131,6 @@ each(
           const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
           const relationshipType =
             state.formMaps[encounter.form.uuid]?.relationshipId;
-
-          if (!relationshipType) {
-            console.log({ form: encounter.form.name });
-          }
 
           if (tei?.trackedEntity) {
             console.log("Child TEI found:", tei.trackedEntity);
