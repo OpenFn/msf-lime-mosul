@@ -1,6 +1,8 @@
 jsconfig.json
 # temp
 tmp
+tmp/*
+tmp-*
 
 # Logs
 logs
