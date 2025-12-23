@@ -40,17 +40,20 @@ steps:
         disabled: false
         condition: |
           state.uniqueTeis.length > 0 && !state.errors
-        name: has-teis
-      alert-admin-of-duplicate-teis:
-        disabled: false
-        condition: |
-          state.duplicatePatients.length > 0 && !state.errors
-        name: has-duplicate-patients
       validate-teis-with-omrs-id:
         disabled: false
         condition: |
           !state.errors && state. teisWithOMRSID.length > 0
-        name: has-teisWithOMRSID
+      alert-admin-of-duplicate-teis:
+        disabled: false
+        condition: |
+          state.duplicatePatients.length > 0 && !state.errors
+  - id: trigger
+    type: cron
+    next:
+      fetch-metadata:
+        disabled: false
+        condition: true
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
