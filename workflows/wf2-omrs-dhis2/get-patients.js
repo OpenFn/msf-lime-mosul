@@ -72,7 +72,6 @@ fn((state) => {
       };
     });
   state.searchPatientUuids = state.patients.map((p) => p.uuid);
-  state.patientUuids = state.patients.map((p) => p.uuid);
   console.log("# of patients to sync to dhis2 ::", state.patients.length);
 
   return state;
