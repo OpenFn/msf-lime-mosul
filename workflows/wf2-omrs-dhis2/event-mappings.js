@@ -1234,11 +1234,15 @@ function mapF61(encounter, metadataMap) {
       dataValues: [
         {
           dataElement: "wqSAGFM1Oz8",
-          value: conceptNotValue("2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"),
+          value: conceptNotValue(
+            encounter,
+            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"
+          ),
         },
         {
           dataElement: "M7aqCkQSnIP",
           value: conceptAndValue(
+            encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "95ac8931-7222-4d14-9d94-2e55074e6261"
           ),
@@ -1246,6 +1250,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "H6mrPZ2PvGa",
           value: conceptAndValue(
+            encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "a257d08e-b90d-4505-91c3-e23ea040f61c"
           ),
@@ -1253,6 +1258,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "aHEgOilU4Sg",
           value: conceptAndValue(
+            encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
           ),
@@ -1260,6 +1266,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "I64ENhlDzP6",
           value: conceptAndValue(
+            encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "a6fe73a2-0352-4104-82a7-4456f1866c1e"
           ),
@@ -1267,6 +1274,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "i69GqSWXwRZ",
           value: conceptAndValue(
+            encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "9f50dc11-9ed4-4e25-a059-9cb770651c35"
           ),
@@ -1274,6 +1282,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "KGwTrsJjYR5",
           value: conceptNotValue(
+            encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "ebb50467-1a62-41f0-a849-2ec0ed49607a"
           ),
@@ -1281,6 +1290,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "G10cJ5RJ2uE",
           value: conceptNotValue(
+            encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "04684645-508f-4ec4-91a9-406e5567a934"
           ),
@@ -1288,6 +1298,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "Yp6qfnhSbTx",
           value: conceptNotValue(
+            encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "e81a13a6-d469-465d-9c6b-9930c7bb7d39"
           ),
@@ -1295,6 +1306,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "LgoaYXv2mkO",
           value: conceptNotValue(
+            encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "05aa3b94-7e7e-47f1-80b9-1304889c293c"
           ),
@@ -1302,6 +1314,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "ScHhUDsY1JM",
           value: conceptNotValue(
+            encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "b10b22e3-a46d-4682-aba5-fdeac3591d29"
           ),
@@ -1309,6 +1322,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "vKTI1wQhhy7",
           value: conceptNotValue(
+            encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "67322e0a-0def-4543-97cd-89cdd03e2950"
           ),
@@ -1375,6 +1389,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "gJoiya16c1E",
           value: conceptNotValue(
+            encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "a6fe73a2-0352-4104-82a7-4456f1866c1e"
           ),
@@ -1382,6 +1397,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "aHEgOilU4Sg",
           value: conceptNotValue(
+            encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
           ),
@@ -1389,6 +1405,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "ahGVTDSbSaq",
           value: conceptNotValue(
+            encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "a257d08e-b90d-4505-91c3-e23ea040f61c"
           ),
@@ -1396,6 +1413,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "i69GqSWXwRZ",
           value: conceptNotValue(
+            encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "9f50dc11-9ed4-4e25-a059-9cb770651c35"
           ),
@@ -1417,6 +1435,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "awIYcHfNEnI",
           value: conceptNotValue(
+            encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "0254978b-c858-4b9d-ba66-074ced37a6d5"
           ),
@@ -1424,6 +1443,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "xjG5N6RD9vm",
           value: conceptNotValue(
+            encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "e48a7343-bbc1-4e83-85ab-87e267f15cec"
           ),
@@ -1431,6 +1451,7 @@ function mapF61(encounter, metadataMap) {
         {
           dataElement: "Lj15WiOE5Jj",
           value: conceptNotValue(
+            encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "2b616aa9-e573-40a1-8e01-dfdde229553b"
           ),
@@ -1484,6 +1505,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "dNJ9ZJ4zaJw",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "895813df-fbec-4164-9375-eed588ff0387"
         ),
@@ -1491,6 +1513,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "KlAcesRNOlU",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "bfcf416f-8aa1-4b9d-a0f7-77c142c1df67"
         ),
@@ -1498,6 +1521,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "pP8Bb7H0arh",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "10156771-379a-4eb1-af43-39b418adba4a"
         ),
@@ -1505,6 +1529,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "fKmCFuaV2wo",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "14e79fdc-4250-428f-949e-dabb2cef4315"
         ),
@@ -1512,6 +1537,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "oOa893M9qnL",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "a39e540e-b988-40e8-a8b2-26b831c179ef"
         ),
@@ -1519,6 +1545,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "rDJiUSUtmrg",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "c884bf19-6791-4c38-af6b-1ad910191a89"
         ),
@@ -1526,6 +1553,7 @@ function mapF62(encounter, metadataMap) {
       {
         dataElement: "PG9mocTexDK",
         value: conceptNotValue(
+          encounter,
           "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
           "d592dcaf-ae83-4acc-921e-127aa27545b5"
         )
