@@ -1107,23 +1107,25 @@ function mapF58(encounter, metadataMap) {
   const { events } = metadataMap;
   const event = events?.find((e) => e.programStage === "Rd73a6zlYEy")?.event;
 
-  return {
-    event,
-    programStage: "Rd73a6zlYEy",
-    dataValues: [
-      {
-        dataElement: "gn40F7cEQTI",
-        value: encounter.encounterDatetime.replace("+0000", ""),
-      },
-      {
-        dataElement: "rmYRcxE5I5G",
-        value: findAnswerByConcept(
-          encounter,
-          "0f478fde-1219-4815-9481-f507e8457c38"
-        ),
-      },
-    ].filter((d) => d.value),
-  };
+  return [
+    {
+      event,
+      programStage: "Rd73a6zlYEy",
+      dataValues: [
+        {
+          dataElement: "gn40F7cEQTI",
+          value: encounter.encounterDatetime.replace("+0000", ""),
+        },
+        {
+          dataElement: "rmYRcxE5I5G",
+          value: findAnswerByConcept(
+            encounter,
+            "0f478fde-1219-4815-9481-f507e8457c38"
+          ),
+        },
+      ].filter((d) => d.value),
+    },
+  ];
 }
 
 function mapF59(encounter, metadataMap) {
