@@ -29,14 +29,14 @@ steps:
         disabled: false
         condition: |
           state.uniqueTeis.length > 0 && !state.errors
-      alert-admin-of-duplicate-teis:
-        disabled: false
-        condition: |
-          state.duplicatePatients.length > 0 && !state.errors
       validate-teis-with-omrs-id:
         disabled: false
         condition: |
           !state.errors && state. teisWithOMRSID.length > 0
+      alert-admin-of-duplicate-teis:
+        disabled: false
+        condition: |
+          state.duplicatePatients.length > 0 && !state.errors
   - id: trigger
     type: cron
     next:
