@@ -7,7 +7,7 @@ fn((state) => {
 
       const childTei = tei?.trackedEntity;
       const parentTei = state.parentTeis[omrsPatientUuid]?.trackedEntity;
-      const relationshipType = tei?.relationshipType;
+      const relationshipType = tei?.relationshipType || "cJJTZ51EK24"; // Default: Mental Health relationship
 
       if (childTei != parentTei && parentTei) {
         return {
@@ -44,7 +44,7 @@ each(
     if (!hasRelationship) {
       state.relationshipsToCreate.push(relationship);
     }
-    console.log({ toCreate: state.relationshipsToCreate })
+    console.log({ toCreate: state.relationshipsToCreate });
     return state;
   })
 );
