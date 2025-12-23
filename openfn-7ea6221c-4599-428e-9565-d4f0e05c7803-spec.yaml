@@ -192,8 +192,8 @@ workflows:
     triggers:
       cron:
         type: cron
-        cron_expression: '0 0 * * *'
-        enabled: false
+        cron_expression: '00 01 * * *'
+        enabled: true
     edges:
       Upsert-TEIs->Get-Encounters:
         source_job: Upsert-TEIs
@@ -371,8 +371,8 @@ workflows:
     triggers:
       cron:
         type: cron
-        cron_expression: '0 0 * * *'
-        enabled: false
+        cron_expression: '30 00 * * *'
+        enabled: true
     edges:
       Custom-Logic-for-Events->Create-Events:
         source_job: Custom-Logic-for-Events
@@ -415,15 +415,6 @@ workflows:
           state.TEIs && !state.errors
 
         enabled: true
-      Get-Encounters->Get-TEIs-and-Map-Answers:
-        source_job: Get-Encounters
-        target_job: Get-TEIs-and-Map-Answers
-        condition_type: js_expression
-        condition_label: has-encounters
-        condition_expression: |
-          !state.errors && state?.latestEncountersByVisit?.length > 0
-
-        enabled: true
       cron->Get-Patients:
         source_trigger: cron
         target_job: Get-Patients
@@ -445,5 +436,14 @@ workflows:
         condition_label: test-mode
         condition_expression: |
           state.testMode
+
+        enabled: true
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state?.latestEncountersByVisit?.length > 0
 
         enabled: true
