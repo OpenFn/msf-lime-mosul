@@ -502,13 +502,7 @@ function mapF37(encounter) {
     })
     .filter(Boolean);
 
-  return [
-    ...f37Mapping,
-    {
-      dataElement: "O7HyhSTFrA0",
-      value: encounter.encounterDatetime.split("T")[0],
-    },
-  ];
+  return f37Mapping;
 }
 
 function mapF38(encounter) {
@@ -1665,13 +1659,13 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
-    console.log("<-");
-    console.log("optionKey", optionKey);
-    console.log("matchingOptionSet:", matchingOptionSet);
-    console.log("Answer Uuid:", answer.value.uuid);
-    console.log("Answer Display Value:", answer.value.display);
-    console.log("Opt:", opt);
-    console.log("->");
+    // console.log("<-");
+    // console.log("optionKey", optionKey);
+    // console.log("matchingOptionSet:", matchingOptionSet);
+    // console.log("Answer Uuid:", answer.value.uuid);
+    // console.log("Answer Display Value:", answer.value.display);
+    // console.log("Opt:", opt);
+    // console.log("->");
 
     const matchingOption =
       opt?.["DHIS2 Option Code"] ||
@@ -1911,13 +1905,13 @@ fn((state) => {
     .filter(Boolean);
   console.log("Final eventsMapping length:", state.eventsMapping.length);
 
-  // return state;
+  return state;
   return {
     dhis2Map: state.dhis2Map,
     eventsMapping: state.eventsMapping,
-    // optionSetKey: state.optionSetKey,
     encounters: state.encounters,
+    // optionSetKey: state.optionSetKey,
     // optsMap: state.optsMap,
-    formMaps: state.formMaps,
+    // formMaps: state.formMaps,
   };
 });
