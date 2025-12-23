@@ -25,6 +25,28 @@ const filterObsByConcept = (encounter, conceptUuid) => {
   return answers;
 };
 
+const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
+  const answer = encounter.obs.find(
+    (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
+  );
+  return answer ? "TRUE" : "FALSE";
+};
+const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
+  const answer = encounter.obs.find(
+    (o) => o.concept.uuid === conceptUuid && o.value.uuid !== valueUuid
+  );
+  return answer ? "TRUE" : "FALSE";
+};
+
+const conceptTrueOnly = (encounter, conceptUuid) => {
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptUuid &&
+      ["yes", "true"].includes(o?.value?.display?.toLowerCase())
+  );
+  return answer ? "TRUE" : undefined;
+};
+
 function mapF11(encounter, optsMap) {
   if (encounter.form.description.includes("F11-Family Planning Assessment")) {
     const answers = encounter.obs.filter(
@@ -51,6 +73,7 @@ function mapF11(encounter, optsMap) {
     });
   }
 }
+
 function mapF13(encounter, optsMap) {
   if (encounter.form.description.includes("F13-PNC")) {
     const answers = encounter.obs.filter(
@@ -565,7 +588,7 @@ function mapF38(encounter) {
 }
 
 function mapF49(encounter, mappings) {
-  const { events, programStage, dhis2Map } = mappings;
+  const { events, programStage, dhis2Map, optionSetKey, optsMap } = mappings;
   const dataEl = dhis2Map.de;
   const defaultEvent = events?.find(
     (e) => e.programStage === programStage
@@ -595,6 +618,7 @@ function mapF49(encounter, mappings) {
     }
     return "no";
   };
+
   const observedComplications = filterObsByConcept(
     encounter,
     "ec9ffc6e-22c9-4489-ab88-c517460e7838"
@@ -614,6 +638,7 @@ function mapF49(encounter, mappings) {
     encounter,
     "790b41ce-e1e7-11e8-b02f-0242ac130002"
   ).map((o) => o.value.display);
+
   const defaultDataValues = [
     { dataElement: dataEl.ncdEventDate, value: consultationDate },
     { dataElement: "SjNE9mM7Yu4", value: isReadmission },
@@ -715,11 +740,25 @@ function mapF49(encounter, mappings) {
     },
     {
       dataElement: dataEl.otherNCD,
-      value: diagnosisMap(
-        encounter,
-        "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
-        "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc" // Other noncommunicable diseases
-      ),
+      value: () => {
+        const conceptUuid = "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc";
+        const obs = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+        const optionKey = `${encounter.form.uuid}-${conceptUuid}-${obs.formFieldPath}`;
+        const matchingOptionSet = optionSetKey[optionKey];
+        const optCodeByExtId = optsMap.find(
+          (o) =>
+            o["value.uuid - External ID"] === conceptUuid &&
+            o["DHIS2 Option Set UID"] === matchingOptionSet
+        )?.["DHIS2 Option Code"];
+
+        return optCodeByExtId;
+
+        //   return diagnosisMap(
+        //   encounter,
+        //   "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
+        //   "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc" // Other noncommunicable diseases
+        // ),
+      },
     },
     {
       dataElement: dataEl.depression,
@@ -921,14 +960,14 @@ function mapF49(encounter, mappings) {
         },
         {
           dataElement: dataEl.totalCholesterolValue,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "9265064e-104f-431d-b50d-4cd8b7a39526"
           ),
         },
         {
           dataElement: dataEl.creatinineDone,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "b20c05db-cc1e-41f8-abbe-cdd8fcef82cc"
           ),
@@ -960,42 +999,42 @@ function mapF49(encounter, mappings) {
 
         {
           dataElement: dataEl.urineAnalysis,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "19d395d5-9e2f-4f9b-9723-1fd64e879421"
           ),
         },
         {
           dataElement: dataEl.altDone,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "41e0892a-3962-4ee6-8adc-b65322da183b"
           ),
         },
         {
           dataElement: dataEl.kDone,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "e2826aa6-af7b-49cd-b3a3-5ffae92c202d"
           ),
         },
         {
           dataElement: dataEl.tshDone,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "1b1ddab9-1463-4b79-9d25-b591bca6127e"
           ),
         },
         {
           dataElement: dataEl.inrDone,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "382d6a15-1e60-43a3-8ee5-bb0f7b11b17b"
           ),
         },
         {
           dataElement: dataEl.ldlDone,
-          value: findAnswerByConcept(
+          value: conceptTrueOnly(
             encounter,
             "1ecf8c4a-c70c-4fa6-b840-2e13cdb217fe"
           ),
@@ -1209,18 +1248,6 @@ function mapF60(encounter, metadataMap) {
   ];
 }
 
-const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
-  const answer = encounter.obs.find(
-    (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
-  );
-  return answer ? "TRUE" : "FALSE";
-};
-const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
-  const answer = encounter.obs.find(
-    (o) => o.concept.uuid === conceptUuid && o.value.uuid !== valueUuid
-  );
-  return answer ? "TRUE" : "FALSE";
-};
 function mapF61(encounter, metadataMap) {
   const { events } = metadataMap;
   const event = events?.find((e) => e.programStage === "y8MvLYtuKE3")?.event;
@@ -1701,7 +1728,7 @@ const formEncounters = (formDescription, encounters) => {
 
 const buildExitEvent = (encounter, tei, metadataMap) => {
   const { program, orgUnit, trackedEntity, enrollment, events } = tei;
-  const { formMaps, dhis2Map } = metadataMap;
+  const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
 
   let exitEvents = [];
   const sharedEventMap = {
@@ -1714,7 +1741,13 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
 
   if (encounter.form.description.includes("F49-NCDs Baseline")) {
     const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = { events, programStage, dhis2Map };
+    const metadataMap = {
+      events,
+      programStage,
+      dhis2Map,
+      optionSetKey,
+      optsMap,
+    };
     const eventsMap = mapF49(encounter, metadataMap);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
@@ -1872,6 +1905,8 @@ fn((state) => {
         {
           formMaps: state.formMaps,
           dhis2Map: state.dhis2Map,
+          optionSetKey: state.optionSetKey,
+          optsMap: state.optsMap,
         }
       );
 
