@@ -651,7 +651,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.diabetesTypeI,
+      dataElement: dataEl.f49.diabetesTypeI,
       value: diagnosisMap(
         encounter,
         "f9bd6164-18e9-41ce-97cd-45ff85d6f124",
@@ -659,7 +659,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.diabetesTypeII,
+      dataElement: dataEl.f49.diabetesTypeII,
       value: diagnosisMap(
         encounter,
         "db973d66-e027-4238-87c9-fa6e53026d12",
@@ -667,7 +667,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.gestationalDiabetes,
+      dataElement: dataEl.f49.gestationalDiabetes,
       value: diagnosisMap(
         encounter,
         "3a5da658-2750-4872-9499-3c9e858f5eb6",
@@ -675,7 +675,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.hypothyroidism,
+      dataElement: dataEl.f49.hypothyroidism,
       value: diagnosisMap(
         encounter,
         "10ea847e-58c7-4da0-a112-ee1f0883e31b",
@@ -683,7 +683,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.chronicKidneyDisease,
+      dataElement: dataEl.f49.chronicKidneyDisease,
       value: diagnosisMap(
         encounter,
         "42e81b70-63ab-4387-aebe-90e20db918e7",
@@ -691,7 +691,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.asthma,
+      dataElement: dataEl.f49.asthma,
       value: diagnosisMap(
         encounter,
         "82a5dadc-77ea-4765-b766-fb1e0336a736",
@@ -699,7 +699,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.copd,
+      dataElement: dataEl.f49.copd,
       value: diagnosisMap(
         encounter,
         "68b7e054-046a-4ec1-8c6a-b05d0480da47",
@@ -707,7 +707,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.cardiovascularDisease,
+      dataElement: dataEl.f49.cardiovascularDisease,
       value: diagnosisMap(
         encounter,
         "5078ef27-0826-46c2-ac50-30ebf25cb686",
@@ -715,7 +715,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.otherCardiovascularDisorder,
+      dataElement: dataEl.f49.otherCardiovascularDisorder,
       value: diagnosisMap(
         encounter,
         "ada7c7aa-261c-4808-b3ec-1236952ad1da",
@@ -723,7 +723,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.heartfailure,
+      dataElement: dataEl.f49.heartfailure,
       value: diagnosisMap(
         encounter,
         "fe989a53-9788-46e9-a170-f1f4b7abfddf",
@@ -731,7 +731,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.epilepsy,
+      dataElement: dataEl.f49.epilepsy,
       value: diagnosisMap(
         encounter,
         "09334f94-5efd-49f0-b494-68b9192f2fd8",
@@ -739,7 +739,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.otherNCD,
+      dataElement: dataEl.f49.otherNCD,
       value: () => {
         const conceptUuid = "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc";
         const obs = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -761,7 +761,7 @@ function mapF49(encounter, mappings) {
       },
     },
     {
-      dataElement: dataEl.depression,
+      dataElement: dataEl.f49.depression,
       value: diagnosisMap(
         encounter,
         "d48039ad-1700-406d-b9c2-b3bf355d61f9",
@@ -769,7 +769,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.psychosis,
+      dataElement: dataEl.f49.psychosis,
       value: diagnosisMap(
         encounter,
         "6c0beb80-d7bd-4580-8f36-b6ffee8661fe",
@@ -777,7 +777,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.stressRelated,
+      dataElement: dataEl.f49.stressRelated,
       value: diagnosisMap(
         encounter,
         "7aff0f40-e039-43fb-971d-0c07ed9fcde1",
@@ -785,7 +785,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.substanceDisorder,
+      dataElement: dataEl.f49.substanceDisorder,
       value: diagnosisMap(
         encounter,
         "43024c85-60c3-4dd0-acde-33d259ad1e33",
@@ -793,7 +793,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.childAdolescence,
+      dataElement: dataEl.f49.childAdolescence,
       value: diagnosisMap(
         encounter,
         "d30db8b8-f8fb-450c-9562-629195212a45",
@@ -801,7 +801,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.selfHarm,
+      dataElement: dataEl.f49.selfHarm,
       value: diagnosisMap(
         encounter,
         "af23b916-3e95-4bd4-8804-a4b1649ff365",
@@ -809,7 +809,7 @@ function mapF49(encounter, mappings) {
       ),
     },
     {
-      dataElement: dataEl.otherMH,
+      dataElement: dataEl.f49.otherMH,
       value: diagnosisMap(
         encounter,
         "88fc3c44-9ad1-4d33-b4ea-d2223c906f42",
@@ -818,85 +818,85 @@ function mapF49(encounter, mappings) {
     },
 
     {
-      dataElement: dataEl.observedComplication1,
+      dataElement: dataEl.f49.observedComplication1,
       value: observedComplications?.[0],
     },
     {
-      dataElement: dataEl.observedComplication2,
+      dataElement: dataEl.f49.observedComplication2,
       value: observedComplications?.[1],
     },
     {
-      dataElement: dataEl.observedComplication3,
+      dataElement: dataEl.f49.observedComplication3,
       value: observedComplications?.[2],
     },
     {
-      dataElement: dataEl.observedComplication4,
+      dataElement: dataEl.f49.observedComplication4,
       value: observedComplications?.[3],
     },
 
     {
-      dataElement: dataEl.medication1,
+      dataElement: dataEl.f49.medication1,
       value: medications?.[0],
     },
     {
-      dataElement: dataEl.medication2,
+      dataElement: dataEl.f49.medication2,
       value: medications?.[1],
     },
     {
-      dataElement: dataEl.medication3,
+      dataElement: dataEl.f49.medication3,
       value: medications?.[2],
     },
     {
-      dataElement: dataEl.medication4,
+      dataElement: dataEl.f49.medication4,
       value: medications?.[3],
     },
     {
-      dataElement: dataEl.medication5,
+      dataElement: dataEl.f49.medication5,
       value: medications?.[4],
     },
     {
-      dataElement: dataEl.medication6,
+      dataElement: dataEl.f49.medication6,
       value: medications?.[5],
     },
     {
-      dataElement: dataEl.medication7,
+      dataElement: dataEl.f49.medication7,
       value: medications?.[6],
     },
     {
-      dataElement: dataEl.medication8,
+      dataElement: dataEl.f49.medication8,
       value: medications?.[7],
     },
     {
-      dataElement: dataEl.medication9,
+      dataElement: dataEl.f49.medication9,
       value: medications?.[8],
     },
     {
-      dataElement: dataEl.medication10,
+      dataElement: dataEl.f49.medication10,
       value: medications?.[9],
     },
     {
-      dataElement: dataEl.specialistType1,
+      dataElement: dataEl.f49.specialistType1,
       value: specialistTypes?.[0],
     },
     {
-      dataElement: dataEl.specialistType2,
+      dataElement: dataEl.f49.specialistType2,
       value: specialistTypes?.[1],
     },
     {
-      dataElement: dataEl.specialistType3,
+      dataElement: dataEl.f49.specialistType3,
       value: specialistTypes?.[2],
     },
 
     {
-      dataElement: dataEl.ifOtherSpecialistType1,
+      dataElement: dataEl.f49.ifOtherSpecialistType1,
       value: ifOtherSpecialistTypes?.[0],
     },
     {
-      dataElement: dataEl.ifOtherSpecialistType2,
+      dataElement: dataEl.f49.ifOtherSpecialistType2,
       value: ifOtherSpecialistTypes?.[1],
     },
     {
-      dataElement: dataEl.ifOtherSpecialistType3,
+      dataElement: dataEl.f49.ifOtherSpecialistType3,
       value: ifOtherSpecialistTypes?.[2],
     },
   ];
@@ -912,28 +912,28 @@ function mapF49(encounter, mappings) {
       programStage: "RVgciZl54Aj",
       dataValues: [
         {
-          dataElement: dataEl.estDeliveryDate,
+          dataElement: dataEl.f49.estDeliveryDate,
           value: findAnswerByConcept(
             encounter,
             "4cc41121-74da-42ac-ab89-e8878db66020"
           ),
         },
         {
-          dataElement: dataEl.antenatalConsultation,
+          dataElement: dataEl.f49.antenatalConsultation,
           value: findAnswerByConcept(
             encounter,
             "bf704b21-d203-4fb8-9b90-a2c29caad61b"
           ),
         },
         {
-          dataElement: dataEl.contraception,
+          dataElement: dataEl.f49.contraception,
           value: findAnswerByConcept(
             encounter,
             "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14"
           ),
         },
         {
-          dataElement: dataEl.pregnancyMethod,
+          dataElement: dataEl.f49.pregnancyMethod,
           value: findAnswerByConcept(
             encounter,
             "6afb5d27-3e86-42ff-bad1-38f90897e0b6"
@@ -1058,7 +1058,7 @@ function mapF49(encounter, mappings) {
   ];
 }
 function mapF50(encounter, mappings) {
-  const { events, programStage, dhis2Map, optionSetKey, optsMap } = mappings;
+  const { events, programStage, dhis2Map } = mappings;
   const dataEl = dhis2Map.de;
   const defaultEvent = events?.find(
     (e) => e.programStage === programStage
@@ -2237,8 +2237,6 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
       events,
       programStage,
       dhis2Map,
-      optionSetKey,
-      optsMap,
     };
     const eventsMap = mapF50(encounter, metadataMap);
     for (const event of eventsMap) {

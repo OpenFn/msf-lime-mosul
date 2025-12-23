@@ -106,9 +106,8 @@ const dhis2Map = {
       ifOtherSpecialistType1: "iXRsVYYypkU",
       ifOtherSpecialistType2: "xnpdL9cgpDH",
       ifOtherSpecialistType3: "NYEmxR8LW75",
+      otherNCD: "n36Fq9tLoWJ",
     },
-
-    otherNCD: "n36Fq9tLoWJ",
 
     extremistFootExam: "gPplT1Gk1uB",
     hba1cValue: "QJXo4pwCxJR",
