@@ -60,12 +60,12 @@ each(
         form.formName !== "F00-Registration"
     )?.relationshipId;
 
-// Skip enrollment creation for program without registration
+    // Skip enrollment creation for program without registration
     const skipEnrollment = program === "od0M4kEn5Rp";
-    
 
     state.childTeis ??= {};
-    state.childTeis[`${orgUnit}-${program}-${patientUuid}`] = {
+    const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
+    state.childTeis[patientOuProgram] = {
       relationshipType,
       trackedEntity,
       events: enrollments?.[0]?.events ?? events,
@@ -73,7 +73,7 @@ each(
       attributes,
       orgUnit,
       program,
-      skipEnrollment
+      skipEnrollment,
     };
 
     return state;
