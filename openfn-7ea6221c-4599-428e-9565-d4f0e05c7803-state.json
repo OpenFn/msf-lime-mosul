@@ -44,10 +44,8 @@
       "owner": "aisha@openfn.org"
     }
   },
-  "allow_support_access": false,
-  "collections": {},
-  "requires_mfa": false,
   "version_history": [],
+  "collections": {},
   "workflows": {
     "wf1-dhis2-omrs-migration": {
       "id": "37e14ed6-2caa-4ee2-8d8a-84bcbbd901e0",
@@ -489,5 +487,7 @@
         }
       }
     }
-  }
+  },
+  "allow_support_access": false,
+  "requires_mfa": false
 }
