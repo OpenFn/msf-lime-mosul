@@ -1,13 +1,13 @@
 // Patient Attributes
-const genderAttr = "qptKDiv9uPl"
-const ageInMonthsAttr = "ihH5ur7jquC"
-const ageInYearsAttr = "T1iX2NuPyqS"
-const currentStatusAttr = "YUIQIA2ClN6"
-const legalStatusAttr = "Qq6xQ2s6LO8"
-const placeOfLivingAttr = "rBtrjV1Mqkz"
-const nationalityAttr = "Xvzc9e0JJmp"
-const patientNoAttr = "P4wdYGkldeG"
-const dobAttr = "WDp4nVor9Z7"
+const genderAttr = "qptKDiv9uPl";
+const ageInMonthsAttr = "ihH5ur7jquC";
+const ageInYearsAttr = "T1iX2NuPyqS";
+const currentStatusAttr = "YUIQIA2ClN6";
+const legalStatusAttr = "Qq6xQ2s6LO8";
+const placeOfLivingAttr = "rBtrjV1Mqkz";
+const nationalityAttr = "Xvzc9e0JJmp";
+const patientNoAttr = "P4wdYGkldeG";
+const dobAttr = "WDp4nVor9Z7";
 
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const calculateAge = (dob) =>
@@ -34,7 +34,6 @@ const formIdByName = (name, formMaps) => {
   return entry ? entry[0] : null;
 };
 
-
 const ageInDays = (dob, encounterDate) => {
   const birth = new Date(dob);
   const encounter = new Date(encounterDate);
@@ -47,7 +46,6 @@ function f8(encounter) {
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
-
 
   if (obsDatetime) {
     const datePart = obsDatetime.substring(0, 10);
@@ -233,7 +231,6 @@ function f43(encounter, tei, dhis2Attr) {
   const birthdate = tei?.attributes?.find(
     (attr) => attr.attribute === dobAttr
   )?.value;
-
 
   if (obsDatetime) {
     const datePart = obsDatetime.substring(0, 10);
@@ -979,8 +976,6 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
   return "";
 };
 
-
-
 const buildDataValues = (encounter, tei, mappingConfig) => {
   const {
     optsMap,
@@ -1346,7 +1341,7 @@ fn((state) => {
 
       const tei = state.TEIs[patientUuid];
       if (!tei) {
-        console.log({ patientUuid })
+        console.log({ patientUuid });
       }
 
       const dataValues = patientEncounters
