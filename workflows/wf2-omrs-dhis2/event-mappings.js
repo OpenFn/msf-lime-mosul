@@ -502,7 +502,13 @@ function mapF37(encounter) {
     })
     .filter(Boolean);
 
-  return f37Mapping;
+  return [
+    ...f37Mapping,
+    {
+      dataElement: "O7HyhSTFrA0",
+      value: encounter.encounterDatetime.split("T")[0],
+    },
+  ];
 }
 
 function mapF38(encounter) {
