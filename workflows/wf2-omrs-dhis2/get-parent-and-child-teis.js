@@ -51,6 +51,7 @@ get("tracker/trackedEntities", {
 
 fn((state) => {
   state.parentTeis ??= {};
+  state.childTeis ??= {};
   state.missingParentTeis ??= {};
 
   Object.keys(state.encountersByPatient).forEach((patientUuid) => {
