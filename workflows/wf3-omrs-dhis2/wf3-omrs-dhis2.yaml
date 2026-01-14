@@ -1,6 +1,6 @@
 id: wf3-omrs-dhis2
 name: wf3-omrs-dhis2
-start: cron
+start: trigger-cron
 options: {}
 steps:
   - id: create-events

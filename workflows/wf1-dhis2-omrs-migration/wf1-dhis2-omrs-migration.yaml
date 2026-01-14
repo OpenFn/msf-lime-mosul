@@ -1,6 +1,6 @@
 id: wf1-dhis2-omrs-migration
 name: wf1-dhis2-omrs-migration
-start: cron
+start: trigger-cron
 options: {}
 steps:
   - id: alert-admin-of-duplicate-teis
