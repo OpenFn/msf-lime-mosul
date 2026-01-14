@@ -1,25 +1,30 @@
 id: wf2-omrs-dhis2
 name: wf2-omrs-dhis2
+start: trigger-cron
 options: {}
 steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./create-events.js
     next:
       update-teis:
         disabled: false
         condition: |
           state?.teisToUpdate?.length > 0
+        name: has-gender-updated
   - id: create-teis-relationship
     name: Create TEIs Relationship
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./create-teis-relationship.js
     next:
       event-mappings:
         disabled: false
         condition: |
           state.childTeis && !state.errors
+        name: has-child-teis
   - id: event-mappings
     name: Event Mappings
     adaptor: "@openfn/language-common@2.1.1"
@@ -29,18 +34,22 @@ steps:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
+        name: has-events
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./get-encounters.js
     next:
       get-parent-and-child-teis:
         disabled: false
         condition: |
           !state.errors && state.encounters.length > 0
+        name: has-encounters
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./get-parent-and-child-teis.js
     next:
       upsert-child-teis:
@@ -48,49 +57,60 @@ steps:
         condition: >
           Object.keys(state?.childTeis)?.length > 0 &&
           Object.keys(state?.parentTeis)?.length > 0
+        name: has-child-parent-teis
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./get-patients.js
     next:
       mappings:
         disabled: false
+        condition: on_job_success
   - id: mappings
     name: Mappings
     adaptor: "@openfn/language-common@2.1.1"
+    configuration: 90cddfa1-9b77-4625-a812-2a04d061522c
     expression: ./mappings.js
     next:
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
+        name: has-patients
       get-encounters:
         disabled: false
         condition: |
           !state.errors && state.patients.length === 0
+        name: has-no-patients
   - id: trigger
     type: cron
     next:
       get-patients:
         disabled: false
-        condition: true
+        condition: always
   - id: update-teis
     name: Update TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./update-teis.js
   - id: upsert-child-teis
     name: Upsert Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./upsert-child-teis.js
     next:
       create-teis-relationship:
         disabled: false
+        condition: on_job_success
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./upsert-teis.js
     next:
       get-encounters:
         disabled: false
         condition: |
           state.patientUuids.length > 0 && !state.errors
+        name: has-patient-uuids

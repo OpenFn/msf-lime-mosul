@@ -1,5 +1,6 @@
 id: wf1-dhis2-omrs-migration
 name: wf1-dhis2-omrs-migration
+start: trigger-cron
 options: {}
 steps:
   - id: alert-admin-of-duplicate-teis
@@ -9,10 +10,12 @@ steps:
   - id: create-patients
     name: Create Patients
     adaptor: "@openfn/language-openmrs@4.2.0"
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./create-patients.js
     next:
       update-teis:
         disabled: false
+        condition: on_job_success
   - id: fetch-metadata
     name: Fetch Metadata
     adaptor: "@openfn/language-common@2.1.1"
@@ -20,34 +23,41 @@ steps:
     next:
       get-teis-and-locations:
         disabled: false
+        condition: on_job_success
   - id: get-teis-and-locations
     name: Get Teis and Locations
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./get-teis-and-locations.js
     next:
       create-patients:
         disabled: false
         condition: |
           state.uniqueTeis.length > 0 && !state.errors
+        name: has-teis
       alert-admin-of-duplicate-teis:
         disabled: false
         condition: |
           state.duplicatePatients.length > 0 && !state.errors
+        name: has-duplicate-patients
       validate-teis-with-omrs-id:
         disabled: false
         condition: |
           !state.errors && state. teisWithOMRSID.length > 0
+        name: has-teisWithOMRSID
   - id: trigger
     type: cron
     next:
       fetch-metadata:
         disabled: false
-        condition: true
+        condition: always
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./update-teis.js
   - id: validate-teis-with-omrs-id
     name: Validate TEIs with OMRS Id
     adaptor: "@openfn/language-openmrs@4.2.0"
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./validate-teis-with-omrs-id.js
