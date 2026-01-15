@@ -1,6 +1,6 @@
 id: wf2-omrs-dhis2
 name: wf2-omrs-dhis2
-start: trigger-cron
+start: cron
 options: {}
 steps:
   - id: create-events
@@ -25,6 +25,12 @@ steps:
         condition: |
           state.childTeis && !state.errors
         name: has-child-teis
+  - id: cron
+    type: cron
+    next:
+      get-patients:
+        disabled: false
+        condition: always
   - id: event-mappings
     name: Event Mappings
     adaptor: "@openfn/language-common@2.1.1"
@@ -83,12 +89,6 @@ steps:
         condition: |
           !state.errors && state.patients.length === 0
         name: has-no-patients
-  - id: trigger
-    type: cron
-    next:
-      get-patients:
-        disabled: false
-        condition: always
   - id: update-teis
     name: Update TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
