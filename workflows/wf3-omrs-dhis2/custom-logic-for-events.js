@@ -221,7 +221,51 @@ function f42(encounter) {
   ];
 }
 
-function f43(encounter, tei, dhis2Attr) {
+function f26(encounter, optsMap, optionSetKey) {
+  const antimalariaType = filterObsByConcept(
+    encounter,
+    "8afa4dfc-b2af-452c-b402-4b96b0f334b4"
+  );
+
+  if (antimalariaType.length > 1) {
+    const { value, concept, formFieldPath } = antimalariaType[1];
+    const optionKey = `${encounter.form.uuid}-${concept.uuid}-${formFieldPath}`;
+    const matchingOptionSet = optionSetKey[optionKey];
+    const opt = optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === value.uuid &&
+        o["value.display - Answers"] == value.display
+      // o["DHIS2 Option Set UID"] === matchingOptionSet // TODO: @Aisha to confirm with Ludovic, No matching option set found for this concept
+    );
+
+    return [
+      {
+        dataElement: "GUiSgvbwUyc",
+        value: opt?.["DHIS2 Option Code"],
+      },
+    ];
+  } else if (antimalariaType.length === 1) {
+    const { value, concept, formFieldPath } = antimalariaType[0];
+
+    const optionKey = `${encounter.form.uuid}-${concept.uuid}-${formFieldPath}`;
+    const matchingOptionSet = optionSetKey[optionKey];
+    const opt = optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === value.uuid &&
+        o["value.display - Answers"] == value.display
+      // o["DHIS2 Option Set UID"] === matchingOptionSet
+    );
+    return [
+      {
+        dataElement: "F6C5WnGoj5r",
+        value: opt?.["DHIS2 Option Code"],
+      },
+    ];
+  }
+  return [];
+}
+
+function f43(encounter, tei) {
   const mappings = [];
   const obsDatetime = findObsByConcept(
     encounter,
