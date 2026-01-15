@@ -23,7 +23,7 @@ const isValidUUID = (id) => {
   return UUID_PATTERN.test(id);
 };
 
-collections.get("mosul-metadata-mappings-staging").then((state) => {
+collections.get("mosul-metadata-mappings-main").then((state) => {
   state.optsMap = state.data
     .filter((i) => i.key.includes("optsMap-value-"))
     .map((i) => i.value);
