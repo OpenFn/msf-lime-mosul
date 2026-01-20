@@ -1,28 +1,22 @@
-// Patient Attributes
-const genderAttr = "qptKDiv9uPl";
-const ageInMonthsAttr = "ihH5ur7jquC";
-const ageInYearsAttr = "T1iX2NuPyqS";
-const currentStatusAttr = "YUIQIA2ClN6";
-const legalStatusAttr = "Qq6xQ2s6LO8";
-const placeOfLivingAttr = "rBtrjV1Mqkz";
-const nationalityAttr = "Xvzc9e0JJmp";
-const patientNoAttr = "P4wdYGkldeG";
-const dobAttr = "WDp4nVor9Z7";
+// F64-specific age attributes
+const f64AgeInYearsAttr = "Rv8WM2mTuS5"; //dhis2Map.attr.ageInYears
+const f64AgeInMonthsAttr = "k26cdlS78i9";
 
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
 const calculateAge = (dob) =>
   Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
 
-const teiAge = (tei) => {
+const teiAge = (tei, attr) => {
+  const { ageInYears, birthdate } = attr;
   let age = tei?.attributes?.find(
-    (attr) => attr.attribute === ageInYearsAttr
+    (attr) => attr.attribute === ageInYears
   )?.value;
 
   if (!age) {
-    const birthdate = tei?.attributes?.find(
-      (attr) => attr.attribute === dobAttr
+    const dob = tei?.attributes?.find(
+      (attr) => attr.attribute === birthdate
     )?.value;
-    age = calculateAge(birthdate);
+    age = calculateAge(dob);
   }
   return age;
 };
@@ -221,51 +215,7 @@ function f42(encounter) {
   ];
 }
 
-function f26(encounter, optsMap, optionSetKey) {
-  const antimalariaType = filterObsByConcept(
-    encounter,
-    "8afa4dfc-b2af-452c-b402-4b96b0f334b4"
-  );
-
-  if (antimalariaType.length > 1) {
-    const { value, concept, formFieldPath } = antimalariaType[1];
-    const optionKey = `${encounter.form.uuid}-${concept.uuid}-${formFieldPath}`;
-    const matchingOptionSet = optionSetKey[optionKey];
-    const opt = optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === value.uuid &&
-        o["value.display - Answers"] == value.display
-      // o["DHIS2 Option Set UID"] === matchingOptionSet // TODO: @Aisha to confirm with Ludovic, No matching option set found for this concept
-    );
-
-    return [
-      {
-        dataElement: "GUiSgvbwUyc",
-        value: opt?.["DHIS2 Option Code"],
-      },
-    ];
-  } else if (antimalariaType.length === 1) {
-    const { value, concept, formFieldPath } = antimalariaType[0];
-
-    const optionKey = `${encounter.form.uuid}-${concept.uuid}-${formFieldPath}`;
-    const matchingOptionSet = optionSetKey[optionKey];
-    const opt = optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === value.uuid &&
-        o["value.display - Answers"] == value.display
-      // o["DHIS2 Option Set UID"] === matchingOptionSet
-    );
-    return [
-      {
-        dataElement: "F6C5WnGoj5r",
-        value: opt?.["DHIS2 Option Code"],
-      },
-    ];
-  }
-  return [];
-}
-
-function f43(encounter, tei) {
+function f43(encounter, tei, dhis2Attr) {
   const mappings = [];
   const obsDatetime = findObsByConcept(
     encounter,
@@ -273,7 +223,7 @@ function f43(encounter, tei) {
   )?.value;
 
   const birthdate = tei?.attributes?.find(
-    (attr) => attr.attribute === dobAttr
+    (attr) => attr.attribute === dhis2Attr.birthdate
   )?.value;
 
   if (obsDatetime) {
@@ -1053,14 +1003,14 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     // F09 Form Encounter Mapping
 
     const attributeMap = {
-      Lg1LrNf9LQR: genderAttr,
-      OVo3FxLURtH: ageInMonthsAttr,
-      f3n6kIB9IbI: ageInYearsAttr, // TODO:we see this in metadata "Rv8WM2mTuS5",
-      oc9zlhOoWmP: currentStatusAttr,
-      DbyD9bbGIvE: legalStatusAttr,
-      fiPFww1viBB: placeOfLivingAttr,
-      FsL5BjQocuo: nationalityAttr,
-      Pi1zytYdq6l: patientNoAttr,
+      Lg1LrNf9LQR: dhis2Map.attr.sex,
+      OVo3FxLURtH: dhis2Map.attr.ageInMonth,
+      f3n6kIB9IbI: dhis2Map.attr.ageInYears, // TODO:we see this in metadata "Rv8WM2mTuS5",
+      oc9zlhOoWmP: dhis2Map.attr.currentStatus,
+      DbyD9bbGIvE: dhis2Map.attr.legalStatus,
+      fiPFww1viBB: dhis2Map.attr.placeOfLivingAttr,
+      FsL5BjQocuo: dhis2Map.attr.nationalityAttr,
+      Pi1zytYdq6l: dhis2Map.attr.patientNumber,
     };
     const f09Mapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(...f09Mapping);
@@ -1073,16 +1023,16 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
     // F24 Form Encounter Mapping
     const attributeMap = {
-      Hww0CNYYt3E: genderAttr,
-      // Z7vMFdnQxpE: dobAttr,
-      // L97SmAK11DN: ageInYearsAttr,
-      yE0dIWW0TXP: placeOfLivingAttr,
-      fnH6H3biOkE: patientNoAttr,
+      Hww0CNYYt3E: dhis2Map.attr.sex,
+      // Z7vMFdnQxpE: dhis2Map.attr.birthdate,
+      // L97SmAK11DN: dhis2Map.attr.ageInYears,
+      yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr,
+      fnH6H3biOkE: dhis2Map.attr.patientNumber,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === dobAttr
+      (attr) => attr.attribute === dhis2Map.attr.birthdate
     )?.value;
 
     if (dob) {
@@ -1094,7 +1044,7 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     }
     if (!dob) {
       const age = tei?.attributes?.find(
-        (attr) => attr.attribute === ageInYearsAttr
+        (attr) => attr.attribute === dhis2Map.attr.ageInYears
       )?.value;
 
       const ageInMonths = age * 12;
@@ -1110,19 +1060,19 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
   if ([f25Form, f26Form].includes(encounter.form.uuid)) {
     const attributeMap = {
-      eDuqRYx3wLx: genderAttr,
-      d7wOfzPBbQD: ageInYearsAttr,
-      y9pK9sVcbU9: ageInMonthsAttr,
+      eDuqRYx3wLx: dhis2Map.attr.sex,
+      d7wOfzPBbQD: dhis2Map.attr.ageInYears,
+      y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
       // b7z6xIpzkim: "",
-      CDuiRuOcfzj: currentStatusAttr,
-      JMhFzB97fcS: legalStatusAttr,
-      Nd43pz1Oo62: placeOfLivingAttr,
-      kcSuQKfU5Zo: patientNoAttr,
+      CDuiRuOcfzj: dhis2Map.attr.currentStatus,
+      JMhFzB97fcS: dhis2Map.attr.legalStatus,
+      Nd43pz1Oo62: dhis2Map.attr.placeOfLivingAttr,
+      kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === dobAttr
+      (attr) => attr.attribute === dhis2Map.attr.birthdate
     )?.value;
 
     const f26Mapping = f26(encounter, optsMap, optionSetKey);
@@ -1145,12 +1095,12 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
     // F28 Form Encounter Mapping
     const attributeMap = {
-      WP5vr8KB2lH: genderAttr,
-      Y7qzoa4Qaiz: currentStatusAttr,
-      XCUd9xOGXkn: legalStatusAttr,
-      onKT21rxH6Z: placeOfLivingAttr,
-      sCKCNreiqEA: nationalityAttr,
-      ci9C72RjN8Z: patientNoAttr,
+      WP5vr8KB2lH: dhis2Map.attr.sex,
+      Y7qzoa4Qaiz: dhis2Map.attr.currentStatus,
+      XCUd9xOGXkn: dhis2Map.attr.legalStatus,
+      onKT21rxH6Z: dhis2Map.attr.placeOfLivingAttr,
+      sCKCNreiqEA: dhis2Map.attr.nationalityAttr,
+      ci9C72RjN8Z: dhis2Map.attr.patientNumber,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
@@ -1174,13 +1124,13 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
     // F43 Form Encounter Mapping
     const attributeMap = {
-      eMXqL66pJSV: genderAttr,
-      hT8pIot8b6Y: ageInMonthsAttr,
-      BA7aQjiwlrL: ageInYearsAttr, // in metadata->"Rv8WM2mTuS5",
-      KRNhyZHeGGM: currentStatusAttr,
-      fUxvDvbPKlU: legalStatusAttr,
-      xw5Vres1Ndt: placeOfLivingAttr,
-      iGHeO9F8CKm: nationalityAttr,
+      eMXqL66pJSV: dhis2Map.attr.sex,
+      hT8pIot8b6Y: dhis2Map.attr.ageInMonth,
+      BA7aQjiwlrL: dhis2Map.attr.ageInYears, // in metadata->"Rv8WM2mTuS5",
+      KRNhyZHeGGM: dhis2Map.attr.currentStatus,
+      fUxvDvbPKlU: dhis2Map.attr.legalStatus,
+      xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr,
+      iGHeO9F8CKm: dhis2Map.attr.nationalityAttr,
     };
     const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(
