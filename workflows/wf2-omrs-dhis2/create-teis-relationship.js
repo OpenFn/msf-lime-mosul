@@ -5,7 +5,9 @@ fn((state) => {
         ({ attribute }) => attribute === "AYbfTPYMNJH"
       )?.value;
       const childTei = tei?.trackedEntity;
-      const parentTei = state.parentTeis[omrsPatientUuid]?.trackedEntity;
+      const parentTei =
+        state.parentTeis[`${state.orgUnit}-${state.program}-${omrsPatientUuid}`]
+          ?.trackedEntity;
       const relationshipType = tei?.relationshipType || "cJJTZ51EK24";
       // :white_check_mark: Add validation to ensure both TEIs exist
       if (!childTei || !parentTei) {
