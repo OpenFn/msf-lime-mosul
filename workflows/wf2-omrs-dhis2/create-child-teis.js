@@ -79,8 +79,3 @@ each(
     return state;
   })
 );
-
-fn((state) => {
-  state.existingTeis = { ...state.existingTeis, ...state.createdChildTeis };
-  return state;
-});

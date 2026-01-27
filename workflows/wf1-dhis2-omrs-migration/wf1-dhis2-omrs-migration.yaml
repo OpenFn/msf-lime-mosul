@@ -37,11 +37,6 @@ steps:
     configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
     expression: ./get-teis-and-locations.js
     next:
-      create-patients:
-        disabled: false
-        condition: |
-          state.uniqueTeis.length > 0 && !state.errors
-        name: has-teis
       validate-teis-with-omrs-id:
         disabled: false
         condition: |
@@ -52,6 +47,11 @@ steps:
         condition: |
           state.duplicatePatients.length > 0 && !state.errors
         name: has-duplicate-patients
+      create-patients:
+        disabled: false
+        condition: |
+          state.uniqueTeis.length > 0 && !state.errors
+        name: has-teis
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
