@@ -1,10 +1,10 @@
 {
   "scripts": {
-    "wf2": "openfn .projects/wf2-omrs-dhis2/workflow.yaml -o .projects/wf2-omrs-dhis2/output.json",
-    "wf2:state": "openfn .projects/wf2-omrs-dhis2/workflow.yaml -s .projects/wf2-omrs-dhis2/state.json -o .projects/wf2-omrs-dhis2/output.json",
+    "wf2": "openfn wf2-omrs-dhis2 -o .projects/wf2-omrs-dhis2/output.json",
+    "wf2:state": "openfn wf2-omrs-dhis2 -s .projects/wf2-omrs-dhis2/state.json -o .projects/wf2-omrs-dhis2/output.json",
     "wf2:cache": "pnpm wf2:state --cache-steps",
-    "wf3": "openfn .projects/wf3-omrs-dhis2/workflow.yaml -o .projects/wf3-omrs-dhis2/output.json --credentials credentials.yaml",
-    "wf3:state": "openfn .projects/wf3-omrs-dhis2/workflow.yaml -s .projects/wf3-omrs-dhis2/state.json -o .projects/wf3-omrs-dhis2/output.json --credentials credentials.yaml",
+    "wf3": "openfn wf3-omrs-dhis2 -o .projects/wf3-omrs-dhis2/output.json --credentials credentials.yaml",
+    "wf3:state": "openfn wf3-omrs-dhis2 -s .projects/wf3-omrs-dhis2/state.json -o .projects/wf3-omrs-dhis2/output.json --credentials credentials.yaml",
     "wf3:cache": "pnpm wf3:state --cache-steps"
   }
 }
