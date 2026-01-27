@@ -78,20 +78,23 @@ fn((state) => {
 });
 
 // Fetch all encounters
-fnIf(!$.testMode, http
-  .get("/ws/fhir2/R4/Encounter", {
-    query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
-  })
-  .then((state) => {
-    const { link, total } = state.data;
-    state.nextUrl = link
-      .find((l) => l.relation === "next")
-      ?.url.replace(/(_count=)\d+/, `$1${total}`)
-      .split("/openmrs")[1];
+fnIf(
+  !$.testMode,
+  http
+    .get("/ws/fhir2/R4/Encounter", {
+      query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
+    })
+    .then((state) => {
+      const { link, total } = state.data;
+      state.nextUrl = link
+        .find((l) => l.relation === "next")
+        ?.url.replace(/(_count=)\d+/, `$1${total}`)
+        .split("/openmrs")[1];
 
-    state.allResponse = state.data;
-    return state;
-  }))
+      state.allResponse = state.data;
+      return state;
+    })
+);
 
 fnIf(
   $.nextUrl && !$.testMode,
@@ -105,7 +108,7 @@ fnIf(
 
 fn((state) => {
   if (state.testMode) {
-    return state
+    return state;
   }
   console.log(
     "Total # of encounters fetched: ",
@@ -125,7 +128,6 @@ fn((state) => {
 });
 
 fn((state) => {
-
   const {
     cursor,
     lastRunDateTime,
@@ -135,7 +137,12 @@ fn((state) => {
   } = state;
 
   if (state.testMode) {
-    return { cursor, lastRunDateTime, patients, patientUuids: [...new Set([...searchPatientUuids])] };
+    return {
+      cursor,
+      lastRunDateTime,
+      patients,
+      patientUuids: [...new Set([...searchPatientUuids])],
+    };
   }
   const onlyInSearchPatient = searchPatientUuids.filter(
     (id) => !encounterPatientUuids.includes(id)
