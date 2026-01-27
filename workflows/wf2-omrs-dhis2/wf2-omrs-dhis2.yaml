@@ -11,8 +11,7 @@ steps:
     next:
       update-teis:
         disabled: false
-        condition: |
-          state?.teisToUpdate?.length > 0
+        condition: state?.teisToUpdate?.length > 0
         name: has-gender-updated
   - id: create-teis-relationship
     name: Create TEIs Relationship
@@ -22,8 +21,7 @@ steps:
     next:
       event-mappings:
         disabled: false
-        condition: |
-          state.childTeis && !state.errors
+        condition: state.childTeis && !state.errors
         name: has-child-teis
   - id: cron
     type: cron
@@ -38,9 +36,17 @@ steps:
     next:
       create-events:
         disabled: false
-        condition: |
-          state?.eventsMapping?.length > 0 && !state.errors
+        condition: state?.eventsMapping?.length > 0 && !state.errors
         name: has-events
+  - id: fetch-fhir-encounters
+    name: Fetch FHIR Encounters
+    adaptor: "@openfn/language-openmrs@5.3.6"
+    configuration: a3d3dca3-6afa-4697-8a70-dbccfa41b013
+    expression: ./fetch-fhir-encounters.js
+    next:
+      mappings:
+        disabled: false
+        condition: on_job_success
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -49,8 +55,7 @@ steps:
     next:
       get-parent-and-child-teis:
         disabled: false
-        condition: |
-          !state.errors && state.encounters.length > 0
+        condition: "!state.errors && state.encounters.length > 0"
         name: has-encounters
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs
@@ -60,8 +65,7 @@ steps:
     next:
       create-child-teis:
         disabled: false
-        condition: >
-          Object.keys(state?.childTeis)?.length > 0 &&
+        condition: Object.keys(state?.childTeis)?.length > 0 &&
           Object.keys(state?.parentTeis)?.length > 0
         name: has-child-parent-teis
   - id: get-patients
@@ -72,22 +76,25 @@ steps:
     next:
       mappings:
         disabled: false
-        condition: on_job_success
+        condition: "!state.errors && state.testMode"
+        name: test-mode
+      fetch-fhir-encounters:
+        disabled: false
+        condition: "!state.errors && !state.testMode"
+        name: skip-in-testmode
   - id: mappings
     name: Mappings
-    adaptor: "@openfn/language-common@2.1.1"
+    adaptor: "@openfn/language-common@3.2.1"
     configuration: 85712d34-82e4-4558-998d-b399891d488f
     expression: ./mappings.js
     next:
       upsert-teis:
         disabled: false
-        condition: |
-          state.patients.length > 0 && !state.errors
+        condition: state.patients.length > 0 && !state.errors
         name: has-patients
       get-encounters:
         disabled: false
-        condition: |
-          !state.errors && state.patients.length === 0
+        condition: "!state.errors && state.patients.length === 0"
         name: has-no-patients
   - id: update-teis
     name: Update TEIs
@@ -111,6 +118,5 @@ steps:
     next:
       get-encounters:
         disabled: false
-        condition: |
-          state.patientUuids.length > 0 && !state.errors
+        condition: state.patientUuids.length > 0 && !state.errors
         name: has-patient-uuids
