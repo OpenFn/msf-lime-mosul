@@ -113,6 +113,7 @@ each(
   })
     .then((state) => {
       state.childTeis ??= {};
+      //TODO @Mtuchi double check the filtering logic
       state.encounters
         .filter((encounter) => {
           const program = state.formMaps[encounter.form.uuid].programId;
