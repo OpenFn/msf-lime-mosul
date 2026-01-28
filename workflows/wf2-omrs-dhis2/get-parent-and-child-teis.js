@@ -75,8 +75,8 @@ fn((state) => {
   state.childPrograms = state.encounters.reduce((acc, obj) => {
     const formUuid = obj.form.uuid;
     const patientUuid = obj.patient.uuid;
-    const orgUnit = state.formMaps[formUuid].orgUnit;
-    const program = state.formMaps[formUuid].programId;
+    const orgUnit = state.formMaps[formUuid]?.orgUnit;
+    const program = state.formMaps[formUuid]?.programId;
     const relationshipType = state.formMaps[formUuid]?.relationshipId;
     const encounterKey = `${orgUnit}-${program}`;
     const parentKey = `${state.orgUnit}-${state.program}`;
@@ -115,8 +115,8 @@ each(
     };
   })
     .then((state) => {
-      state.childTeisToCreate ??= {};
       state.currChildTeis ??= {};
+      state.childTeisToCreate ??= {};
       const { orgUnit, program, patientUuids, relationshipType } =
         state.references.at(-1);
 
