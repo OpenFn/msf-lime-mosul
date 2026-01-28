@@ -67,12 +67,12 @@ steps:
     next:
       create-child-teis:
         disabled: false
-        condition: "!state.errors && Object.keys(state.childTeisToCreate).length > 0"
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
         name: has-child-teis-to-create
       event-mappings:
         disabled: false
-        condition: "!state.errors && Object.keys(state.childTeisToCreate).length === 0
-          && state.existingTeis"
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
+          && state?.existingTeis"
         name: has-existing-teis
   - id: get-patients
     name: Get Patients
