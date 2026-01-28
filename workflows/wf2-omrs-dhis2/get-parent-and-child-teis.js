@@ -22,6 +22,7 @@ const findTeiByPatientUuid = (
     return true;
   });
 };
+
 fn((state) => {
   // Group encounters by patient UUID
   state.encountersByPatient = state.encounters.reduce((acc, obj) => {
@@ -101,6 +102,12 @@ fn((state) => {
   return state;
 });
 
+fn((state) => {
+  state.childTeisToCreate ??= {};
+  state.currChildTeis ??= {};
+  return state;
+});
+
 // Search if child teis exists for each encounter
 each(
   (state) => Object.values(state.childPrograms),
@@ -115,8 +122,6 @@ each(
     };
   })
     .then((state) => {
-      state.currChildTeis ??= {};
-      state.childTeisToCreate ??= {};
       const { orgUnit, program, patientUuids, relationshipType } =
         state.references.at(-1);
 
