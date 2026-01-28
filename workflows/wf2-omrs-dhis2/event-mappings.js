@@ -2327,9 +2327,10 @@ fn((state) => {
       const program = state.formMaps[encounter.form.uuid].programId;
       const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
       const patientOuProgram = `${orgUnit}-${program}-${encounter.patient.uuid}`;
-      const { trackedEntity, enrollments, events } =
+      const { trackedEntity, enrollments } =
         state.existingTeis[patientOuProgram] || {};
       const enrollment = enrollments?.[0]?.enrollment;
+      const events = enrollments?.[0]?.events
 
       if (!trackedEntity || !enrollment) {
         console.log(
