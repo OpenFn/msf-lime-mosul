@@ -755,12 +755,6 @@ function mapF49(encounter, mappings) {
         )?.["DHIS2 Option Code"];
 
         return optCodeByExtId;
-
-        //   return diagnosisMap(
-        //   encounter,
-        //   "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
-        //   "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc" // Other noncommunicable diseases
-        // ),
       },
     },
     {
@@ -2220,7 +2214,7 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
   };
 
-  if (encounter.form.description.includes("F49-NCDs Baseline")) {
+  if (encounter.form.name.includes("F49-NCDs Baseline")) {
     const programStage = formMaps[encounter.form.uuid].programStage;
     const metadataMap = {
       events,
@@ -2234,7 +2228,7 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F50-NCDs Follow-up")) {
+  if (encounter.form.name.includes("F50-NCDs Follow-up")) {
     const programStage = formMaps[encounter.form.uuid].programStage;
     const metadataMap = {
       events,
@@ -2246,7 +2240,7 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F55-HBV Baseline")) {
+  if (encounter.form.name.includes("F55-HBV Baseline")) {
     const programStage = formMaps[encounter.form.uuid].programStage;
     const metadataMap = { events, programStage, dhis2Map };
     const eventsMap = mapF55(encounter, metadataMap);
@@ -2254,43 +2248,43 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F56-HBV Follow-up")) {
+  if (encounter.form.name.includes("F56-HBV Follow-up")) {
     const eventsMap = mapF56(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F58-HCV Follow-up")) {
+  if (encounter.form.name.includes("F58-HCV Follow-up")) {
     const eventsMap = mapF58(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F59-Social Work Baseline")) {
+  if (encounter.form.name.includes("F59-Social Work Baseline")) {
     const eventsMap = mapF59(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F60-Social Work Follow-up")) {
+  if (encounter.form.name.includes("F60-Social Work Follow-up")) {
     const eventsMap = mapF60(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F61-Travel medicine")) {
+  if (encounter.form.name.includes("F61-Travel medicine")) {
     const eventsMap = mapF61(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F62-Palliative care Baseline")) {
+  if (encounter.form.name.includes("F62-Palliative care Baseline")) {
     const eventsMap = mapF62(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
-  if (encounter.form.description.includes("F63-Palliative care Follow-up")) {
+  if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
     const eventsMap = mapF63(encounter, { events });
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
@@ -2330,7 +2324,7 @@ fn((state) => {
       const { trackedEntity, enrollments } =
         state.existingTeis[patientOuProgram] || {};
       const enrollment = enrollments?.[0]?.enrollment;
-      const events = enrollments?.[0]?.events
+      const events = enrollments?.[0]?.events;
 
       if (!trackedEntity || !enrollment) {
         console.log(
@@ -2426,12 +2420,4 @@ fn((state) => {
   console.log("Final eventsMapping length:", state.eventsMapping.length);
 
   return state;
-  return {
-    dhis2Map: state.dhis2Map,
-    eventsMapping: state.eventsMapping,
-    encounters: state.encounters,
-    // optionSetKey: state.optionSetKey,
-    // optsMap: state.optsMap,
-    // formMaps: state.formMaps,
-  };
 });
