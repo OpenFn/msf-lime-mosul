@@ -1,6 +1,6 @@
 id: wf1-dhis2-omrs-migration
 name: wf1-dhis2-omrs-migration
-start: trigger-cron
+start: cron
 options: {}
 steps:
   - id: alert-admin-of-duplicate-teis
@@ -16,6 +16,12 @@ steps:
       update-teis:
         disabled: false
         condition: on_job_success
+  - id: cron
+    type: cron
+    next:
+      fetch-metadata:
+        disabled: false
+        condition: always
   - id: fetch-metadata
     name: Fetch Metadata
     adaptor: "@openfn/language-common@2.1.1"
@@ -45,12 +51,6 @@ steps:
         condition: |
           !state.errors && state. teisWithOMRSID.length > 0
         name: has-teisWithOMRSID
-  - id: trigger
-    type: cron
-    next:
-      fetch-metadata:
-        disabled: false
-        condition: always
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
