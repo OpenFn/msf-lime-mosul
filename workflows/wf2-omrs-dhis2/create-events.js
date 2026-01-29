@@ -1,6 +1,10 @@
 const buildTeiUrl = (baseUrl, { trackedEntity, program, orgUnit }) => {
   return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${trackedEntity}&program=${program}&ou=${orgUnit}`;
 };
+
+const buildEventsUrl = (baseUrl, { program, orgUnit }) => {
+  return `${baseUrl}/dhis-web-capture/index.html#/?orgUnitId=${orgUnit}&programId=${program}`;
+};
 // Create or update events for each encounter
 create(
   "tracker",
@@ -25,8 +29,9 @@ create(
           program,
           orgUnit,
         });
+        const eventsUrl = buildEventsUrl(baseUrl, { program, orgUnit });
 
-        console.log({ events, teiUrl });
+        console.log({ events, teiUrl, eventsUrl });
       });
       return state.eventsMapping;
     },
@@ -92,7 +97,7 @@ fn((state) => {
       const chilProgram = formMaps[answer.formUuid].programId;
       const childOrgUnit = formMaps[answer.formUuid].orgUnit;
       const personUuid = answer.person.uuid;
-      const parentTei = parentTeis[personUuid].trackedEntity;
+      const parentTei = parentTeis[personUuid]?.trackedEntity;
       const childTei =
         childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`].trackedEntity;
 
@@ -116,7 +121,7 @@ fn((state) => {
       if (childTei) {
         mappings.push({
           ...sharedMapping,
-          trackedEntityInstance: childTei,
+          trackedEntity: childTei,
           program: chilProgram,
           orgUnit: childOrgUnit,
         });
@@ -124,7 +129,7 @@ fn((state) => {
       if (parentTei) {
         mappings.push({
           ...sharedMapping,
-          trackedEntityInstance: parentTei,
+          trackedEntity: parentTei,
           program,
           orgUnit,
         });
@@ -168,7 +173,7 @@ fn((state) => {
 
       if (parentTei) {
         mappings.push({
-          trackedEntityInstance: parentTei,
+          trackedEntity: parentTei,
           program,
           orgUnit,
           ...sharedMapping,
@@ -176,7 +181,7 @@ fn((state) => {
       }
       if (childTei) {
         mappings.push({
-          trackedEntityInstance: childTei,
+          trackedEntity: childTei,
           program: chilProgram,
           orgUnit: childOrgUnit,
           ...sharedMapping,

@@ -1,12 +1,25 @@
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const teiByPatientUuid = (patientUuid, teis) => {
+const findTeiByPatientUuid = (
+  patientUuid,
+  teis,
+  program = null,
+  orgUnit = null
+) => {
   return teis.find((tei) => {
     const omrsPatientUuid = tei.attributes.find(
       ({ attribute }) => attribute === "AYbfTPYMNJH"
     )?.value;
 
-    return omrsPatientUuid === patientUuid;
+    if (omrsPatientUuid !== patientUuid) return false;
+
+    if (program && orgUnit) {
+      return tei.programOwners?.some(
+        (po) => po.program === program && tei.orgUnit === orgUnit
+      );
+    }
+
+    return true;
   });
 };
 
@@ -20,36 +33,35 @@ fn((state) => {
     acc[key].push(obj);
     return acc;
   }, {});
-
+  state.parentTeis ??= {};
+  state.currChildTeis ??= {};
+  state.missingParentTeis ??= {};
+  state.childTeisToCreate ??= {};
   return state;
 });
-
+// Check if patient if exist in parent programs
 get("tracker/trackedEntities", {
   orgUnit: $.orgUnit,
   program: $.program,
   filter: (state) => [
     `AYbfTPYMNJH:IN:${Object.keys(state.encountersByPatient).join(";")}`,
   ],
+  fields:
+    "trackedEntityType, orgUnit, trackedEntity, attributes, programOwners, enrollments",
 });
 
 fn((state) => {
-  state.parentTeis ??= {};
-  state.missingParentTeis ??= {};
-
-  Object.keys(state.encountersByPatient).forEach((patientUuid) => {
-    const parentTei = teiByPatientUuid(patientUuid, state.data.instances);
+  const encountersPatient = Object.keys(state.encountersByPatient);
+  encountersPatient.forEach((patientUuid) => {
+    const parentTei = findTeiByPatientUuid(patientUuid, state.data.instances);
+    const patientOuProgram = `${state.orgUnit}-${state.program}-${patientUuid}`;
     if (parentTei?.trackedEntity) {
       console.log("Parent TEI found:", parentTei.trackedEntity);
 
-      state.parentTeis[patientUuid] = {
-        trackedEntity: parentTei.trackedEntity,
-        attributes: parentTei.attributes,
-        trackedEntityType: parentTei.trackedEntityType,
-        enrollments: parentTei.enrollments,
-      };
+      state.parentTeis[patientOuProgram] = parentTei;
     } else {
       console.log("Parent TEI Not Found for Patient:", patientUuid);
-      state.missingParentTeis[patientUuid] =
+      state.missingParentTeis[patientOuProgram] =
         state.encountersByPatient[patientUuid];
     }
   });
@@ -58,99 +70,92 @@ fn((state) => {
 });
 
 fn((state) => {
-  state.ouProgramEncounters = state.encounters.reduce((acc, obj) => {
+  state.childPrograms = state.encounters.reduce((acc, obj) => {
     const formUuid = obj.form.uuid;
     const patientUuid = obj.patient.uuid;
-    const orgUnit = state.formMaps[formUuid].orgUnit;
-    const program = state.formMaps[formUuid].programId;
-    const key = `${orgUnit}-${program}`;
-    if (!acc[key]) {
-      acc[key] = {
-        orgUnit,
-        program,
-        patientUuids: [patientUuid],
-      };
+    const orgUnit = state.formMaps[formUuid]?.orgUnit;
+    const program = state.formMaps[formUuid]?.programId;
+    const relationshipType = state.formMaps[formUuid]?.relationshipId;
+    const encounterKey = `${orgUnit}-${program}`;
+    const parentKey = `${state.orgUnit}-${state.program}`;
+    if (parentKey !== encounterKey) {
+      if (!acc[encounterKey]) {
+        acc[encounterKey] = {
+          orgUnit,
+          program,
+          relationshipType,
+          patientUuids: [patientUuid],
+        };
+      }
+
+      if (!acc[encounterKey].patientUuids.includes(patientUuid)) {
+        acc[encounterKey].patientUuids.push(patientUuid);
+      }
     }
-    if (!acc[key].patientUuids.includes(patientUuid)) {
-      acc[key].patientUuids.push(patientUuid);
-    }
+
     return acc;
   }, {});
 
   return state;
 });
 
+// Search if child teis exists for each encounter
 each(
-  (state) => Object.values(state.ouProgramEncounters),
+  (state) => Object.values(state.childPrograms),
   get("tracker/trackedEntities", (state) => {
     const { orgUnit, program, patientUuids } = state.data;
     return {
       orgUnit,
       program,
       filter: [`AYbfTPYMNJH:IN:${patientUuids.join(";")}`],
-      fields: "*",
+      fields:
+        "trackedEntityType, orgUnit, trackedEntity, attributes, programOwners, relationshipType, enrollments",
     };
   })
     .then((state) => {
-      state.childTeis ??= {};
-      state.encounters.forEach((encounter) => {
-        const patientUuid = encounter.patient.uuid;
-        const program = state.formMaps[encounter.form.uuid].programId;
-        const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
+      const { orgUnit, program, patientUuids, relationshipType } =
+        state.references.at(-1);
 
-        const tei = state.data.instances.find((tei) => {
-          const omrsPatientUuid = tei.attributes.find(
-            (attribute) => attribute.attribute === "AYbfTPYMNJH"
-          )?.value;
-          const teiProgram = tei.programOwners.find(
-            (po) => po.trackedEntity === tei.trackedEntity
-          )?.program;
-
-          return (
-            omrsPatientUuid === patientUuid &&
-            teiProgram === program &&
-            tei.orgUnit === orgUnit
-          );
-        });
+      patientUuids.forEach((patientUuid) => {
+        const tei = findTeiByPatientUuid(
+          patientUuid,
+          state.data.instances,
+          program,
+          orgUnit
+        );
 
         const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
-        const relationshipType =
-          state.formMaps[encounter.form.uuid]?.relationshipId;
-
         if (tei?.trackedEntity) {
           console.log("Child TEI found:", tei.trackedEntity);
-          state.childTeis[patientOuProgram] = {
+          state.currChildTeis[patientOuProgram] = {
+            ...tei,
             relationshipType,
-            trackedEntity: tei.trackedEntity,
-            attributes: tei.attributes,
-            trackedEntityType: tei.trackedEntityType,
-            enrollments: tei.enrollments,
             orgUnit,
             program,
           };
         }
-
-        if (!tei && !state.childTeis[patientOuProgram]) {
+        if (!tei?.trackedEntity) {
           console.log("Child TEI not found for patient:", patientUuid);
-          const { attributes, trackedEntityType } =
-            state?.parentTeis[patientUuid];
-
-          state.childTeis[patientOuProgram] = {
+          const parentTei =
+            state?.parentTeis[
+              `${state.orgUnit}-${state.program}-${patientUuid}`
+            ];
+          state.childTeisToCreate[patientOuProgram] = {
             relationshipType,
-            trackedEntityType,
+            trackedEntityType: parentTei?.trackedEntityType || "cHlzCA2MuEF",
             enrollments: [
               {
                 orgUnit,
                 program,
                 enrolledAt: new Date().toISOString().split("T")[0],
-                attributes: attributes.filter((attribute) =>
+                attributes: parentTei?.attributes.filter((attribute) =>
                   [
                     "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
                   ].includes(attribute.attribute)
                 ),
               },
             ],
-            attributes,
+            attributes: parentTei?.attributes || [],
             orgUnit,
             program,
           };
@@ -164,3 +169,9 @@ each(
       return state;
     })
 );
+
+fn((state) => {
+  const { currChildTeis, parentTeis, ...next } = state;
+  next.existingTeis = { ...currChildTeis, ...parentTeis };
+  return next;
+});

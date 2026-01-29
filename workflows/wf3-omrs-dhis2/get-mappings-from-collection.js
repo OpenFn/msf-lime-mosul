@@ -1,3 +1,22 @@
+const dhis2Map = {
+  attr: {
+    ageInMonth: "ihH5ur7jquC",
+    firstName: "fa7uwpCKIwa",
+    lastName: "Jt9BhFZkvP2",
+    patientNumber: "P4wdYGkldeG", //DHIS2 ID -> "Patient Number"
+    omrsPatientNumber: "ZBoxuExmxcZ", //MSF ID -> "OpenMRS Patient Number"
+    omrsPatientUuid: "AYbfTPYMNJH", //"OpenMRS Patient UID"
+    ageInYears: "T1iX2NuPyqS",
+    birthdate: "WDp4nVor9Z7",
+    placeOflivingMap: "rBtrjV1Mqkz", //Place of living
+    nationalityAttr: "Xvzc9e0JJmp", //"Nationality"
+    sex: "qptKDiv9uPl",
+    currentStatus: "YUIQIA2ClN6",
+    legalStatus: "Qq6xQ2s6LO8",
+  },
+  de: {},
+};
+
 const isValidUUID = (id) => {
   if (!id || typeof id !== "string") return false;
 
@@ -73,5 +92,6 @@ fn((state) => {
     "omrs identifierType"
   ]; //MSF ID or OpenMRS Patient Number
 
+  rest.dhis2Map = dhis2Map;
   return rest;
 });

@@ -30,22 +30,20 @@ function removeNulls(data) {
 
   return data;
 }
-cursor($.lastRunDateTime || $.manualCursor || "2025-03-20T06:01:24.000Z");
+
+cursor($.lastRunDateTime || "2025-03-20T06:01:24.000Z");
 
 cursor("today", {
   key: "lastRunDateTime",
   format: (c) => dateFns.format(new Date(c), "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"),
 });
 
-searchPatient({
-  q: $.msfId || "IQ",
-  v: "full",
-  limit: "100",
-});
+searchPatient({ q: $.msfId || "IQ", v: "full", limit: "100" });
 
 fn((state) => {
-  const { cursor, data, lastRunDateTime } = state;
+  const { cursor, data } = state;
   console.log("Filtering patients since cursor:", cursor);
+  console.log("Patient fetched", data.results.length);
 
   state.patients = data.results
     .filter(({ auditInfo }) => {
@@ -80,23 +78,26 @@ fn((state) => {
 });
 
 // Fetch all encounters
-http
-  .get("/ws/fhir2/R4/Encounter", {
-    query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
-  })
-  .then((state) => {
-    const { link, total } = state.data;
-    state.nextUrl = link
-      .find((l) => l.relation === "next")
-      ?.url.replace(/(_count=)\d+/, `$1${total}`)
-      .split("/openmrs")[1];
+fnIf(
+  !$.testMode,
+  http
+    .get("/ws/fhir2/R4/Encounter", {
+      query: { _count: 100, _lastUpdated: `ge${$.cursor}` },
+    })
+    .then((state) => {
+      const { link, total } = state.data;
+      state.nextUrl = link
+        .find((l) => l.relation === "next")
+        ?.url.replace(/(_count=)\d+/, `$1${total}`)
+        .split("/openmrs")[1];
 
-    state.allResponse = state.data;
-    return state;
-  });
+      state.allResponse = state.data;
+      return state;
+    })
+);
 
 fnIf(
-  $.nextUrl,
+  $.nextUrl && !$.testMode,
   http.get($.nextUrl).then((state) => {
     console.log(`Fetched ${state.data.entry.length} remaining encounters`);
     delete state.allResponse.link;
@@ -106,6 +107,9 @@ fnIf(
 );
 
 fn((state) => {
+  if (state.testMode) {
+    return state;
+  }
   console.log(
     "Total # of encounters fetched: ",
     state.allResponse?.entry?.length
@@ -132,6 +136,14 @@ fn((state) => {
     encounterPatientUuids,
   } = state;
 
+  if (state.testMode) {
+    return {
+      cursor,
+      lastRunDateTime,
+      patients,
+      patientUuids: [...new Set(searchPatientUuids)],
+    };
+  }
   const onlyInSearchPatient = searchPatientUuids.filter(
     (id) => !encounterPatientUuids.includes(id)
   );
@@ -146,10 +158,10 @@ fn((state) => {
     ...new Set([...searchPatientUuids, ...encounterPatientUuids]),
   ];
 
-  console.log("inbothResults", inbothResults.length);
-  console.log("patient-search-array", onlyInSearchPatient.length);
-  console.log("r4-encounter-array", onlyInR4Encounter.length);
-  console.log("combined uuids", patientUuids.length);
+  console.log("In both searchPatient() && R4/Encounter", inbothResults.length);
+  console.log("searchPatient() only", onlyInSearchPatient.length);
+  console.log("R4/Encounter only", onlyInR4Encounter.length);
+  console.log("searchPatient() + R4/Encounter Uuids", patientUuids.length);
 
   return { cursor, lastRunDateTime, patients, patientUuids };
 });
