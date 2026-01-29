@@ -51,9 +51,6 @@ get("tracker/trackedEntities", {
 });
 
 fn((state) => {
-  state.parentTeis ??= {};
-  state.missingParentTeis ??= {};
-
   const encountersPatient = Object.keys(state.encountersByPatient);
   encountersPatient.forEach((patientUuid) => {
     const parentTei = findTeiByPatientUuid(patientUuid, state.data.instances);
@@ -99,12 +96,6 @@ fn((state) => {
     return acc;
   }, {});
 
-  return state;
-});
-
-fn((state) => {
-  state.childTeisToCreate ??= {};
-  state.currChildTeis ??= {};
   return state;
 });
 
