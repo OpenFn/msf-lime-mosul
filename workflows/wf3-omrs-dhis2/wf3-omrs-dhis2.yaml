@@ -6,7 +6,7 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./create-events.js
   - id: cron
     type: cron
@@ -27,7 +27,7 @@ steps:
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: a3d3dca3-6afa-4697-8a70-dbccfa41b013
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./get-encounters.js
     next:
       get-teis-and-map-answers:
@@ -38,7 +38,7 @@ steps:
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
     adaptor: "@openfn/language-common@2.3.0"
-    configuration: 85712d34-82e4-4558-998d-b399891d488f
+    configuration: 90cddfa1-9b77-4625-a812-2a04d061522c
     expression: ./get-mappings-from-collection.js
     next:
       get-encounters:
@@ -54,7 +54,7 @@ steps:
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: a3d3dca3-6afa-4697-8a70-dbccfa41b013
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./get-patients.js
     next:
       get-mappings-from-collection:
@@ -63,7 +63,7 @@ steps:
   - id: get-teis-and-map-answers
     name: Get TEIs and Map Answers
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./get-teis-and-map-answers.js
     next:
       custom-logic-for-events:
@@ -74,7 +74,7 @@ steps:
   - id: get-tie
     name: Get Tie
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./get-tie.js
     next:
       custom-logic-for-events:
@@ -85,7 +85,7 @@ steps:
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./upsert-teis.js
     next:
       get-encounters:

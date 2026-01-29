@@ -10,7 +10,7 @@ steps:
   - id: create-patients
     name: Create Patients
     adaptor: "@openfn/language-openmrs@4.2.0"
-    configuration: a3d3dca3-6afa-4697-8a70-dbccfa41b013
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./create-patients.js
     next:
       update-teis:
@@ -25,7 +25,6 @@ steps:
   - id: fetch-metadata
     name: Fetch Metadata
     adaptor: "@openfn/language-common@2.1.1"
-    configuration: 85712d34-82e4-4558-998d-b399891d488f
     expression: ./fetch-metadata.js
     next:
       get-teis-and-locations:
@@ -34,7 +33,7 @@ steps:
   - id: get-teis-and-locations
     name: Get Teis and Locations
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./get-teis-and-locations.js
     next:
       create-patients:
@@ -55,10 +54,10 @@ steps:
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 7b295e5a-7a10-4917-8f03-f937fef0001e
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./update-teis.js
   - id: validate-teis-with-omrs-id
     name: Validate TEIs with OMRS Id
     adaptor: "@openfn/language-openmrs@4.2.0"
-    configuration: a3d3dca3-6afa-4697-8a70-dbccfa41b013
+    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
     expression: ./validate-teis-with-omrs-id.js
