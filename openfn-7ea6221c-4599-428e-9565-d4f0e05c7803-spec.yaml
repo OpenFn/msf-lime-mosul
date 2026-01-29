@@ -149,7 +149,7 @@ workflows:
 
       Get-Parent-and-Child-TEIs:
         name: Get Parent and Child TEIs
-        adaptor: '@openfn/language-dhis2@5.0.1'
+        adaptor: '@openfn/language-dhis2@8.0.7'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
           path: workflows/wf2-omrs-dhis2/get-parent-and-child-teis.js
