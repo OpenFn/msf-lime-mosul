@@ -187,7 +187,7 @@ workflows:
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2-omrs-dhis2/upsert-child-teis.js
+          path: workflows/wf2-omrs-dhis2/create-child-teis.js
 
     triggers:
       cron:

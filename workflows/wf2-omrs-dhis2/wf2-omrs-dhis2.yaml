@@ -3,6 +3,15 @@ name: wf2-omrs-dhis2
 start: cron
 options: {}
 steps:
+  - id: create-child-teis
+    name: Create Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+    expression: ./create-child-teis.js
+    next:
+      create-teis-relationship:
+        disabled: false
+        condition: on_job_success
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
@@ -22,9 +31,7 @@ steps:
     next:
       event-mappings:
         disabled: false
-        condition: |
-          state.childTeis && !state.errors
-        name: has-child-teis
+        condition: on_job_success
   - id: cron
     type: cron
     next:
@@ -54,16 +61,19 @@ steps:
         name: has-encounters
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs
-    adaptor: "@openfn/language-dhis2@8.0.7"
+    adaptor: "@openfn/language-dhis2@5.0.1"
     configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./get-parent-and-child-teis.js
     next:
-      upsert-child-teis:
+      create-child-teis:
         disabled: false
-        condition: >
-          Object.keys(state?.childTeis)?.length > 0 &&
-          Object.keys(state?.parentTeis)?.length > 0
-        name: has-child-parent-teis
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
+        name: has-child-teis-to-create
+      event-mappings:
+        disabled: false
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
+          && state?.existingTeis"
+        name: has-existing-teis
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -94,15 +104,6 @@ steps:
     adaptor: "@openfn/language-dhis2@5.0.1"
     configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
     expression: ./update-teis.js
-  - id: upsert-child-teis
-    name: Upsert Child TEIs
-    adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
-    expression: ./upsert-child-teis.js
-    next:
-      create-teis-relationship:
-        disabled: false
-        condition: on_job_success
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"

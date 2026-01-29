@@ -33,7 +33,7 @@ steps:
       get-teis-and-map-answers:
         disabled: false
         condition: |
-          !state.errors && state?.latestEncountersByVisit?.length > 0
+          !state.errors && state?.encountersPatientUuids?.length > 0
         name: has-encounters
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
