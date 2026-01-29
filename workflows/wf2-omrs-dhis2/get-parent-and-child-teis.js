@@ -47,7 +47,7 @@ get("tracker/trackedEntities", {
     `AYbfTPYMNJH:IN:${Object.keys(state.encountersByPatient).join(";")}`,
   ],
   fields:
-    "trackedEntityType, orgUnit, trackedEntity, attributes, programOwners, enrollments, events",
+    "trackedEntityType, orgUnit, trackedEntity, attributes, programOwners, enrollments",
 });
 
 fn((state) => {
@@ -118,7 +118,7 @@ each(
       program,
       filter: [`AYbfTPYMNJH:IN:${patientUuids.join(";")}`],
       fields:
-        "trackedEntityType, orgUnit, trackedEntity, attributes, programOwners, relationshipType, enrollments, events",
+        "trackedEntityType, orgUnit, trackedEntity, attributes, programOwners, relationshipType, enrollments",
     };
   })
     .then((state) => {
