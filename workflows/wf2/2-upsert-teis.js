@@ -1,3 +1,10 @@
+function chunkArray(array, size) {
+  const chunks = [];
+  for (let i = 0; i < array.length; i += size) {
+    chunks.push(array.slice(i, i + size));
+  }
+  return chunks;
+}
 const remapToObjects = (columnsAndRows) => {
   const { columns, rows } = columnsAndRows;
 
@@ -40,24 +47,47 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
       enrollmentDate: dateCreated,
     },
   ];
+   const findAttrValue = (uuid) => {
+    return omrsPatient.person.attributes.find(
+      (a) => a.attributeType.uuid === uuid
+    )?.value;
+  };
 
-  const findOptsUuid = (uuid) =>
-    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
-      ?.value?.uuid ||
-    omrsPatient.person.attributes.find((a) => a.attributeType.uuid === uuid)
-      ?.value;
+  const findOptCodeByUuid = (uuid) => {
+  const optionKey = `patient-${uuid}`;
+  const matchingOptionSet = state.optionSetKey[optionKey];
+  return optsMap.find((o) => 
+    o["value.uuid - External ID"] === uuid &&
+    o["DHIS2 Option Set UID"] === matchingOptionSet
+  )?.["DHIS2 Option Code"];
+};
 
-  const findOptCode = (optUuid) =>
-    optsMap.find((o) => o["value.uuid - External ID"] === optUuid)?.[
-      "DHIS2 Option Code"
-    ];
+const findOptCode = (attrValue) => {
+  if (typeof attrValue === "string") {
+    return attrValue;  
+  }
+  if (typeof attrValue === "object") {
+    const { uuid, display } = attrValue;
+    const optCodeByDisplay = optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === uuid &&
+        o["value.display - Answers"] === display
+    )?.["DHIS2 Option Code"];
+
+    return findOptCodeByUuid(uuid) ?? optCodeByDisplay;
+  }
+  return null;
+};
 
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
-    const optUid = findOptsUuid(patientMap[d]);
+    const attrValue = findAttrValue(patientMap[d]);
+    if (!findOptCode(attrValue)) {
+      console.log({attrValue})
+    }
     return {
       attribute: d,
-      value: findOptCode(optUid) || optUid,
+      value: findOptCode(attrValue),
     };
   });
 

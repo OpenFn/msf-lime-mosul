@@ -48,9 +48,9 @@ const processAnswer = (
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
     const matchingOption =
-      opt?.["DHIS2 Option Code"] ||
-      opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
-      answer?.value?.display; //TODO: revisit this logic if optionSet not found
+     opt?.["DHIS2 Option Code"] ??
+      opt?.["DHIS2 Option name"] ?? 
+      answer?.value?.display;
 
     // console.log(`matchingOption value: "${matchingOption}" for`);
     // console.log({
@@ -69,7 +69,7 @@ const processAnswer = (
       return "true";
     }
 
-    return matchingOption || "";
+    return matchingOption ?? "";
   }
 
   return answer.value;
@@ -181,7 +181,7 @@ fn((state) => {
               )
             : processNoAnswer(encounter, conceptUuid, dataElement);
 
-          if (value) {
+          if (value !== undefined && value !== null && value !== "") {
             return { dataElement, value };
           }
         })
@@ -463,7 +463,7 @@ fn((state) => {
         dataValues: [...formDataValues, ...customMapping],
       };
       })
-      .filter(Boolean);
+      // .filter(Boolean);
     
   return state;
 });

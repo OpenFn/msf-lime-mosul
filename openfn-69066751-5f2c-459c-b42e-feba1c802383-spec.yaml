@@ -126,7 +126,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2/1-get-patients.js
 
@@ -140,7 +140,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2/3-get-encounters.js
 
@@ -185,19 +185,19 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
-        enabled: true
       Upsert-TEIs->Get-Encounters:
         source_job: Upsert-TEIs
         target_job: Get-Encounters
         condition_type: js_expression
         condition_label: has-patient-uuids
         condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
+          state.patientUuids && state.patientUuids.length > 0 && !state.errors
 
+        enabled: true
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
         enabled: true
       Get-Encounters->Get-TEIs-and-Map-Answers:
         source_job: Get-Encounters
