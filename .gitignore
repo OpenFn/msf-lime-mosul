@@ -1,6 +1,8 @@
 jsconfig.json
 # temp
 tmp
+tmp/*
+tmp-*
 
 # Logs
 logs
@@ -21,4 +23,5 @@ node_modules/
 .env.test
 
 openfn.yaml
+credentials.*
 .projects/
