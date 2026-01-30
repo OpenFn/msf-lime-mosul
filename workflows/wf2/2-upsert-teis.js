@@ -83,7 +83,7 @@ const findOptCode = (attrValue) => {
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
     const attrValue = findAttrValue(patientMap[d]);
     if (!findOptCode(attrValue)) {
-      console.log({attrValue})
+      console.log(`'Missing OptCode for', ${attrValue}`)
     }
     return {
       attribute: d,

@@ -47,10 +47,13 @@ const processAnswer = (
         o["value.uuid - External ID"] === `${answer.value.uuid}` &&
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
-    const matchingOption =
-     opt?.["DHIS2 Option Code"] ??
-      opt?.["DHIS2 Option name"] ?? 
-      answer?.value?.display;
+    // const matchingOption =
+    //  opt?.["DHIS2 Option Code"] ??
+    //   opt?.["DHIS2 Option name"] ?? 
+    //   answer?.value?.display;
+// Removing this line and replacing with code that sets the matchingOption with the option code and logs and skips setting if it doens't find it
+    const matchingOption = opt?.["DHIS2 Option Code"] 
+
 
     // console.log(`matchingOption value: "${matchingOption}" for`);
     // console.log({
@@ -67,6 +70,10 @@ const processAnswer = (
     }
     if (matchingOption === "TRUE" || matchingOption === "Yes") {
       return "true";
+    }
+
+    if (matchingOption == null || matchingOption == undefined || matchingOption == "") {
+      console.log(`Unable to match OpenMRS Option with uuid ${answer.value.uuid} and value ${answer?.value?.display} with a DHIS2 Option Code`)
     }
 
     return matchingOption ?? "";
@@ -375,7 +382,7 @@ fn((state) => {
             )[0]
             ?.obs?.find(
               (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
-            ).value?.display;
+            )?.value?.display;
 
           const currentChangeInDiagnosis = encounter.obs.find(
             (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
@@ -463,7 +470,7 @@ fn((state) => {
         dataValues: [...formDataValues, ...customMapping],
       };
       })
-      // .filter(Boolean);
+      .filter(Boolean);
     
   return state;
 });
