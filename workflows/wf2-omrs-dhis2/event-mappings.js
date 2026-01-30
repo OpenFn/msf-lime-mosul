@@ -2107,7 +2107,7 @@ function mapF63(encounter, metadataMap) {
 }
 
 const findDataValue = (encounter, dataElement, metadataMap) => {
-  const { optsMap, optionSetKey, form } = metadataMap;
+  const { optsMap, optionSetKey, form, missingOptsets } = metadataMap;
   const [conceptUuid, questionId] =
     form.dataValueMap[dataElement]?.split("-rfe-") || [];
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -2153,30 +2153,27 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
-    // console.log("<-");
-    // console.log("optionKey", optionKey);
-    // console.log("matchingOptionSet:", matchingOptionSet);
-    // console.log("Answer Uuid:", answer.value.uuid);
-    // console.log("Answer Display Value:", answer.value.display);
-    // console.log("Opt:", opt);
-    // console.log("->");
+    // Removed fallback logic to DHIS2 Option name and answer.value.display
+    // Now only using DHIS2 Option Code to ensure proper validation
+    const matchingOption = opt?.["DHIS2 Option Code"];
 
-    const matchingOption =
-      opt?.["DHIS2 Option Code"] ??
-      opt?.["DHIS2 Option name"] ?? 
-      answer?.value?.display; 
-      //For test mode: remove "?? opt?.["DHIS2 Option name"] ??  answer?.value?.display; " and create a list of matchionOption not found, populate it in a google sheet, log the URL for google sheet at the end of the run and share with admin once a week over email. 
-      // OpenMRS Question | Concept External ID | answer.value.display | value.uuid | DHIS2 DE UID | DHIS2 OptionSet UID | Metadata file name
+    // Capture missing DHIS2 Option Codes for tracking
+    if (!matchingOption && missingOptsets) {
+      missingOptsets.push({
+        timestamp: new Date().toISOString(),
+        openMrsQuestion: answer.concept.display || "N/A",
+        conceptExternalId: answer.concept.uuid,
+        answerDisplay: answer.value.display,
+        answerValueUuid: answer.value.uuid,
+        dhis2DataElementUid: dataElement,
+        dhis2OptionSetUid: matchingOptionSet || "N/A",
+        metadataFileName: encounter.form.name || encounter.form.uuid,
+        encounterUuid: encounter.uuid,
+        patientUuid: encounter.patient.uuid,
+      });
 
-
-    if (!opt) {
       console.log(
-        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
-      );
-    }
-    if (matchingOption !== opt?.["DHIS2 Option Code"]) {
-      console.log(
-        `No DHIS2 Option Code found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+        `⚠️  Missing DHIS2 Option Code - Question: "${answer.concept.display}", Answer: "${answer.value.display}", OptionSet: ${matchingOptionSet}`
       );
     }
 
@@ -2299,6 +2296,9 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
 };
 // Prepare DHIS2 data model for create events
 fn((state) => {
+  // Initialize array to track missing DHIS2 Option Codes
+  state.missingOptsets = [];
+
   const handleMissingRecord = (data, state) => {
     const { uuid, display } = data.patient;
 
@@ -2346,16 +2346,20 @@ fn((state) => {
             optsMap: state.optsMap,
             optionSetKey: state.optionSetKey,
             form,
+            missingOptsets: state.missingOptsets,
           });
           if (value !== null && value !== undefined && value !== "") {
             return { dataElement, value };
           }
         })
-        .filter(
-          ({ dataElement, value }) =>
-            value &&
-            !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(dataElement)
-        );
+        .filter((dv) => {
+          return (
+            dv?.value &&
+            !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(
+              dv?.dataElement
+            )
+          );
+        });
 
       const customMapping = [
         mapF11(encounter, state.optsMap),
