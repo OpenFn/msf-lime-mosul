@@ -126,7 +126,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf2/1-get-patients.js
 
@@ -140,7 +140,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: mtuchi@openfn.org-OpenMRS-Demo
+        credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf2/3-get-encounters.js
 
