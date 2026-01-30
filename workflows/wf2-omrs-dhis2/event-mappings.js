@@ -2162,9 +2162,13 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     // console.log("->");
 
     const matchingOption =
-      opt?.["DHIS2 Option Code"] ||
-      opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
-      answer?.value?.display; //TODO: revisit this logic if optionSet not found
+      opt?.["DHIS2 Option Code"] ??
+      opt?.["DHIS2 Option name"] ?? 
+      answer?.value?.display; 
+      //For test mode: remove "?? opt?.["DHIS2 Option name"] ??  answer?.value?.display; " and create a list of matchionOption not found, populate it in a google sheet, log the URL for google sheet at the end of the run and share with admin once a week over email. 
+      // OpenMRS Question | Concept External ID | answer.value.display | value.uuid | DHIS2 DE UID | DHIS2 OptionSet UID | Metadata file name
+
+
     if (!opt) {
       console.log(
         `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
@@ -2343,8 +2347,9 @@ fn((state) => {
             optionSetKey: state.optionSetKey,
             form,
           });
-
-          return { dataElement, value };
+          if (value !== null && value !== undefined && value !== "") {
+            return { dataElement, value };
+          }
         })
         .filter(
           ({ dataElement, value }) =>
