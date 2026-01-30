@@ -41,16 +41,16 @@ steps:
     configuration: 1296d9ea-9c40-494a-99cb-8e7f8a65f88c
     expression: ./get-mappings-from-collection.js
     next:
-      get-encounters:
-        disabled: false
-        condition: |
-          !state.errors && state.patients.length === 0
-        name: has-no-patients
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
         name: has-patients
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        name: has-no-patients
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"

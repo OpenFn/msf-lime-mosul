@@ -48,6 +48,10 @@ steps:
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         name: has-events
+      missing-optionsets:
+        disabled: false
+        condition: "!state.errors && state.missingOptsets.length > 0 && state.testMode"
+        name: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -65,15 +69,15 @@ steps:
     configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
     expression: ./get-parent-and-child-teis.js
     next:
-      create-child-teis:
-        disabled: false
-        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
-        name: has-child-teis-to-create
       event-mappings:
         disabled: false
         condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
           && state?.existingTeis"
         name: has-existing-teis
+      create-child-teis:
+        disabled: false
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
+        name: has-child-teis-to-create
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -99,6 +103,11 @@ steps:
         condition: |
           !state.errors && state.patients.length === 0
         name: has-no-patients
+  - id: missing-optionsets
+    name: Missing OptionSets
+    adaptor: "@openfn/language-googlesheets@4.0.7"
+    configuration: dd690541-71e5-4baa-a755-3610abc79c00
+    expression: ./missing-optionsets.js
   - id: update-teis
     name: Update TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
