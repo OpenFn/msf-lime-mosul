@@ -590,8 +590,9 @@ function mapF38(encounter) {
   return f38Mapping;
 }
 
-function mapF49(encounter, mappings) {
-  const { events, programStage, dhis2Map, optionSetKey, optsMap } = mappings;
+function mapF49(encounter, events, state) {
+  const { dhis2Map, optionSetKey, optsMap } = state;
+  const programStage = state.formMaps[encounter.form.uuid]?.programStage;
   const dataEl = dhis2Map.de;
   const defaultEvent = events?.find(
     (e) => e.programStage === programStage
@@ -1054,9 +1055,10 @@ function mapF49(encounter, mappings) {
     },
   ];
 }
-function mapF50(encounter, mappings) {
-  const { events, programStage, dhis2Map } = mappings;
-  const dataEl = dhis2Map.de;
+
+function mapF50(encounter, events, state) {
+  const dataEl = state.dhis2Map.de;
+  const programStage = state.formMaps[encounter.form.uuid]?.programStage;
   const defaultEvent = events?.find(
     (e) => e.programStage === programStage
   )?.event;
@@ -1533,8 +1535,8 @@ function mapF50(encounter, mappings) {
   ];
 }
 
-function mapF55(encounter, metadataMap) {
-  const { events, programStage } = metadataMap;
+function mapF55(encounter, events, state) {
+  const programStage = state.formMaps[encounter.form.uuid]?.programStage;
   const event = events?.find((e) => e.programStage === programStage)?.event;
 
   const encounterDate = encounter.encounterDatetime.replace("+0000", "");
@@ -1552,8 +1554,7 @@ function mapF55(encounter, metadataMap) {
   ];
 }
 
-function mapF56(encounter, metadataMap) {
-  const { events } = metadataMap;
+function mapF56(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "d5sMByjqQFm")?.event;
 
   return [
@@ -1591,8 +1592,7 @@ function mapF56(encounter, metadataMap) {
   ];
 }
 
-function mapF58(encounter, metadataMap) {
-  const { events } = metadataMap;
+function mapF58(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "Rd73a6zlYEy")?.event;
 
   return [
@@ -1602,23 +1602,23 @@ function mapF58(encounter, metadataMap) {
       dataValues: [
         {
           dataElement: "gn40F7cEQTI",
-          value: encounter.encounterDatetime.replace("+0000", ""),
+          value: findDataValue(encounter, "gn40F7cEQTI", state),
+          // value: encounter.encounterDatetime.replace("+0000", ""),
         },
         {
           dataElement: "rmYRcxE5I5G",
-          value: findAnswerByConcept(
-            encounter,
-            "0f478fde-1219-4815-9481-f507e8457c38"
-          ),
+          value: findDataValue(encounter, "rmYRcxE5I5G", state),
+          // value: findAnswerByConcept(
+          //   encounter,
+          //   "0f478fde-1219-4815-9481-f507e8457c38"
+          // ),
         },
       ].filter((d) => d.value),
     },
   ];
 }
 
-function mapF59(encounter, metadataMap) {
-  const { events } = metadataMap;
-
+function mapF59(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
 
   const typeOfIncome = findAnswerByConcept(
@@ -1644,9 +1644,11 @@ function mapF59(encounter, metadataMap) {
     "790b41ce-e1e7-11e8-b02f-0242ac130002"
   );
 
+  // const programStage = state.formMaps[encounter.form.uuid].programStage;
   return [
     {
       event,
+      // programStage,
       programStage: "sBepdVG2c9O",
       occurredAt: encounter.encounterDatetime.replace("+0000", ""),
       dataValues: [
@@ -1684,8 +1686,7 @@ function mapF59(encounter, metadataMap) {
   ];
 }
 
-function mapF60(encounter, metadataMap) {
-  const { events } = metadataMap;
+function mapF60(encounter, events) {
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
   const typeOfExit = findAnswerByConcept(
     encounter,
@@ -1723,8 +1724,7 @@ function mapF60(encounter, metadataMap) {
   ];
 }
 
-function mapF61(encounter, metadataMap) {
-  const { events } = metadataMap;
+function mapF61(encounter, events) {
   const event = events?.find((e) => e.programStage === "y8MvLYtuKE3")?.event;
 
   return [
@@ -1961,9 +1961,7 @@ function mapF61(encounter, metadataMap) {
   ];
 }
 
-function mapF62(encounter, metadataMap) {
-  const { events } = metadataMap;
-
+function mapF62(encounter, events) {
   const hospitalisationEvent = {
     event: events?.find((e) => e.programStage === "YivvTlIw5Ep")?.event,
     programStage: "YivvTlIw5Ep",
@@ -2102,12 +2100,12 @@ function mapF62(encounter, metadataMap) {
   return f62Events;
 }
 
-function mapF63(encounter, metadataMap) {
-  return mapF62(encounter, metadataMap); // TODO @Aisha to confirm with ludovic
+function mapF63(encounter, events) {
+  return mapF62(encounter, events); // TODO @Aisha to confirm with ludovic
 }
 
-const findDataValue = (encounter, dataElement, metadataMap) => {
-  const { optsMap, optionSetKey, form, missingOptsets, sourceFile } = metadataMap;
+const findDataValue = (encounter, dataElement, state) => {
+  const form = state.formMaps[encounter.form.uuid];
   const [conceptUuid, questionId] =
     form.dataValueMap[dataElement]?.split("-rfe-") || [];
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -2119,15 +2117,14 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     return answer.value;
   }
 
-
   if (isObjectAnswer) {
     const optionKey = questionId
       ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
 
-    const matchingOptionSet = optionSetKey[optionKey];
+    const matchingOptionSet = state.optionSetKey[optionKey];
 
-    const opt = optsMap.find(
+    const opt = state.optsMap.find(
       (o) =>
         o["value.uuid - External ID"] === answer.value.uuid &&
         o["DHIS2 Option Set UID"] === matchingOptionSet
@@ -2138,8 +2135,8 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     const matchingOption = opt?.["DHIS2 Option Code"];
 
     // Capture missing DHIS2 Option Codes for tracking
-    if (!matchingOption && missingOptsets) {
-      missingOptsets.push({
+    if (!matchingOption && state.missingOptsets) {
+      state.missingOptsets.push({
         timestamp: new Date().toISOString(),
         openMrsQuestion: answer.concept.display || "N/A",
         conceptExternalId: answer.concept.uuid,
@@ -2150,7 +2147,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         metadataFormName: encounter.form.name || encounter.form.uuid,
         encounterUuid: encounter.uuid,
         patientUuid: encounter.patient.uuid,
-        sourceFile
+        sourceFile: state.sourceFile,
       });
 
       console.log(
@@ -2185,7 +2182,6 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
       : undefined;
   }
 
-
   const isEncounterDate =
     conceptUuid === "encounter-date" &&
     ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
@@ -2205,9 +2201,9 @@ const formEncounters = (formDescription, encounters) => {
   return encounters.filter((e) => e.form.description.includes(formDescription));
 };
 
-const buildExitEvent = (encounter, tei, metadataMap) => {
+const buildExitEvent = (encounter, tei, state) => {
   const { program, orgUnit, trackedEntity, enrollment, events } = tei;
-  const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
+  // const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
 
   let exitEvents = [];
   const sharedEventMap = {
@@ -2219,77 +2215,61 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
   };
 
   if (encounter.form.name.includes("F49-NCDs Baseline")) {
-    const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = {
-      events,
-      programStage,
-      dhis2Map,
-      optionSetKey,
-      optsMap,
-    };
-    const eventsMap = mapF49(encounter, metadataMap);
+    const eventsMap = mapF49(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F50-NCDs Follow-up")) {
-    const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = {
-      events,
-      programStage,
-      dhis2Map,
-    };
-    const eventsMap = mapF50(encounter, metadataMap);
+    const eventsMap = mapF50(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F55-HBV Baseline")) {
-    const programStage = formMaps[encounter.form.uuid].programStage;
-    const metadataMap = { events, programStage, dhis2Map };
-    const eventsMap = mapF55(encounter, metadataMap);
+    const eventsMap = mapF55(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
-    const eventsMap = mapF56(encounter, { events });
+    const eventsMap = mapF56(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F58-HCV Follow-up")) {
-    const eventsMap = mapF58(encounter, { events });
+    const eventsMap = mapF58(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F59-Social Work Baseline")) {
-    const eventsMap = mapF59(encounter, { events });
+    const eventsMap = mapF59(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F60-Social Work Follow-up")) {
-    const eventsMap = mapF60(encounter, { events });
+    const eventsMap = mapF60(encounter, events);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F61-Travel medicine")) {
-    const eventsMap = mapF61(encounter, { events });
+    const eventsMap = mapF61(encounter, events);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F62-Palliative care Baseline")) {
-    const eventsMap = mapF62(encounter, { events });
+    const eventsMap = mapF62(encounter, events);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
   }
   if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
-    const eventsMap = mapF63(encounter, { events });
+    const eventsMap = mapF63(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
@@ -2297,7 +2277,7 @@ const buildExitEvent = (encounter, tei, metadataMap) => {
 
   return exitEvents;
 };
-// Prepare DHIS2 data model for create events
+
 fn((state) => {
   // Initialize array to track missing DHIS2 Option Codes
   state.missingOptsets = [];
@@ -2343,15 +2323,10 @@ fn((state) => {
       }
       console.log(`✅ Processing encounter ${index} successfully`);
 
-      let formDataValues = Object.keys(form.dataValueMap)
+      const formDataElements = Object.keys(form.dataValueMap);
+      let formDataValues = formDataElements
         .map((dataElement) => {
-          const value = findDataValue(encounter, dataElement, {
-            optsMap: state.optsMap,
-            optionSetKey: state.optionSetKey,
-            form,
-            missingOptsets: state.missingOptsets,
-            sourceFile: state.sourceFile
-          });
+          const value = findDataValue(encounter, dataElement, state);
           if (value !== null && value !== undefined && value !== "") {
             return { dataElement, value };
           }
