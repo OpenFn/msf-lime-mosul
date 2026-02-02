@@ -14,7 +14,7 @@ fnIf(
         'Answer UUID',
         'DHIS2 DE UID',
         'DHIS2 OptionSet UID',
-        'Metadata File',
+        'Metadata Form',
         'Encounter UUID',
         'Patient UUID',
       ];
@@ -28,7 +28,7 @@ fnIf(
         opt.answerValueUuid,
         opt.dhis2DataElementUid,
         opt.dhis2OptionSetUid,
-        opt.metadataFileName,
+        opt.metadataFormName,
         opt.encounterUuid,
         opt.patientUuid,
       ]);
@@ -56,6 +56,7 @@ fn((state) => {
     console.log('');
     console.log('⚠️  Missing DHIS2 Option Codes Detected');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Metadata File: ${state.sourceFile}`,)
     console.log(`Total Errors: ${totalErrors}`);
     console.log(`Affected Option Sets: ${uniqueOptionSets}`);
     console.log(`Affected Data Elements: ${uniqueDataElements}`);

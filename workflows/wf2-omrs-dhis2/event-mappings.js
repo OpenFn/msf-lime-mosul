@@ -2167,7 +2167,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         answerValueUuid: answer.value.uuid,
         dhis2DataElementUid: dataElement,
         dhis2OptionSetUid: matchingOptionSet || "N/A",
-        metadataFileName: encounter.form.name || encounter.form.uuid,
+        metadataFormName: encounter.form.name || encounter.form.uuid,
         encounterUuid: encounter.uuid,
         patientUuid: encounter.patient.uuid,
       });
