@@ -171,7 +171,7 @@ each(
 );
 
 fn((state) => {
-  const { currChildTeis, parentTeis, ...next } = state;
+  const { data, references, currChildTeis, parentTeis, ...next } = state;
   next.existingTeis = { ...currChildTeis, ...parentTeis };
   return next;
 });

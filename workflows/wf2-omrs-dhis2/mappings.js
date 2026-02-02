@@ -170,7 +170,7 @@ collections.get("mosul-metadata-mappings-staging").then((state) => {
 });
 
 fn((state) => {
-  const { formMetadata, identifiers, ...rest } = state;
+  const { formMetadata, identifiers, data, references, ...rest } = state;
 
   rest.v2FormUuids = formMetadata
     .filter(
