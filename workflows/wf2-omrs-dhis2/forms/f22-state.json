@@ -1,0 +1,781 @@
+{
+  "uuid": "f0c4dedf-8981-47fa-9819-ab5dc258acfd",
+  "patient": {
+    "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+    "display": "IQ146-26-000-028 - Joe Tuch"
+  },
+  "obs": [
+    {
+      "uuid": "56acd87a-022a-4b85-8460-3a9c067f64a0",
+      "concept": {
+        "uuid": "a6441766-3a82-40c7-9028-d08f2757da02",
+        "display": "Outcome of hospitalization"
+      },
+      "display": "Outcome of hospitalization: Transferred",
+      "formFieldPath": "rfe-forms-outcome",
+      "value": {
+        "uuid": "18c795cb-7197-46da-926f-e4d1848b8c36",
+        "display": "Transferred",
+        "name": {
+          "display": "Transferred",
+          "uuid": "e54b3cdd-b4d2-41ce-8b09-f275784c0f5c",
+          "name": "Transferred",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4ab4-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Text"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "e54b3cdd-b4d2-41ce-8b09-f275784c0f5c",
+            "display": "Transferred"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "a10b6eb4-f07f-4f5b-b254-df8e7d946cb7",
+      "concept": {
+        "uuid": "accfa86c-5113-4dcb-9b33-9ec5ab3d7169",
+        "display": "Apgar score"
+      },
+      "display": "Apgar score: 0",
+      "formFieldPath": "rfe-forms-apgarScore_2",
+      "value": 0,
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "f3bd6c5c-18b4-4d70-8787-b95e356d4996",
+      "concept": {
+        "uuid": "8ae1adf0-552d-4cf8-b0f6-6eb9c5a62f42",
+        "display": "Maternal risk factors"
+      },
+      "display": "Maternal risk factors: Meconium stained",
+      "formFieldPath": "rfe-forms-duringLabour",
+      "value": {
+        "uuid": "d04e2344-e699-4cf0-987e-d626ff44087b",
+        "display": "Meconium stained",
+        "name": {
+          "display": "Meconium stained",
+          "uuid": "5087148c-9067-4458-9b0a-8ea9c2d71c43",
+          "name": "Meconium stained",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "5087148c-9067-4458-9b0a-8ea9c2d71c43",
+            "display": "Meconium stained"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "51ceb3f0-2308-4170-8b1b-06c3d2ce9047",
+      "concept": {
+        "uuid": "8ae1adf0-552d-4cf8-b0f6-6eb9c5a62f42",
+        "display": "Maternal risk factors"
+      },
+      "display": "Maternal risk factors: Rupture of membranes ≥18h",
+      "formFieldPath": "rfe-forms-duringLabour",
+      "value": {
+        "uuid": "28d10ce0-7f72-4654-834d-64fa37ad8e85",
+        "display": "Rupture of membranes ≥18h",
+        "name": {
+          "display": "Rupture of membranes ≥18h",
+          "uuid": "72eeaeeb-5988-4b67-868a-cb82162c035c",
+          "name": "Rupture of membranes ≥18h",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "72eeaeeb-5988-4b67-868a-cb82162c035c",
+            "display": "Rupture of membranes ≥18h"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "1ef18af6-1177-4eda-894b-c733c7a3cc8b",
+      "concept": {
+        "uuid": "0274f2d7-86b6-4b32-a0d6-b74718d8fa1e",
+        "display": "Mother's blood group"
+      },
+      "display": "Mother's blood group: O negative",
+      "formFieldPath": "rfe-forms-mothersBloodGroup",
+      "value": {
+        "uuid": "8c4b06e5-b93b-488f-8554-193834599392",
+        "display": "O negative",
+        "name": {
+          "display": "O negative",
+          "uuid": "735BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "O negative",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "108328BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O-"
+          },
+          {
+            "uuid": "95618BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O-"
+          },
+          {
+            "uuid": "136321BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O-"
+          },
+          {
+            "uuid": "108327BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O Negativo"
+          },
+          {
+            "uuid": "136322BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O negatif"
+          },
+          {
+            "uuid": "136320BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O negatif"
+          },
+          {
+            "uuid": "735BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O negative"
+          },
+          {
+            "uuid": "136323BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "O-"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "701FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "Describes a particular antigen combination on the surface of red blood cells: O, Rh negative."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "43740191-6f52-46f7-930d-08080a40305c",
+            "display": "SNOMED CT: 278148006"
+          },
+          {
+            "uuid": "a3e7864e-e57e-41f9-98d9-5c05e05c0b72",
+            "display": "CIEL: 701"
+          },
+          {
+            "uuid": "74bc791b-9443-4b24-8d1d-efc6274ecc8c",
+            "display": "AMPATH: 701"
+          },
+          {
+            "uuid": "b7fa99af-af75-48e8-ba17-bd8468a2805c",
+            "display": "SNOMED CT: 58460004"
+          },
+          {
+            "uuid": "fe5292f8-071f-4f56-80b5-68df5d1dcc1e",
+            "display": "MSF: 3886"
+          },
+          {
+            "uuid": "310bf6b4-d576-48ff-b9e7-3952b2b2c1eb",
+            "display": "AMPATH: 700"
+          }
+        ],
+        "answers": [
+          {
+            "uuid": "7c04cd0c-e3c6-413c-8dc2-2e6b21117412",
+            "display": "Blood group & RH"
+          }
+        ],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "77cc9460-64cf-4707-8f39-4f75de498f6a",
+      "concept": {
+        "uuid": "8ae1adf0-552d-4cf8-b0f6-6eb9c5a62f42",
+        "display": "Maternal risk factors"
+      },
+      "display": "Maternal risk factors: Malpresentation delivery",
+      "formFieldPath": "rfe-forms-duringLabour",
+      "value": {
+        "uuid": "67589861-c11f-411d-a2e0-4e24abbbb490",
+        "display": "Malpresentation delivery",
+        "name": {
+          "display": "Malpresentation delivery",
+          "uuid": "9c9d05c3-9153-488a-9e3a-42aa02dc7b81",
+          "name": "Malpresentation delivery",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "9c9d05c3-9153-488a-9e3a-42aa02dc7b81",
+            "display": "Malpresentation delivery"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "b650f90b-3430-4b77-9c7a-deb597ff2e8a",
+      "concept": {
+        "uuid": "0964d7c7-82a6-4858-ab31-1e981e3620b3",
+        "display": "Maternal chronic illnesses"
+      },
+      "display": "Maternal chronic illnesses: Active hepatitis B (HBsAg+)",
+      "formFieldPath": "rfe-forms-maternalChronicIllnesses",
+      "value": {
+        "uuid": "b54d3ccf-7400-4524-be46-9adffa2a950a",
+        "display": "Active hepatitis B (HBsAg+)",
+        "name": {
+          "display": "Active hepatitis B (HBsAg+)",
+          "uuid": "f70ba65b-779c-4d7d-bc5f-6f6e8c1dacec",
+          "name": "Active hepatitis B (HBsAg+)",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "f70ba65b-779c-4d7d-bc5f-6f6e8c1dacec",
+            "display": "Active hepatitis B (HBsAg+)"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "feca89d7-86bc-4f1a-bdcd-de5729ee3cf8",
+      "concept": {
+        "uuid": "ecadcc7b-6224-4fd4-9209-5481ea4778ce",
+        "display": "Gestational age"
+      },
+      "display": "Gestational age: < 32 weeks",
+      "formFieldPath": "rfe-forms-gestationalAge",
+      "value": {
+        "uuid": "b7ca28c2-d005-4a65-aa32-6147781bbb0d",
+        "display": "< 32 weeks",
+        "name": {
+          "display": "< 32 weeks",
+          "uuid": "089f799c-0801-48b3-af7c-0af031a60a31",
+          "name": "< 32 weeks",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "089f799c-0801-48b3-af7c-0af031a60a31",
+            "display": "< 32 weeks"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "2f23dad3-ba4c-4c2f-b72a-18808bed9119",
+      "concept": {
+        "uuid": "accfa86c-5113-4dcb-9b33-9ec5ab3d7169",
+        "display": "Apgar score"
+      },
+      "display": "Apgar score: 0",
+      "formFieldPath": "rfe-forms-apgarScore",
+      "value": 0,
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "a1ca5ec1-e7da-46e8-8302-7691310072d8",
+      "concept": {
+        "uuid": "0964d7c7-82a6-4858-ab31-1e981e3620b3",
+        "display": "Maternal chronic illnesses"
+      },
+      "display": "Maternal chronic illnesses: Diabetes",
+      "formFieldPath": "rfe-forms-maternalChronicIllnesses",
+      "value": {
+        "uuid": "4930dcb4-1f94-42b8-8406-1d4c575c6327",
+        "display": "Diabetes",
+        "name": {
+          "display": "Diabetes",
+          "uuid": "936d8df3-50c4-4546-bb48-7df3ee5f6010",
+          "name": "Diabetes",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Diagnosis"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "196538f6-4d4b-4a80-90bf-3fdf61205dc9",
+            "display": "Diabète"
+          },
+          {
+            "uuid": "936d8df3-50c4-4546-bb48-7df3ee5f6010",
+            "display": "Diabetes"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [
+          {
+            "uuid": "2631",
+            "display": "SNOMED CT: 73211009"
+          },
+          {
+            "uuid": "2629",
+            "display": "ICD-10-WHO: E14.9"
+          },
+          {
+            "uuid": "2627",
+            "display": "CIEL: 119481"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "34706a7c-2542-4723-9ae0-d7fb30aeac0c",
+      "concept": {
+        "uuid": "d952abab-48fa-4920-9f73-a1f3abcdcf93",
+        "display": "Labor and delivery unit"
+      },
+      "display": "Labor and delivery unit: Surgery",
+      "formFieldPath": "rfe-forms-deliveryService",
+      "value": {
+        "uuid": "4d688780-019e-40fd-9004-044b69d9283f",
+        "display": "Surgery",
+        "name": {
+          "display": "Surgery",
+          "uuid": "b11581dc-d0cf-4331-a4ff-e424fad368a0",
+          "name": "Surgery",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "b11581dc-d0cf-4331-a4ff-e424fad368a0",
+            "display": "Surgery"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "47be5974-e17b-450f-9b4d-bf57382090b1",
+      "concept": {
+        "uuid": "8ae1adf0-552d-4cf8-b0f6-6eb9c5a62f42",
+        "display": "Maternal risk factors"
+      },
+      "display": "Maternal risk factors: Fetal distress",
+      "formFieldPath": "rfe-forms-duringLabour",
+      "value": {
+        "uuid": "639b0e7f-496e-4f43-bda0-5d689f3224f3",
+        "display": "Fetal distress",
+        "name": {
+          "display": "Fetal distress",
+          "uuid": "ab66d744-8c4d-4c9a-a4b8-bd9e158fd11b",
+          "name": "Fetal distress",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Diagnosis"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "89d0e29b-e6bb-4a39-bf0f-a11bf041d113",
+            "display": "Souffrance fœtale aiguë (SFA)"
+          },
+          {
+            "uuid": "47638ff3-bfb1-4383-af9f-b1359f43cfbd",
+            "display": "Détresse foetale"
+          },
+          {
+            "uuid": "15c2de67-6d82-4cd6-8855-e92e8e0f17f5",
+            "display": "Souffrance fœtale aiguë (SFA)"
+          },
+          {
+            "uuid": "3ccc6c1f-6df7-4772-b474-aab6241e1f80",
+            "display": "Détresse fœtale"
+          },
+          {
+            "uuid": "ec0af06f-fe0d-4309-9ae3-3271336a51ba",
+            "display": "Détresse fœtale"
+          },
+          {
+            "uuid": "83a8e2aa-217c-4414-ae6b-06780bbe70ed",
+            "display": "Foetal distress"
+          },
+          {
+            "uuid": "3b4b3d50-f0f1-4acb-ad5c-ba1c32ac4cfc",
+            "display": "Détresse foetale"
+          },
+          {
+            "uuid": "f3ae1182-f3d0-4a41-9b00-4cffe6f23fed",
+            "display": "SFA"
+          },
+          {
+            "uuid": "ab66d744-8c4d-4c9a-a4b8-bd9e158fd11b",
+            "display": "Fetal distress"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [
+          {
+            "uuid": "44356777-7903-4626-a6cd-dbc8214b5ddc",
+            "display": "SNOMED CT: 130955003"
+          },
+          {
+            "uuid": "88ff3c30-9362-424e-af64-6b54317d57d3",
+            "display": "MSF: 5719"
+          },
+          {
+            "uuid": "d7d7286f-a510-439c-a04b-cd49382f26bb",
+            "display": "PIH: 7567"
+          },
+          {
+            "uuid": "1e65616c-e9f7-48f6-94d9-379cf8cc6ef2",
+            "display": "PIH: Fetal distress"
+          },
+          {
+            "uuid": "05cf9154-9596-4458-b7e3-71e1a5167b6e",
+            "display": "MSF: 5099"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "16c1b2be-8592-4074-bcf7-815f412ad832",
+      "concept": {
+        "uuid": "accfa86c-5113-4dcb-9b33-9ec5ab3d7169",
+        "display": "Apgar score"
+      },
+      "display": "Apgar score: 0",
+      "formFieldPath": "rfe-forms-apgarScore_1",
+      "value": 0,
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "1ddb849b-9c30-467c-8696-cc957775d8d0",
+      "concept": {
+        "uuid": "e56eb9ea-91a2-4761-bf47-e5971436d1d8",
+        "display": "Date and time of birth"
+      },
+      "display": "Date and time of birth: December 4, 2025 1:00:00 AM UTC",
+      "formFieldPath": "rfe-forms-dateOfBirth",
+      "value": "2025-12-04T01:00:00.000+0000",
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "93d255b8-edbf-460c-a881-e0c3be748b3a",
+      "concept": {
+        "uuid": "8ae1adf0-552d-4cf8-b0f6-6eb9c5a62f42",
+        "display": "Maternal risk factors"
+      },
+      "display": "Maternal risk factors: Genital or urinary tract infection",
+      "formFieldPath": "rfe-forms-duringLabour",
+      "value": {
+        "uuid": "ca1206c3-4d6c-4bdb-8ee1-4ceb3f157a42",
+        "display": "Genital or urinary tract infection",
+        "name": {
+          "display": "Genital or urinary tract infection",
+          "uuid": "a5088440-d5cc-4d17-bfc3-379c48c1786a",
+          "name": "Genital or urinary tract infection",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "a5088440-d5cc-4d17-bfc3-379c48c1786a",
+            "display": "Genital or urinary tract infection"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    },
+    {
+      "uuid": "39dec396-f485-453a-9c94-03a671dc828b",
+      "concept": {
+        "uuid": "8ae1adf0-552d-4cf8-b0f6-6eb9c5a62f42",
+        "display": "Maternal risk factors"
+      },
+      "display": "Maternal risk factors: Neonatal infection in previous pregnancy",
+      "formFieldPath": "rfe-forms-duringLabour",
+      "value": {
+        "uuid": "09d6bb71-b061-4cae-85f3-2ff020a10c92",
+        "display": "Neonatal infection in previous pregnancy",
+        "name": {
+          "display": "Neonatal infection in previous pregnancy",
+          "uuid": "a95ebc6f-c5b2-4cff-a36b-68adbc2476b8",
+          "name": "Neonatal infection in previous pregnancy",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "a95ebc6f-c5b2-4cff-a36b-68adbc2476b8",
+            "display": "Neonatal infection in previous pregnancy"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "3058aa3d-f889-458b-a177-63ad1c0b1363",
+        "display": "IQ146-26-000-028 - Joe Tuch"
+      }
+    }
+  ],
+  "form": {
+    "uuid": "18827232-356b-3fad-884c-de3bcca2b0a4",
+    "display": "F22-Neonatal Delivery",
+    "description": "MSF Form - F22-Neonatal Delivery",
+    "name": "F22-Neonatal Delivery"
+  },
+  "encounterDatetime": "2026-01-30T13:51:55.000+0000"
+}

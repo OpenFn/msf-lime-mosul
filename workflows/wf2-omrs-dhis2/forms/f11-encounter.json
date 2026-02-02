@@ -1,0 +1,1961 @@
+{
+  "obs": [
+    {
+      "uuid": "fffa8656-f6a6-4e9e-834c-6671aadfcf98",
+      "concept": {
+        "uuid": "a356c3f4-a6f7-4289-bd9e-d83ec01305ed",
+        "display": "Last delivery outcome"
+      },
+      "display": "Last delivery outcome: Child alive",
+      "formFieldPath": "rfe-forms-outcome",
+      "value": {
+        "uuid": "da0a023f-789a-484a-a736-5e0ca25b2e9e",
+        "display": "Child alive",
+        "name": {
+          "display": "Child alive",
+          "uuid": "f8017422-6ff3-4c94-b08b-8d2b066af8d9",
+          "name": "Child alive",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "f8017422-6ff3-4c94-b08b-8d2b066af8d9",
+            "display": "Child alive"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "f1f4fad4-b3e1-45e9-b0b1-d6f8b3c959f6",
+      "concept": {
+        "uuid": "e8ab920f-6ae3-47b1-a0e4-eb3836cc601e",
+        "display": "Patient priorities on selection of contraceptive method"
+      },
+      "display": "Patient priorities on selection of contraceptive method: Avoid touching intimate areas",
+      "formFieldPath": "rfe-forms-whatIsImportant",
+      "value": {
+        "uuid": "d95f5af0-31d2-49a6-ba9d-50d17c5bdbbe",
+        "display": "Avoid touching intimate areas",
+        "name": {
+          "display": "Avoid touching intimate areas",
+          "uuid": "6d3ed15a-2b95-486f-bd80-1d6c5c493c7f",
+          "name": "Avoid touching intimate areas",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "6d3ed15a-2b95-486f-bd80-1d6c5c493c7f",
+            "display": "Avoid touching intimate areas"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "ba809b78-d110-484b-b580-6ac81d2d23e3",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Vasectomy",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "76e3ce78-9147-43e5-a200-82c6d7c7ddd4",
+        "display": "Vasectomy",
+        "name": {
+          "display": "Vasectomy",
+          "uuid": "1722BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Vasectomy",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490bf4-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Procedure"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "1722BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Vasectomy"
+          },
+          {
+            "uuid": "44bdfb0d-4b3b-42a0-b561-c02236dd6d2a",
+            "display": "Vasectomía"
+          },
+          {
+            "uuid": "106791BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Male sterilization"
+          },
+          {
+            "uuid": "1723BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Vasectomie"
+          },
+          {
+            "uuid": "135585BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Vazektomi"
+          },
+          {
+            "uuid": "c52f3887-21c5-4faf-8eee-727b06af9cea",
+            "display": "Deferentectomía"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "16162FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "A method of male sterilization."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "8b7fd04e-6b93-4026-b155-bb6de6d242a9",
+            "display": "SNOMED CT: 22523008"
+          },
+          {
+            "uuid": "7c2d74ad-8993-4224-8be7-a4d70f6452cd",
+            "display": "PIH: 1721"
+          },
+          {
+            "uuid": "6af2e123-239a-458a-86f6-d29e537affd5",
+            "display": "MSF: 4224"
+          },
+          {
+            "uuid": "20a8c8cd-40eb-468e-92b1-4978fd44ba2c",
+            "display": "IMO ProcedureIT: 1848460"
+          },
+          {
+            "uuid": "96c56a3c-4baa-4846-8d0d-eb10a71c1d7a",
+            "display": "IMO ProcedureIT: 1809386"
+          },
+          {
+            "uuid": "9ec04b07-f1f5-4cac-89cd-78ba34ab87d5",
+            "display": "CIEL: 1489"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "8966e0b6-6ef2-4554-86b9-be6d2456457a",
+      "concept": {
+        "uuid": "0d11843b-4b54-4cab-9344-e8449655120a",
+        "display": "Very good choice"
+      },
+      "display": "Very good choice: Condom, COC, POP, Injectable, Implant, IUD",
+      "formFieldPath": "rfe-forms-whatIsImportant1",
+      "value": {
+        "uuid": "37a74320-ed08-44bb-ae50-07eaad6e36c6",
+        "display": "Condom, COC, POP, Injectable, Implant, IUD",
+        "name": {
+          "display": "Condom, COC, POP, Injectable, Implant, IUD",
+          "uuid": "3d532fb1-11ca-4186-9d2c-9665a9ef3332",
+          "name": "Condom, COC, POP, Injectable, Implant, IUD",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "3d532fb1-11ca-4186-9d2c-9665a9ef3332",
+            "display": "Condom, COC, POP, Injectable, Implant, IUD"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "06e2be1e-80ad-43f9-9ffa-4f7aa6245d73",
+      "concept": {
+        "uuid": "e8ab920f-6ae3-47b1-a0e4-eb3836cc601e",
+        "display": "Patient priorities on selection of contraceptive method"
+      },
+      "display": "Patient priorities on selection of contraceptive method: No children later",
+      "formFieldPath": "rfe-forms-whatIsImportant",
+      "value": {
+        "uuid": "4c3638f6-2f9d-46a9-9b60-cfe6ab2656b3",
+        "display": "No children later",
+        "name": {
+          "display": "No children later",
+          "uuid": "88f7a3e1-852b-4e6d-be6e-bb997e2962d4",
+          "name": "No children later",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "88f7a3e1-852b-4e6d-be6e-bb997e2962d4",
+            "display": "No children later"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "d4499d6a-98eb-45f4-8a7c-ca2820b1138c",
+      "concept": {
+        "uuid": "ef3a4c4f-cdb4-46d1-9e85-bc8a4790a219",
+        "display": "Observations"
+      },
+      "display": "Observations: Don't judge",
+      "formFieldPath": "rfe-forms-observations",
+      "value": "Don't judge",
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "e95ac62c-0cec-44e6-bbf0-7caea71ef526",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: hormonal intrauterine device",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "99f02e71-cd90-4de6-a6c9-3a2f6fd94124",
+        "display": "hormonal intrauterine device",
+        "name": {
+          "display": "hormonal intrauterine device",
+          "uuid": "6ed72c8a-f0c1-4b6a-b5aa-9095fa70bb40",
+          "name": "hormonal intrauterine device",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "6ed72c8a-f0c1-4b6a-b5aa-9095fa70bb40",
+            "display": "hormonal intrauterine device"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+
+    {
+      "uuid": "a7584b03-138b-4844-a3d7-db083988fa8b",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Emergency contraceptive pills",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "711f0159-f083-4953-be52-4862e25a11e0",
+        "display": "Emergency contraceptive pills",
+        "name": {
+          "display": "Emergency contraceptive pills",
+          "uuid": "108944BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Emergency contraceptive pills",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d4923b4-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "MedSet"
+        },
+        "set": true,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "135591BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Grenn kontraseptif ijans"
+          },
+          {
+            "uuid": "108945BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "ECP (emergency contraceptive pills)"
+          },
+          {
+            "uuid": "127607BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Thuốc tránh thai khẩn cấp"
+          },
+          {
+            "uuid": "108944BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Emergency contraceptive pills"
+          },
+          {
+            "uuid": "108943BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Emergency contraception"
+          },
+          {
+            "uuid": "135590BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Pilules contraceptives d'urgence"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "16828FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "The method of contraception which can be used after sexual intercourse to prevent pregnancy. This should just be for emergency cases where the sexual intercourse happened without protection and the partners do not want pregnancy. This should not be used as a general method of contraception."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "47b3548e-a27f-49fc-af1a-6bd6a706144d",
+            "display": "MSF: 4237"
+          },
+          {
+            "uuid": "51feb05e-b9c9-48f6-858c-7759d98cd8b3",
+            "display": "CIEL: 160570"
+          },
+          {
+            "uuid": "53365754-27ae-4c66-9ac1-35378b3de49a",
+            "display": "SNOMED CT: 275813002"
+          }
+        ],
+        "answers": [],
+        "setMembers": [
+          {
+            "uuid": "d8f93b1d-c7b3-4151-a61d-9bf63a3652a1",
+            "display": "Levonorgestrel"
+          },
+          {
+            "uuid": "bfacf53c-0080-4e61-88e9-5f103c505eb6",
+            "display": "ULIPRISTAL acetate"
+          }
+        ],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+
+    {
+      "uuid": "4abda471-bfd0-457f-b7d9-21299c1cf20d",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Implantable contraceptive (unspecified type)",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "7791ffc1-beca-4543-b781-8f4f65872bb6",
+        "display": "Implantable contraceptive (unspecified type)",
+        "name": {
+          "display": "Implantable contraceptive (unspecified type)",
+          "uuid": "106927BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Implantable contraceptive (unspecified type)",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490dfc-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Drug"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "106927BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Implantable contraceptive (unspecified type)"
+          },
+          {
+            "uuid": "106928BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Implantable contraceptive"
+          },
+          {
+            "uuid": "842cd5d1-c559-41e3-90dd-135c7a50d78b",
+            "display": "Anticonceptivo subcutáneo"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "16233FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "A form of contraception delivered through an implantable device under the skin."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "5b1b23c4-f397-4184-8ffa-f26773d98fa0",
+            "display": "CIEL: 159589"
+          },
+          {
+            "uuid": "aa025d76-e226-46fb-a7aa-bef7f9e1c542",
+            "display": "SNOMED CT: 169552007"
+          },
+          {
+            "uuid": "aecc20bd-cf11-4016-aee1-1a5aca0715f1",
+            "display": "SNOMED CT: 428987008"
+          },
+          {
+            "uuid": "178a3447-ccc4-4f45-9788-dab4f23f1246",
+            "display": "AMPATH: 6220"
+          },
+          {
+            "uuid": "109d937f-c8ca-42c6-a8a8-fc8fe8829a0f",
+            "display": "MSF: 4235"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "40a4957f-1891-4b3b-9a6e-9c951521e2ef",
+      "concept": {
+        "uuid": "9deb65e1-8709-41a5-92a5-f48e18237516",
+        "display": "Conditions related to choice of contraception"
+      },
+      "display": "Conditions related to choice of contraception: BP > 160/100",
+      "formFieldPath": "rfe-forms-conditions",
+      "value": {
+        "uuid": "495831be-128a-4827-902c-06b7c76fdf31",
+        "display": "BP > 160/100",
+        "name": {
+          "display": "BP > 160/100",
+          "uuid": "fe679e31-dc2e-4b11-93a6-e4bade4326d2",
+          "name": "BP > 160/100",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "fe679e31-dc2e-4b11-93a6-e4bade4326d2",
+            "display": "BP > 160/100"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "571914cf-a598-4054-9173-2fd06773667a",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Copper intrauterine device",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "e47a2044-2fef-4535-9418-21108c8be2d3",
+        "display": "Copper intrauterine device",
+        "name": {
+          "display": "Copper intrauterine device",
+          "uuid": "13ab561b-4ce0-4e74-aedc-f4a8e8a8bfaa",
+          "name": "Copper intrauterine device",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "13ab561b-4ce0-4e74-aedc-f4a8e8a8bfaa",
+            "display": "Copper intrauterine device"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "f619e20b-05f7-4f67-baf1-b0f1832e7762",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: MEDROXYPROGESTERONE acetate",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "c88d3441-86e0-4e72-b749-5f4471a75b92",
+        "display": "MEDROXYPROGESTERONE acetate",
+        "name": {
+          "display": "MEDROXYPROGESTERONE acetate",
+          "uuid": "952BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "MEDROXYPROGESTERONE acetate",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490dfc-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Drug"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "f4bf4aa9-fe96-47bd-af3c-0def7e922a5c",
+            "display": "MEDROXYPROGESTERONE"
+          },
+          {
+            "uuid": "90459BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Depo-provera"
+          },
+          {
+            "uuid": "135584BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Medroksiprojèsteron asetat"
+          },
+          {
+            "uuid": "90471BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Depoprovera"
+          },
+          {
+            "uuid": "106208BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Acétate medroxyprogestérone"
+          },
+          {
+            "uuid": "952BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "MEDROXYPROGESTERONE acetate"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "910FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "A synthetic steroid progestational hormone C24H34O4 that is used especially in the treatment of amenorrhea and abnormal uterine bleeding, in conjunction with conjugated estrogens to relieve the symptoms of menopause and to prevent osteoporosis, and as an injectable contraceptive."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "13ac6648-5471-40a0-8773-8fe8e0b19324",
+            "display": "PIH: 5279"
+          },
+          {
+            "uuid": "7ec86936-b3ae-426e-aadc-4d8db68a19e3",
+            "display": "AMPATH: 191"
+          },
+          {
+            "uuid": "2b160225-d898-49bb-911d-1fe4eadcb066",
+            "display": "CIEL: 907"
+          },
+          {
+            "uuid": "2098bba0-8dde-45ec-aa66-30a4ebb87a0f",
+            "display": "RxNORM: 1000112"
+          },
+          {
+            "uuid": "fe470a8f-fa6b-49f6-8dba-d3f03fb045f3",
+            "display": "AMPATH: 907"
+          },
+          {
+            "uuid": "474de343-76d6-456e-b262-d71d0ca3b924",
+            "display": "WHOATC: G03DA02"
+          },
+          {
+            "uuid": "ff2e1f10-2106-4115-8358-d935744f43d4",
+            "display": "SNOMED CT: 126112002"
+          },
+          {
+            "uuid": "5bedd7f8-200f-40de-ac07-0d4e768aac83",
+            "display": "MSF: 4217"
+          },
+          {
+            "uuid": "59545ed6-f31e-4a23-b11c-ad14682e92bd",
+            "display": "WHOATC: L02AB02"
+          },
+          {
+            "uuid": "8fd1d5f6-fbaf-4c36-8f35-e2c781de8826",
+            "display": "WHOATC: G03AC06"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "ac42c1cc-26b5-4644-b41b-7c2d7df5992c",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Progestin only contraceptive pill",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "c1360005-c7f9-42af-b085-2a5909da9f0b",
+        "display": "Progestin only contraceptive pill",
+        "name": {
+          "display": "Progestin only contraceptive pill",
+          "uuid": "107252BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Progestin only contraceptive pill",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490dfc-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Drug"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "107252BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Progestin only contraceptive pill"
+          },
+          {
+            "uuid": "107379BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "POP (progestin only pill)"
+          },
+          {
+            "uuid": "26802d11-1b18-4b9c-ba1d-71bebcf97d43",
+            "display": "Anticonceptivo oral solamente con progestágeno"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "16384FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "non-specific oral contraceptive pill containing only progestin component"
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "4e1a11d9-a566-4ba2-8a06-58e0436d6a64",
+            "display": "MSF: 4286"
+          },
+          {
+            "uuid": "17c4a26e-0237-4c3f-b70c-fecb69b72c59",
+            "display": "SNOMED CT: 169467008"
+          },
+          {
+            "uuid": "ed5b690e-406f-4a0b-b6fe-73f6ba8161b3",
+            "display": "AMPATH: 6217"
+          },
+          {
+            "uuid": "1af5a3f7-de9d-4076-b619-3added9fd911",
+            "display": "CIEL: 159784"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "8b23f9ab-d108-4eb0-887b-f6422415dcfa",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Male condom",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "6fafa6b0-9acb-4982-9532-af2b85ea2ed6",
+        "display": "Male condom",
+        "name": {
+          "display": "Male condom",
+          "uuid": "141020BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Male condom",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "0dcf23d4-3008-4d8e-b12c-4ec95d1cfd97",
+          "display": "Medical supply"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "141020BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Male condom"
+          },
+          {
+            "uuid": "fe282132-14f8-453f-b003-0628baa11f77",
+            "display": "Preservativo masculino, dispositivo"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [
+          {
+            "uuid": "cc6b5abe-2101-4561-aee6-371cb74a875c",
+            "display": "SNOMED CT: 442450006"
+          },
+          {
+            "uuid": "c7c54a4a-28a9-478c-83c9-df6058877a45",
+            "display": "MSF: 4238"
+          },
+          {
+            "uuid": "7f23a78d-99a9-4fed-9e82-a8ebd6786e67",
+            "display": "CIEL: 164813"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "8b3f1c67-3e6c-4136-867a-9c61a4b76523",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Tubal ligation",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "5939ffb8-257c-4b16-9f6c-f961289b747c",
+        "display": "Tubal ligation",
+        "name": {
+          "display": "Tubal ligation",
+          "uuid": "4f2ee341-ab33-43f0-b7c8-13629a712ef2",
+          "name": "Tubal ligation",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "4f2ee341-ab33-43f0-b7c8-13629a712ef2",
+            "display": "Tubal ligation"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "222a9e66-ba93-4332-b7af-70244de244dd",
+      "concept": {
+        "uuid": "9deb65e1-8709-41a5-92a5-f48e18237516",
+        "display": "Conditions related to choice of contraception"
+      },
+      "display": "Conditions related to choice of contraception: BP >140/90",
+      "formFieldPath": "rfe-forms-conditions",
+      "value": {
+        "uuid": "ccf9216a-ee7d-4f77-b6aa-b352f22b71b0",
+        "display": "BP >140/90",
+        "name": {
+          "display": "BP >140/90",
+          "uuid": "1ddb7852-188b-4eed-a72f-8c1aecea88a2",
+          "name": "BP >140/90",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "1ddb7852-188b-4eed-a72f-8c1aecea88a2",
+            "display": "BP >140/90"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "83410fd8-fbc7-4a37-8f4d-a8b3f12ae6a1",
+      "concept": {
+        "uuid": "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14",
+        "display": "Contraception recommended"
+      },
+      "display": "Contraception recommended: Yes",
+      "formFieldPath": "rfe-forms-familyPlanningRecommended",
+      "value": {
+        "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+        "display": "Yes",
+        "name": {
+          "display": "Yes",
+          "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+          "name": "Yes",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+            "display": "Oui"
+          },
+          {
+            "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+            "display": "Sí"
+          },
+          {
+            "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+            "display": "Yes"
+          },
+          {
+            "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+            "display": "نعم"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+            "display": "Generic answer to a question."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+            "display": "CIEL: 1065"
+          },
+          {
+            "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+            "display": "AMPATH: 1065"
+          },
+          {
+            "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+            "display": "SNOMED CT: 373066001"
+          },
+          {
+            "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+            "display": "MSF: 931"
+          },
+          {
+            "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+            "display": "PIH: 1065"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "c1c64eb9-37ca-4b10-9571-9f6931b0585b",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Female condom",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "d0f6ffc4-5a90-433b-a866-75e040e2731f",
+        "display": "Female condom",
+        "name": {
+          "display": "Female condom",
+          "uuid": "141021BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Female condom",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "0dcf23d4-3008-4d8e-b12c-4ec95d1cfd97",
+          "display": "Medical supply"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "141021BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Female condom"
+          },
+          {
+            "uuid": "26cb10b8-9189-45b6-ac98-2ed866bc661a",
+            "display": "Preservativo femenino, dispositivo"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [
+          {
+            "uuid": "51062c38-02de-4a8e-9623-d0171a336242",
+            "display": "MSF: 4234"
+          },
+          {
+            "uuid": "f4fa845b-6bbf-4894-8ab2-1f3d18c2c198",
+            "display": "CIEL: 164814"
+          },
+          {
+            "uuid": "6b40505b-ea2f-49bc-bdc5-9f230a0c6206",
+            "display": "SNOMED CT: 442288006"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "909db0b4-0162-4766-b8a8-3aaeaa05665a",
+      "concept": {
+        "uuid": "aa296b81-5599-4076-8e53-e47d6e96159e",
+        "display": "Number of abortions/miscarriages"
+      },
+      "display": "Number of abortions/miscarriages: 1",
+      "formFieldPath": "rfe-forms-abortion",
+      "value": 1,
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "853ba24d-d56c-4b41-8db7-01cd52072139",
+      "concept": {
+        "uuid": "9deb65e1-8709-41a5-92a5-f48e18237516",
+        "display": "Conditions related to choice of contraception"
+      },
+      "display": "Conditions related to choice of contraception: Ectopic pregnancy",
+      "formFieldPath": "rfe-forms-conditions",
+      "value": {
+        "uuid": "10f3449c-05fd-4a3d-9dca-1de634fd2366",
+        "display": "Ectopic pregnancy",
+        "name": {
+          "display": "Ectopic pregnancy",
+          "uuid": "0fc187c3-5959-418e-bb57-d705cb7fa969",
+          "name": "Ectopic pregnancy",
+          "locale": "en",
+          "localePreferred": true,
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Diagnosis"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "e385a87c-e7b8-4846-ac63-0e6920e563b7",
+            "display": "Grossesse extra-utérine"
+          },
+          {
+            "uuid": "eb04a2a2-9e16-11e9-b0b5-aa0059ea79c6",
+            "display": "Embarazo ectópico"
+          },
+          {
+            "uuid": "e5227c23-4c9f-419e-9d88-3070c71066c3",
+            "display": "Grossesse extra-utérine"
+          },
+          {
+            "uuid": "3e09dc22-26fe-102b-80cb-0017a47871b2",
+            "display": "Pregnancy, Ectopic"
+          },
+          {
+            "uuid": "0fc187c3-5959-418e-bb57-d705cb7fa969",
+            "display": "Ectopic pregnancy"
+          },
+          {
+            "uuid": "9aa3a3f7-df8b-4835-bad6-6a5291121b09",
+            "display": "Grossesse extra utérine"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "ecd6a262-07fe-102c-b5fa-0017a47871b2",
+            "display": "Implantation and subsequent development of a fertilized ovum outside the uterus, as in a fallopian tube."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "08470e3b-b306-4823-91bd-87b11ed72eba",
+            "display": "PIH: 46"
+          },
+          {
+            "uuid": "13ff9fda-2e74-4ed8-b90e-b79494210700",
+            "display": "PIH: Ectopic pregnancy"
+          },
+          {
+            "uuid": "36dc303e-94df-418a-8bb4-9829a4a4c9cc",
+            "display": "ICD-10-WHO: O00.9"
+          },
+          {
+            "uuid": "6075a415-219b-4f0f-8300-1973deeaeeb7",
+            "display": "CIEL: 46"
+          },
+          {
+            "uuid": "5bb157b8-5b9f-4240-ad2d-d8ecf29a4318",
+            "display": "MSF: 4278"
+          },
+          {
+            "uuid": "f12866fa-c274-4463-81e0-bc205691a5ac",
+            "display": "SNOMED CT: 34801009"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "307b6d22-b716-4f9b-ae0a-2c40ddae255f",
+      "concept": {
+        "uuid": "7c346f81-376d-4b89-ab60-1d7eeb169ba1",
+        "display": "Previous family planning"
+      },
+      "display": "Previous family planning: No",
+      "formFieldPath": "rfe-forms-familyPlanningBefore",
+      "value": {
+        "uuid": "a5c5563e-df0e-4742-a335-b24fb63664ee",
+        "display": "No",
+        "name": {
+          "display": "No",
+          "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+          "name": "No",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "5f0c7812-04f3-4fc9-a587-e8741c3d8b6b",
+            "display": "لا"
+          },
+          {
+            "uuid": "6709bd29-0c93-36ab-b7f1-756150504255",
+            "display": "Non"
+          },
+          {
+            "uuid": "0f8565ec-eede-3a20-b8ca-d1fcacc9fa03",
+            "display": "No"
+          },
+          {
+            "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+            "display": "No"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "13b8ccad-9586-42e8-8ab2-fb03f6463fde",
+            "display": "Generic answer to a question."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "c716ad06-e41c-4a91-b1d5-493dd12af992",
+            "display": "CIEL: 1066"
+          },
+          {
+            "uuid": "2944837c-a8a5-48dd-a88d-fc38b0834982",
+            "display": "PIH: 1066"
+          },
+          {
+            "uuid": "a030990f-8529-4459-9dc7-4a53d0ba8c98",
+            "display": "AMPATH: 1066"
+          },
+          {
+            "uuid": "6e8d7aad-7e65-4c44-9eab-c883e5a5c13a",
+            "display": "SNOMED CT: 373067005"
+          },
+          {
+            "uuid": "0818b63f-3214-45eb-83f4-92ce2dd58efa",
+            "display": "MSF: 930"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "9ab46caa-26ad-4ed1-8d36-13a8fb1bb393",
+      "concept": {
+        "uuid": "9deb65e1-8709-41a5-92a5-f48e18237516",
+        "display": "Conditions related to choice of contraception"
+      },
+      "display": "Conditions related to choice of contraception: Molar pregnancy",
+      "formFieldPath": "rfe-forms-conditions",
+      "value": {
+        "uuid": "0ea23cbd-009f-4957-85c4-f1496f11c480",
+        "display": "Molar pregnancy",
+        "name": {
+          "display": "Molar pregnancy",
+          "uuid": "33887BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Molar pregnancy",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Diagnosis"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "70683BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "embarazo molar"
+          },
+          {
+            "uuid": "33887BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Molar pregnancy"
+          },
+          {
+            "uuid": "114910BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "molaire zwangerschap"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "10225FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "A trophoblastic disease characterized by hydrops of the mesenchymal portion of the villus. Its karyotype is paternal and usually homozygotic. The tumor is indistinguishable from chorioadenoma destruens or invasive mole ( = HYDATIDIFORM MOLE, INVASIVE) except by karyotype. There is no apparent relation by karyotype to CHORIOCARCINOMA. Hydatidiform refers to the presence of the hydropic state of some or all of the villi (Greek hydatis, a drop of water)."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "10b1026f-1d57-4479-98d0-9d3bff9f8c14",
+            "display": "CIEL: 134006"
+          },
+          {
+            "uuid": "d8ba28f4-223f-4fbf-9253-11cb0f98241b",
+            "display": "3BT: 10061478"
+          },
+          {
+            "uuid": "d63b0c2b-801d-4dc0-8381-864c13c13e41",
+            "display": "ICD-11-WHO: JA02.Z"
+          },
+          {
+            "uuid": "3888076e-3801-4b15-8996-dfa53e67e9db",
+            "display": "MSF: 5723"
+          },
+          {
+            "uuid": "debfe26d-7a09-441d-8a9a-91c1c996e8dc",
+            "display": "SNOMED CT: 417044008"
+          },
+          {
+            "uuid": "b53eb10c-c7ca-48c8-b6a6-fe0eed8b388e",
+            "display": "IMO ProblemIT: 86430"
+          },
+          {
+            "uuid": "64fd1eff-89e7-4484-9248-0ebe3811a0c6",
+            "display": "ICD-10-WHO: O02.8"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "286a4672-d8e1-4e00-8ce9-1ce2de3f5853",
+      "concept": {
+        "uuid": "9deb65e1-8709-41a5-92a5-f48e18237516",
+        "display": "Conditions related to choice of contraception"
+      },
+      "display": "Conditions related to choice of contraception: Allergy to latex",
+      "formFieldPath": "rfe-forms-conditions",
+      "value": {
+        "uuid": "a5051ac2-d10c-40e5-be13-c06fad96d82c",
+        "display": "Allergy to latex",
+        "name": {
+          "display": "Allergy to latex",
+          "uuid": "6fe07a26-19a3-4746-b835-8ee9b7a70c30",
+          "name": "Allergy to latex",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "6fe07a26-19a3-4746-b835-8ee9b7a70c30",
+            "display": "Allergy to latex"
+          },
+          {
+            "uuid": "bdebb399-fa79-4a63-ab96-320c3131481e",
+            "display": "Allergie au latex"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [
+          { "uuid": "3055", "display": "ICD-10-WHO: Z91.0" },
+          { "uuid": "3053", "display": "SNOMED CT: 1003755004" },
+          { "uuid": "3051", "display": "CIEL: 116367" }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "89cdc40f-2f0a-45dc-8817-38094f1f7ba3",
+      "concept": {
+        "uuid": "bfaee905-6a8f-4b4d-b66b-fe020d1ca3d8",
+        "display": "Number of children alive"
+      },
+      "display": "Number of children alive: 1",
+      "formFieldPath": "rfe-forms-livingChildren",
+      "value": 1,
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "aceb6273-df58-4e96-bcf3-4a0b91b0c58d",
+      "concept": {
+        "uuid": "9deb65e1-8709-41a5-92a5-f48e18237516",
+        "display": "Conditions related to choice of contraception"
+      },
+      "display": "Conditions related to choice of contraception: Severe untreated anaemia",
+      "formFieldPath": "rfe-forms-conditions",
+      "value": {
+        "uuid": "8ff6da30-0e83-41d2-be01-4f296b6c4b7a",
+        "display": "Severe untreated anaemia",
+        "name": {
+          "display": "Severe untreated anaemia",
+          "uuid": "ea9516dc-5a9f-4708-b473-be8096afa0d9",
+          "name": "Severe untreated anaemia",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Finding"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "ea9516dc-5a9f-4708-b473-be8096afa0d9",
+            "display": "Severe untreated anaemia"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "43a308ec-a007-42d1-acf7-c394de2e6471",
+      "concept": {
+        "uuid": "733ca33e-5729-4c10-ad46-39563cf10b26",
+        "display": "Patient wish for a specific contraceptive method"
+      },
+      "display": "Patient wish for a specific contraceptive method: No",
+      "formFieldPath": "rfe-forms-thePatientHasAMethodInMind",
+      "value": {
+        "uuid": "a5c5563e-df0e-4742-a335-b24fb63664ee",
+        "display": "No",
+        "name": {
+          "display": "No",
+          "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+          "name": "No",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "5f0c7812-04f3-4fc9-a587-e8741c3d8b6b",
+            "display": "لا"
+          },
+          {
+            "uuid": "6709bd29-0c93-36ab-b7f1-756150504255",
+            "display": "Non"
+          },
+          {
+            "uuid": "0f8565ec-eede-3a20-b8ca-d1fcacc9fa03",
+            "display": "No"
+          },
+          {
+            "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+            "display": "No"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "13b8ccad-9586-42e8-8ab2-fb03f6463fde",
+            "display": "Generic answer to a question."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "c716ad06-e41c-4a91-b1d5-493dd12af992",
+            "display": "CIEL: 1066"
+          },
+          {
+            "uuid": "2944837c-a8a5-48dd-a88d-fc38b0834982",
+            "display": "PIH: 1066"
+          },
+          {
+            "uuid": "a030990f-8529-4459-9dc7-4a53d0ba8c98",
+            "display": "AMPATH: 1066"
+          },
+          {
+            "uuid": "6e8d7aad-7e65-4c44-9eab-c883e5a5c13a",
+            "display": "SNOMED CT: 373067005"
+          },
+          {
+            "uuid": "0818b63f-3214-45eb-83f4-92ce2dd58efa",
+            "display": "MSF: 930"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "5f6a1d2f-fade-4cd4-8703-342c33e8847f",
+      "concept": {
+        "uuid": "0d11843b-4b54-4cab-9344-e8449655120a",
+        "display": "Very good choice"
+      },
+      "display": "Very good choice: Condoms",
+      "formFieldPath": "rfe-forms-whatIsImportant1",
+      "value": {
+        "uuid": "2646e621-3e0e-49b7-b3d4-dec9ac0fbc44",
+        "display": "Condoms",
+        "name": {
+          "display": "Condoms",
+          "uuid": "213BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Condoms",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490dfc-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Drug"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "135571BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Kapòt"
+          },
+          {
+            "uuid": "137619BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Condoms"
+          },
+          {
+            "uuid": "e3d20c9c-c4ed-4589-ba2f-a02727fbc464",
+            "display": "Preservativo"
+          },
+          {
+            "uuid": "215BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Mpira ya Kiume/kondom"
+          },
+          {
+            "uuid": "214BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Préservatifs"
+          },
+          {
+            "uuid": "213BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Condoms"
+          },
+          {
+            "uuid": "106912BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "ኮንዶም"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "191FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "Mipira ya kiume ambayo wanaume wanavaa kwenye uume wao\r\nwakitaka kumwingilia mwanamke kwenye uke wake.Hii inatumika kuzua\r\nmaradhi mbalimbali yakuambukizwa wakati wa kufanya tendo la ndoa."
+          },
+          {
+            "uuid": "190FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "Methods for preventing pregnancy."
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "7146ee03-2a1b-4f3b-8ba4-6ff63f87aa23",
+            "display": "PIH: 190"
+          },
+          {
+            "uuid": "44b2ba6e-0af4-4fce-8658-a99b97e27d1b",
+            "display": "MSF: 4215"
+          },
+          {
+            "uuid": "c23434af-a896-4f38-b724-45b927ff02a9",
+            "display": "AMPATH: 5270"
+          },
+          {
+            "uuid": "2f866785-bb99-4beb-94b9-57c240078785",
+            "display": "AMPATH: 190"
+          },
+          {
+            "uuid": "66d476c4-65b4-49f2-b016-175c36ddebc7",
+            "display": "CIEL: 190"
+          },
+          {
+            "uuid": "358d1114-8c97-42ab-9817-09a88b069aa5",
+            "display": "SNOMED CT: 706506000"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "36874f0d-36e5-4296-8dac-1c6e6f035c7f",
+      "concept": {
+        "uuid": "e8ab920f-6ae3-47b1-a0e4-eb3836cc601e",
+        "display": "Patient priorities on selection of contraceptive method"
+      },
+      "display": "Patient priorities on selection of contraceptive method: Easy to stop",
+      "formFieldPath": "rfe-forms-whatIsImportant",
+      "value": {
+        "uuid": "2f2d48fb-22af-46e7-ae77-82178d6ad2e9",
+        "display": "Easy to stop",
+        "name": {
+          "display": "Easy to stop",
+          "uuid": "97ec444d-79c6-4336-816d-eb7811ddf8b2",
+          "name": "Easy to stop",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "97ec444d-79c6-4336-816d-eb7811ddf8b2",
+            "display": "Easy to stop"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "728f7039-d7b0-4a6c-bc63-a004791979f0",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Sayanna",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "84bcf6c2-05f2-495e-9e56-22302558a418",
+        "display": "Sayanna",
+        "name": {
+          "display": "Sayanna",
+          "uuid": "2461ee7d-7896-4e15-b69c-db731d9608b0",
+          "name": "Sayanna",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490dfc-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Drug"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "2461ee7d-7896-4e15-b69c-db731d9608b0",
+            "display": "Sayanna"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "16115f11-f989-4d63-9e64-17dd66e663cf",
+      "concept": {
+        "uuid": "e8ab920f-6ae3-47b1-a0e4-eb3836cc601e",
+        "display": "Patient priorities on selection of contraceptive method"
+      },
+      "display": "Patient priorities on selection of contraceptive method: Permanent contraception",
+      "formFieldPath": "rfe-forms-whatIsImportant",
+      "value": {
+        "uuid": "fbda45c0-5ccf-468f-b401-4d048231a338",
+        "display": "Permanent contraception",
+        "name": {
+          "display": "Permanent contraception",
+          "uuid": "e3e7fd5c-8e66-4ba0-ac0f-6ec2ac9c5f90",
+          "name": "Permanent contraception",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Misc"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "e3e7fd5c-8e66-4ba0-ac0f-6ec2ac9c5f90",
+            "display": "Permanent contraception"
+          }
+        ],
+        "descriptions": [],
+        "mappings": [],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    },
+    {
+      "uuid": "c2225e79-6e75-4fa3-bab5-f1ff9e65d58e",
+      "concept": {
+        "uuid": "30b2d692-6a05-401f-8ede-13e027b8a436",
+        "display": "Contraception method prescribed"
+      },
+      "display": "Contraception method prescribed: Combined oral contraceptive pills",
+      "formFieldPath": "rfe-forms-chosenMethod",
+      "value": {
+        "uuid": "dcc05293-cda6-48ee-b934-8982712ae59c",
+        "display": "Combined oral contraceptive pills",
+        "name": {
+          "display": "Combined oral contraceptive pills",
+          "uuid": "107250BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+          "name": "Combined oral contraceptive pills",
+          "locale": "en",
+          "localePreferred": true,
+          "conceptNameType": "FULLY_SPECIFIED",
+          "resourceVersion": "1.9"
+        },
+        "datatype": {
+          "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "N/A"
+        },
+        "conceptClass": {
+          "uuid": "8d490dfc-c2cc-11de-8d13-0010c6dffd0f",
+          "display": "Drug"
+        },
+        "set": false,
+        "retired": false,
+        "names": [
+          {
+            "uuid": "107250BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "Combined oral contraceptive pills"
+          },
+          {
+            "uuid": "3768cd9b-5855-4f5b-89a4-cb09fa34a788",
+            "display": "Anticonceptivo oral combinado"
+          },
+          {
+            "uuid": "107249BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+            "display": "COCP"
+          }
+        ],
+        "descriptions": [
+          {
+            "uuid": "16383FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+            "display": "non-specific oral contraceptive pill containing both progestin and estradiol"
+          }
+        ],
+        "mappings": [
+          {
+            "uuid": "201c73c5-4828-44be-9d03-8dac7446df85",
+            "display": "SNOMED CT: 346388008"
+          },
+          {
+            "uuid": "a3d119fe-6622-4c49-b456-1514a474810a",
+            "display": "AMPATH: 6218"
+          },
+          {
+            "uuid": "ea813960-a8c7-47c5-a248-a9f66718177a",
+            "display": "CIEL: 159783"
+          },
+          {
+            "uuid": "3edf478e-86c9-4c3a-b395-4f736204c4b0",
+            "display": "MSF: 4249"
+          }
+        ],
+        "answers": [],
+        "setMembers": [],
+        "attributes": [],
+        "resourceVersion": "2.0"
+      },
+      "person": {
+        "uuid": "d37265f3-2173-4cdc-b176-95a8457a9d8e",
+        "display": "IQ146-26-000-011 - WF2 F11-F16 Forms"
+      }
+    }
+  ],
+  "form": {
+    "uuid": "862e18e3-2c44-3474-9cad-467c1a5389ff",
+    "display": "F11-Family Planning Assessment",
+    "description": "MSF Form - F11-Family Planning Assessment",
+    "name": "F11-Family Planning Assessment"
+  },
+  "encounterDatetime": "2026-01-27T11:40:07.000+0000"
+}
