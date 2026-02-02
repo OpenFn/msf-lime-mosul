@@ -2107,7 +2107,7 @@ function mapF63(encounter, metadataMap) {
 }
 
 const findDataValue = (encounter, dataElement, metadataMap) => {
-  const { optsMap, optionSetKey, form, missingOptsets } = metadataMap;
+  const { optsMap, optionSetKey, form, missingOptsets, sourceFile } = metadataMap;
   const [conceptUuid, questionId] =
     form.dataValueMap[dataElement]?.split("-rfe-") || [];
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -2119,26 +2119,6 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     return answer.value;
   }
 
-  if (
-    isObjectAnswer &&
-    conceptUuid === "722dd83a-c1cf-48ad-ac99-45ac131ccc96" &&
-    dataElement === "pN4iQH4AEzk"
-  ) {
-    console.log("Yes done by psychologist..");
-
-    return "" + answer.value.uuid === "278401ee-3d6f-4c65-9455-f1c16d0a7a98";
-  }
-
-  if (
-    isObjectAnswer &&
-    conceptUuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9" &&
-    dataElement === "G0hLyxqgcO7"
-  ) {
-    console.log("True only question detected..", dataElement);
-    return answer.value.uuid === "681cf0bc-5213-492a-8470-0a0b3cc324dd"
-      ? "true"
-      : undefined;
-  }
 
   if (isObjectAnswer) {
     const optionKey = questionId
@@ -2170,6 +2150,7 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
         metadataFormName: encounter.form.name || encounter.form.uuid,
         encounterUuid: encounter.uuid,
         patientUuid: encounter.patient.uuid,
+        sourceFile
       });
 
       console.log(
@@ -2182,6 +2163,28 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
 
     return matchingOption;
   }
+
+  if (
+    isObjectAnswer &&
+    conceptUuid === "722dd83a-c1cf-48ad-ac99-45ac131ccc96" &&
+    dataElement === "pN4iQH4AEzk"
+  ) {
+    console.log("Yes done by psychologist..");
+
+    return "" + answer.value.uuid === "278401ee-3d6f-4c65-9455-f1c16d0a7a98";
+  }
+
+  if (
+    isObjectAnswer &&
+    conceptUuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9" &&
+    dataElement === "G0hLyxqgcO7"
+  ) {
+    console.log("True only question detected..", dataElement);
+    return answer.value.uuid === "681cf0bc-5213-492a-8470-0a0b3cc324dd"
+      ? "true"
+      : undefined;
+  }
+
 
   const isEncounterDate =
     conceptUuid === "encounter-date" &&
@@ -2347,6 +2350,7 @@ fn((state) => {
             optionSetKey: state.optionSetKey,
             form,
             missingOptsets: state.missingOptsets,
+            sourceFile: state.sourceFile
           });
           if (value !== null && value !== undefined && value !== "") {
             return { dataElement, value };
