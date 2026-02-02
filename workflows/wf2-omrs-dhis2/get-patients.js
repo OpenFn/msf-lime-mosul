@@ -134,9 +134,10 @@ fn((state) => {
     patients,
     searchPatientUuids,
     encounterPatientUuids,
+    testMode,
   } = state;
 
-  if (state.testMode) {
+  if (testMode) {
     return {
       cursor,
       lastRunDateTime,
@@ -163,5 +164,5 @@ fn((state) => {
   console.log("R4/Encounter only", onlyInR4Encounter.length);
   console.log("searchPatient() + R4/Encounter Uuids", patientUuids.length);
 
-  return { cursor, lastRunDateTime, patients, patientUuids };
+  return { cursor, lastRunDateTime, patients, patientUuids, te };
 });

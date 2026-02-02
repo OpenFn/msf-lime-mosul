@@ -50,7 +50,7 @@ steps:
         name: has-events
       missing-optionsets:
         disabled: false
-        condition: "!state.errors && state.missingOptsets.length > 0 && state.testMode"
+        condition: "!state.errors && state.missingOptsets.length > 0"
         name: missing-opts
   - id: get-encounters
     name: Get Encounters
