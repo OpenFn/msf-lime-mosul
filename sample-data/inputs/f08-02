@@ -1,0 +1,1567 @@
+"latestEncountersByVisit": [
+    {
+      "obs": [
+        {
+          "uuid": "bd14bfdb-6563-495b-b94f-30bc5bd0d195",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Positive",
+              "uuid": "77bf2b10-56af-4b22-a53d-ff569ed047e2",
+              "locale": "en",
+              "display": "Positive",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "ad30cb86-fe71-4dc5-a5e3-cd6c3f6545c8",
+            "names": [
+              {
+                "uuid": "b708faf7-a540-49d7-8a92-95627c6c4fb5",
+                "display": "موجب"
+              },
+              {
+                "uuid": "77bf2b10-56af-4b22-a53d-ff569ed047e2",
+                "display": "Positive"
+              },
+              {
+                "uuid": "69451df9-7ed8-40ef-929f-13f3f8ff4748",
+                "display": "Positif"
+              }
+            ],
+            "answers": [],
+            "display": "Positive",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "2136",
+                "display": "SNOMED CT: 10828004"
+              },
+              {
+                "uuid": "2134",
+                "display": "CIEL: 703"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "423bfd03-6aec-4a72-ba88-c9f9671e9259",
+            "display": "TB second evaluation - result"
+          },
+          "display": "TB second evaluation - result: Positive",
+          "formFieldPath": "rfe-forms-secondResultScore"
+        },
+        {
+          "uuid": "a9e6fba3-f5f0-44ad-8616-650d6e779964",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Nongovernmental organization",
+              "uuid": "a06cabab-1129-4b5e-a9e8-5a7e386a9ad1",
+              "locale": "en",
+              "display": "Nongovernmental organization",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "80ea94ed-44ea-40fa-b697-98523b62df36",
+            "names": [
+              {
+                "uuid": "f636d22c-5307-4a1c-876a-3b8e487b6c44",
+                "display": "ONG"
+              },
+              {
+                "uuid": "c2e51289-072e-4d90-ba75-2572d7b83b99",
+                "display": "Organisation non gouvernementale"
+              },
+              {
+                "uuid": "b36fef04-258b-4874-ad08-f6317ccf29a6",
+                "display": "NGO"
+              },
+              {
+                "uuid": "a06cabab-1129-4b5e-a9e8-5a7e386a9ad1",
+                "display": "Nongovernmental organization"
+              },
+              {
+                "uuid": "7859758f-5ccc-4e5c-bcf0-86900eddc43f",
+                "display": "منظمة غير حكومية"
+              }
+            ],
+            "answers": [],
+            "display": "Nongovernmental organization",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "287",
+                "display": "CIEL: 167685"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "93eb9716-6866-4d13-9b8f-59c0a7605a11",
+            "display": "Referral"
+          },
+          "display": "Referral: Nongovernmental organization",
+          "formFieldPath": "rfe-forms-ifReferredByWhomOrFromWhere"
+        },
+        {
+          "uuid": "63eebad8-1c37-4627-8c2d-40fea4246eb1",
+          "value": "2026-02-03",
+          "concept": {
+            "uuid": "a1a51d96-87e7-4938-8d64-00701e63896a",
+            "display": "TB first evaluation - date"
+          },
+          "display": "TB first evaluation - date: 2026-02-03",
+          "formFieldPath": "rfe-forms-firstResultDate"
+        },
+        {
+          "uuid": "1028b89f-9b9c-460c-a23b-591302011103",
+          "value": 2,
+          "concept": {
+            "uuid": "42503e1b-16f2-471e-a122-c914655f6cca",
+            "display": "Rank in the birth order"
+          },
+          "display": "Rank in the birth order: 2",
+          "formFieldPath": "rfe-forms-rankInTheBirthOrder"
+        },
+        {
+          "uuid": "1659ebbd-bf70-44df-b3b0-7188896e4337",
+          "value": "Jonathan",
+          "concept": {
+            "uuid": "3d039785-f0f6-4a52-bd96-e8362ec6c55f",
+            "display": "Mother's name"
+          },
+          "display": "Mother's name: Jonathan",
+          "formFieldPath": "rfe-forms-caretakersName"
+        },
+        {
+          "uuid": "e019c840-5cea-4a83-9216-9f2cddfaa05a",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Positive",
+              "uuid": "77bf2b10-56af-4b22-a53d-ff569ed047e2",
+              "locale": "en",
+              "display": "Positive",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "ad30cb86-fe71-4dc5-a5e3-cd6c3f6545c8",
+            "names": [
+              {
+                "uuid": "b708faf7-a540-49d7-8a92-95627c6c4fb5",
+                "display": "موجب"
+              },
+              {
+                "uuid": "77bf2b10-56af-4b22-a53d-ff569ed047e2",
+                "display": "Positive"
+              },
+              {
+                "uuid": "69451df9-7ed8-40ef-929f-13f3f8ff4748",
+                "display": "Positif"
+              }
+            ],
+            "answers": [],
+            "display": "Positive",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "2136",
+                "display": "SNOMED CT: 10828004"
+              },
+              {
+                "uuid": "2134",
+                "display": "CIEL: 703"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "bc0a8a73-7fd1-4548-aff0-8f0b7e9fa268",
+            "display": "TB first evaluation - result"
+          },
+          "display": "TB first evaluation - result: Positive",
+          "formFieldPath": "rfe-forms-firstResultScore"
+        },
+        {
+          "uuid": "663b03e4-1722-495b-b342-acbdd13e5955",
+          "value": "Some example problems",
+          "concept": {
+            "uuid": "10cbe6dd-2d3d-40d2-99ea-2e9ea7d0dd7a",
+            "display": "What are the problems reported by the caretaker?"
+          },
+          "display": "What are the problems reported by the caretaker?: Some example problems",
+          "formFieldPath": "rfe-forms-whatAreTheProblemsReportedByTheCaretaker"
+        },
+        {
+          "uuid": "4be75a12-0534-496b-a643-99d9cefffa24",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Yes",
+              "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+              "locale": "en",
+              "display": "Yes",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+            "names": [
+              {
+                "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+                "display": "Oui"
+              },
+              {
+                "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+                "display": "Sí"
+              },
+              {
+                "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+                "display": "Yes"
+              },
+              {
+                "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+                "display": "نعم"
+              }
+            ],
+            "answers": [],
+            "display": "Yes",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+                "display": "CIEL: 1065"
+              },
+              {
+                "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+                "display": "AMPATH: 1065"
+              },
+              {
+                "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+                "display": "SNOMED CT: 373066001"
+              },
+              {
+                "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+                "display": "MSF: 931"
+              },
+              {
+                "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+                "display": "PIH: 1065"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "3195e008-7a3f-4888-a2fb-18b569eaa5bc",
+            "display": "TB evaluation"
+          },
+          "display": "TB evaluation: Yes",
+          "formFieldPath": "rfe-forms-tbEvaluation"
+        },
+        {
+          "uuid": "4dcbbe10-64b0-4423-9ed7-b508b33e3cfb",
+          "value": 3,
+          "concept": {
+            "uuid": "bfaee905-6a8f-4b4d-b66b-fe020d1ca3d8",
+            "display": "Number of children alive"
+          },
+          "display": "Number of children alive: 3",
+          "formFieldPath": "rfe-forms-numberOfMothersChildrenAlive"
+        },
+        {
+          "uuid": "c8646b68-9a6c-4586-b334-bd28360df2b9",
+          "value": 5,
+          "concept": {
+            "uuid": "61f620e5-704f-4674-954e-20b7175240dd",
+            "display": "Duration of illness"
+          },
+          "display": "Duration of illness: 5",
+          "formFieldPath": "rfe-forms-howLongHasTheChildBeenSick"
+        },
+        {
+          "uuid": "b754d92d-4432-49a0-a6ae-a2aa0da433f2",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Yes",
+              "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+              "locale": "en",
+              "display": "Yes",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+            "names": [
+              {
+                "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+                "display": "Oui"
+              },
+              {
+                "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+                "display": "Sí"
+              },
+              {
+                "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+                "display": "Yes"
+              },
+              {
+                "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+                "display": "نعم"
+              }
+            ],
+            "answers": [],
+            "display": "Yes",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+                "display": "CIEL: 1065"
+              },
+              {
+                "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+                "display": "AMPATH: 1065"
+              },
+              {
+                "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+                "display": "SNOMED CT: 373066001"
+              },
+              {
+                "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+                "display": "MSF: 931"
+              },
+              {
+                "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+                "display": "PIH: 1065"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "72a7acea-8d6a-4c5b-8383-9e2150ea93ac",
+            "display": "Mother alive"
+          },
+          "display": "Mother alive: Yes",
+          "formFieldPath": "rfe-forms-isTheMotherAlive"
+        },
+        {
+          "uuid": "bff370d4-2705-433a-a7ea-801c551ca929",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "[-3 ; -2 Zs[",
+              "uuid": "d9e8d093-3e28-41f3-ab6a-d6641e3fe657",
+              "locale": "en",
+              "display": "[-3 ; -2 Zs[",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "6a48b558-b61d-4be7-9c13-c9279f396bbc",
+            "names": [
+              {
+                "uuid": "d9e8d093-3e28-41f3-ab6a-d6641e3fe657",
+                "display": "[-3 ; -2 Zs["
+              }
+            ],
+            "answers": [],
+            "display": "[-3 ; -2 Zs[",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4ab4-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Text"
+            },
+            "mappings": [],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "2651145f-c10c-4c04-9735-791537a1fa2c",
+            "display": "Weight / height"
+          },
+          "display": "Weight / height: [-3 ; -2 Zs[",
+          "formFieldPath": "rfe-forms-whz"
+        },
+        {
+          "uuid": "bd069d98-0367-4cef-bb31-cbadeb3853e8",
+          "value": "2026-02-03",
+          "concept": {
+            "uuid": "a3805bea-3355-434b-af0d-56a7181d12eb",
+            "display": "TB second evaluation - date"
+          },
+          "display": "TB second evaluation - date: 2026-02-03",
+          "formFieldPath": "rfe-forms-secondResultDate"
+        },
+        {
+          "uuid": "ac224cb4-1092-4fbb-a77a-91139c751f5e",
+          "value": 2,
+          "concept": {
+            "uuid": "04905c5a-1c7e-4113-a296-70517c6ec27e",
+            "display": "Number of meals per day"
+          },
+          "display": "Number of meals per day: 2",
+          "formFieldPath": "rfe-forms-numberOfMealsPerDayBeforeIllness"
+        },
+        {
+          "uuid": "e50ac7dc-509e-4ac2-8b44-b43804071c1f",
+          "value": 3,
+          "concept": {
+            "uuid": "76a96d44-00f5-469f-9329-5a53409a87eb",
+            "display": "Parity"
+          },
+          "display": "Parity: 3",
+          "formFieldPath": "rfe-forms-numberOfBirthsForTheMother"
+        },
+        {
+          "uuid": "12d12510-22df-4ab4-8136-556bbee4794e",
+          "value": "2",
+          "concept": {
+            "uuid": "0c2209ad-068a-4965-b28b-b42f180ae075",
+            "display": "At what age did you introduce solid food?"
+          },
+          "display": "At what age did you introduce solid food?: 2",
+          "formFieldPath": "rfe-forms-atWhatAgeDidYouIntroduceSolidFood"
+        },
+        {
+          "uuid": "f584fcd0-d8bc-4c32-a319-f43bc7dd089d",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Measles (uncomplicated)",
+              "uuid": "51771BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+              "locale": "en",
+              "display": "Measles (uncomplicated)",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "07b53338-1a68-4826-bc7a-3fb5db76a4b2",
+            "names": [
+              {
+                "uuid": "51771BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Measles (uncomplicated)"
+              },
+              {
+                "uuid": "54648BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "sarampión sin complicación"
+              },
+              {
+                "uuid": "131790BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Корь без осложнений"
+              },
+              {
+                "uuid": "126343BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Rougeole sans complications"
+              }
+            ],
+            "answers": [],
+            "display": "Measles (uncomplicated)",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "d8b38378-bb1d-4e59-9203-1304f728a08b",
+                "display": "IMO ProblemIT: 599358"
+              },
+              {
+                "uuid": "755bc141-343b-44ed-a7e6-c2ed7365d8e5",
+                "display": "MSF: 4398"
+              },
+              {
+                "uuid": "b6b75ea2-02f2-4706-8d4f-cae891cb1393",
+                "display": "ICD-11-WHO: 1F03.0"
+              },
+              {
+                "uuid": "98351072-5a70-4edf-a720-07aa9cd1d3f7",
+                "display": "SNOMED CT: 14189004"
+              },
+              {
+                "uuid": "17f61418-a49b-4b23-b012-62070cd2831c",
+                "display": "MSF: 233"
+              },
+              {
+                "uuid": "23673e29-32e8-49bd-924c-01df900859a4",
+                "display": "CIEL: 152209"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Diagnosis"
+            },
+            "descriptions": [],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "e9ff5084-8d17-48e8-a1b7-890d1b4e14b1",
+            "display": "Diagnosis - Secondary 2"
+          },
+          "display": "Diagnosis - Secondary 2: Measles (uncomplicated)",
+          "formFieldPath": "rfe-forms-diagnosisAtAdmissionSecondary2"
+        },
+        {
+          "uuid": "0b46719b-8084-4d7d-abe4-0bdb251fca5c",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Yes",
+              "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+              "locale": "en",
+              "display": "Yes",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+            "names": [
+              {
+                "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+                "display": "Oui"
+              },
+              {
+                "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+                "display": "Sí"
+              },
+              {
+                "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+                "display": "Yes"
+              },
+              {
+                "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+                "display": "نعم"
+              }
+            ],
+            "answers": [],
+            "display": "Yes",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+                "display": "CIEL: 1065"
+              },
+              {
+                "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+                "display": "AMPATH: 1065"
+              },
+              {
+                "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+                "display": "SNOMED CT: 373066001"
+              },
+              {
+                "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+                "display": "MSF: 931"
+              },
+              {
+                "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+                "display": "PIH: 1065"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "2bf8abde-27ee-42ba-8381-5f33fe417081",
+            "display": "Currently breast-feeding"
+          },
+          "display": "Currently breast-feeding: Yes",
+          "formFieldPath": "rfe-forms-isTheChildCurrentlyBeingBreastfed"
+        },
+        {
+          "uuid": "6955c4dc-558f-4c91-8dba-6a379da21ffa",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Yes",
+              "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+              "locale": "en",
+              "display": "Yes",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+            "names": [
+              {
+                "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+                "display": "Oui"
+              },
+              {
+                "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+                "display": "Sí"
+              },
+              {
+                "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+                "display": "Yes"
+              },
+              {
+                "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+                "display": "نعم"
+              }
+            ],
+            "answers": [],
+            "display": "Yes",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+                "display": "CIEL: 1065"
+              },
+              {
+                "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+                "display": "AMPATH: 1065"
+              },
+              {
+                "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+                "display": "SNOMED CT: 373066001"
+              },
+              {
+                "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+                "display": "MSF: 931"
+              },
+              {
+                "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+                "display": "PIH: 1065"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "acac8976-3e7f-48eb-9700-e7d41b9e4342",
+            "display": "Is there someone in the family coughing for more than one month?"
+          },
+          "display": "Is there someone in the family coughing for more than one month?: Yes",
+          "formFieldPath": "rfe-forms-isThereSomeoneInTheFamilyCoughingForMoreThanOneMonth"
+        },
+        {
+          "uuid": "de238090-7afa-410f-8936-d549a5707473",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "New admission",
+              "uuid": "e8513f43-0db9-431f-a648-f0a2ca15bc2a",
+              "locale": "en",
+              "display": "New admission",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "9f2fe30f-a8f0-49ba-82e4-71c232259130",
+            "names": [
+              {
+                "uuid": "e8513f43-0db9-431f-a648-f0a2ca15bc2a",
+                "display": "New admission"
+              },
+              {
+                "uuid": "a8c9fc73-3cdf-4735-9369-aba4f0e60344",
+                "display": "ادخال جديد"
+              }
+            ],
+            "answers": [],
+            "display": "New admission",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a48b6-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Coded"
+            },
+            "mappings": [],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d491a9a-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Finding"
+            },
+            "descriptions": [
+              {
+                "uuid": "41c4d4aa-8bbc-4cb3-8e30-03e8073e9560",
+                "display": "The process of admitting a patient to facility"
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "4dae5b12-070f-4153-b1ca-fbec906106e1",
+            "display": "Admission category"
+          },
+          "display": "Admission category: New admission",
+          "formFieldPath": "rfe-forms-admissionType"
+        },
+        {
+          "uuid": "714402ce-899e-4a46-9a1b-680c8e375e4e",
+          "value": "Some example observations",
+          "concept": {
+            "uuid": "ef3a4c4f-cdb4-46d1-9e85-bc8a4790a219",
+            "display": "Observations"
+          },
+          "display": "Observations: Some example observations",
+          "formFieldPath": "rfe-forms-observations"
+        },
+        {
+          "uuid": "46bbbbb7-3a9c-4aff-9c7f-4e2418d934cd",
+          "value": "Someone",
+          "concept": {
+            "uuid": "00e8f84b-0934-45b8-9a91-71c5ab2d1a74",
+            "display": "Someone treated for TB since the birth of the child - Specify who"
+          },
+          "display": "Someone treated for TB since the birth of the child - Specify who: Someone",
+          "formFieldPath": "rfe-forms-isThereSomeoneTreatedForTbSinceTheBirthOfTheChild_specifyWho"
+        },
+        {
+          "uuid": "4c2f0e73-86f4-4946-a9cc-362bc985164b",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "No",
+              "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+              "locale": "en",
+              "display": "No",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "a5c5563e-df0e-4742-a335-b24fb63664ee",
+            "names": [
+              {
+                "uuid": "5f0c7812-04f3-4fc9-a587-e8741c3d8b6b",
+                "display": "لا"
+              },
+              {
+                "uuid": "6709bd29-0c93-36ab-b7f1-756150504255",
+                "display": "Non"
+              },
+              {
+                "uuid": "0f8565ec-eede-3a20-b8ca-d1fcacc9fa03",
+                "display": "No"
+              },
+              {
+                "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+                "display": "No"
+              }
+            ],
+            "answers": [],
+            "display": "No",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "c716ad06-e41c-4a91-b1d5-493dd12af992",
+                "display": "CIEL: 1066"
+              },
+              {
+                "uuid": "2944837c-a8a5-48dd-a88d-fc38b0834982",
+                "display": "PIH: 1066"
+              },
+              {
+                "uuid": "a030990f-8529-4459-9dc7-4a53d0ba8c98",
+                "display": "AMPATH: 1066"
+              },
+              {
+                "uuid": "6e8d7aad-7e65-4c44-9eab-c883e5a5c13a",
+                "display": "SNOMED CT: 373067005"
+              },
+              {
+                "uuid": "0818b63f-3214-45eb-83f4-92ce2dd58efa",
+                "display": "MSF: 930"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "13b8ccad-9586-42e8-8ab2-fb03f6463fde",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "552ad8cb-35de-4d61-ab8c-5c7b698a573a",
+            "display": "Source of initial patient referral"
+          },
+          "display": "Source of initial patient referral: No",
+          "formFieldPath": "rfe-forms-spontaneousAdmission"
+        },
+        {
+          "uuid": "f7bcc12c-8b41-4c21-b105-f8605566630e",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Acute asthma",
+              "uuid": "49507BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+              "locale": "en",
+              "display": "Acute asthma",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "e1b51c42-041f-4a3f-9a31-0337642f42b6",
+            "names": [
+              {
+                "uuid": "49507BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Acute asthma"
+              },
+              {
+                "uuid": "122568BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "acute astmatiforme brochitis"
+              },
+              {
+                "uuid": "56557BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "asma aguda"
+              },
+              {
+                "uuid": "127932BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Viêm Suyễn"
+              }
+            ],
+            "answers": [],
+            "display": "Acute asthma",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "69ad7edc-df4f-4670-ad5e-e10d50a68bc5",
+                "display": "ICPC2: R96"
+              },
+              {
+                "uuid": "9e05b538-48ce-4458-97a7-ff6516f0aa41",
+                "display": "MSF: 4333"
+              },
+              {
+                "uuid": "538ebf6b-bd19-4b92-a39d-0e9641e928b7",
+                "display": "SNOMED CT: 304527002"
+              },
+              {
+                "uuid": "69fc28db-5e84-405a-8cf0-d83beabb853b",
+                "display": "3BT: 20000051"
+              },
+              {
+                "uuid": "09e98621-9048-473b-9fba-42e00ad14c87",
+                "display": "IMO ProblemIT: 360562"
+              },
+              {
+                "uuid": "1b7494bd-f9b6-4cac-a038-ccaaa9ce9851",
+                "display": "CIEL: 149899"
+              },
+              {
+                "uuid": "f542302f-1aa3-402a-afdd-86e4641f12cd",
+                "display": "MSF: 107"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Diagnosis"
+            },
+            "descriptions": [
+              {
+                "uuid": "15508FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+                "display": "A form of bronchial disorder associated with airway obstruction, marked by recurrent attacks of paroxysmal dyspnea, with wheezing due to spasmodic contraction of the bronchi."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "9da302ed-948f-4030-8f0a-a294dd3dff21",
+            "display": "Diagnosis - Main"
+          },
+          "display": "Diagnosis - Main: Acute asthma",
+          "formFieldPath": "rfe-forms-mainDiagnosisAtAdmission"
+        },
+        {
+          "uuid": "f7d88e17-84aa-4866-8c0d-1058b4460253",
+          "value": 2,
+          "concept": {
+            "uuid": "8a4c815e-8774-4386-b22f-74c11a10aa19",
+            "display": "Nb of persons sharing the family meal"
+          },
+          "display": "Nb of persons sharing the family meal: 2",
+          "formFieldPath": "rfe-forms-nbOfPersonsSharingTheFamilyMeal"
+        },
+        {
+          "uuid": "1b95b183-7fa8-4ebf-bd5a-a925fda31b9d",
+          "value": "2026-02-03T12:10:00.000+0000",
+          "concept": {
+            "uuid": "7f00c65d-de60-467a-8964-fe80c7a85ef0",
+            "display": "Admission date and time"
+          },
+          "display": "Admission date and time: February 3, 2026 12:10:00 PM UTC",
+          "formFieldPath": "rfe-forms-admissionDateAndTime"
+        },
+        {
+          "uuid": "6c8caabd-450b-43d8-b327-91a75cfcc854",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Positive",
+              "uuid": "77bf2b10-56af-4b22-a53d-ff569ed047e2",
+              "locale": "en",
+              "display": "Positive",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "ad30cb86-fe71-4dc5-a5e3-cd6c3f6545c8",
+            "names": [
+              {
+                "uuid": "b708faf7-a540-49d7-8a92-95627c6c4fb5",
+                "display": "موجب"
+              },
+              {
+                "uuid": "77bf2b10-56af-4b22-a53d-ff569ed047e2",
+                "display": "Positive"
+              },
+              {
+                "uuid": "69451df9-7ed8-40ef-929f-13f3f8ff4748",
+                "display": "Positif"
+              }
+            ],
+            "answers": [],
+            "display": "Positive",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "2136",
+                "display": "SNOMED CT: 10828004"
+              },
+              {
+                "uuid": "2134",
+                "display": "CIEL: 703"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "1fc54f92-c324-49c4-aba1-21ade7663ba0",
+            "display": "Malaria test at admission"
+          },
+          "display": "Malaria test at admission: Positive",
+          "formFieldPath": "rfe-forms-malariaTestResult"
+        },
+        {
+          "uuid": "801d21e0-a1e9-4ade-9989-e0bd0dabcb98",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Yes",
+              "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+              "locale": "en",
+              "display": "Yes",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+            "names": [
+              {
+                "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+                "display": "Oui"
+              },
+              {
+                "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+                "display": "Sí"
+              },
+              {
+                "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+                "display": "Yes"
+              },
+              {
+                "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+                "display": "نعم"
+              }
+            ],
+            "answers": [],
+            "display": "Yes",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+                "display": "CIEL: 1065"
+              },
+              {
+                "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+                "display": "AMPATH: 1065"
+              },
+              {
+                "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+                "display": "SNOMED CT: 373066001"
+              },
+              {
+                "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+                "display": "MSF: 931"
+              },
+              {
+                "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+                "display": "PIH: 1065"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "53fe57e7-07cc-40e8-b144-c4d69dd878cd",
+            "display": "Has the child ever been breastfed?"
+          },
+          "display": "Has the child ever been breastfed?: Yes",
+          "formFieldPath": "rfe-forms-hasTheChildEverBeenBreastfed"
+        },
+        {
+          "uuid": "a69f3af0-fae2-4d3b-8255-35973834a8db",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Father",
+              "uuid": "1019BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+              "locale": "en",
+              "display": "Father",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "7f167620-209c-4235-a1df-c7dee70a80f7",
+            "names": [
+              {
+                "uuid": "134565BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Papa"
+              },
+              {
+                "uuid": "134564BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Père"
+              },
+              {
+                "uuid": "108226BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Padre"
+              },
+              {
+                "uuid": "1019BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Father"
+              }
+            ],
+            "answers": [],
+            "display": "Father",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "e5476a96-236d-4d88-8c93-9b0384b3dc4a",
+                "display": "PIH: 2174"
+              },
+              {
+                "uuid": "a267418f-e2b3-4593-837a-32b8369f05a7",
+                "display": "MSF: 3477"
+              },
+              {
+                "uuid": "25fc70f0-3271-48ac-8c76-bf9dad7ae70f",
+                "display": "AMPATH: 971"
+              },
+              {
+                "uuid": "f5ec8999-e70d-450c-a855-d02167847ffe",
+                "display": "CIEL: 971"
+              },
+              {
+                "uuid": "b3218240-6ca1-4a73-80ce-08071142b477",
+                "display": "SNOMED CT: 66839005"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "974FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+                "display": "Family member."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "a7160850-5bf6-4d39-a1ff-2a769f716e17",
+            "display": "Who is the head of family?"
+          },
+          "display": "Who is the head of family?: Father",
+          "formFieldPath": "rfe-forms-whoIsTheHeadOfFamily"
+        },
+        {
+          "uuid": "a98142f2-2e16-423a-9d02-f8f9ad5fec43",
+          "value": "10",
+          "concept": {
+            "uuid": "93c926ef-b9ee-437f-996e-1a5ccfb235db",
+            "display": "Target weight / MUAC"
+          },
+          "display": "Target weight / MUAC: 10",
+          "formFieldPath": "rfe-forms-targetWeightOrMuac"
+        },
+        {
+          "uuid": "484a7215-b46a-41f1-b43e-662b8e95051a",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Yes",
+              "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+              "locale": "en",
+              "display": "Yes",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+            "names": [
+              {
+                "uuid": "f38f019d-825d-3997-99a6-ee2a1d904a03",
+                "display": "Oui"
+              },
+              {
+                "uuid": "e73bfa05-0d03-325e-9964-e69043791701",
+                "display": "Sí"
+              },
+              {
+                "uuid": "07bae6a9-fd8b-318f-b5b8-dabe03b1bd2c",
+                "display": "Yes"
+              },
+              {
+                "uuid": "fdd80e4b-592a-4e2f-9735-2c3b24d04e43",
+                "display": "نعم"
+              }
+            ],
+            "answers": [],
+            "display": "Yes",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "3a66f9dd-9f94-488b-9b2b-26b543f762d1",
+                "display": "CIEL: 1065"
+              },
+              {
+                "uuid": "ca0fa6c8-1ec6-4c17-804a-16bc8a0f401e",
+                "display": "AMPATH: 1065"
+              },
+              {
+                "uuid": "d2bd89c3-5461-436d-9554-573f63c74bd7",
+                "display": "SNOMED CT: 373066001"
+              },
+              {
+                "uuid": "e7323d41-557b-4caf-9bee-f2de99aa46c1",
+                "display": "MSF: 931"
+              },
+              {
+                "uuid": "f516767a-5826-4f40-ba2d-764aae05b81a",
+                "display": "PIH: 1065"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "a7a33b8f-4480-43de-a7f6-df1da65592f9",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "465ac93f-2c89-45a9-a83a-140fd1c4ad5c",
+            "display": "Is there someone treated for TB since the birth of the child?"
+          },
+          "display": "Is there someone treated for TB since the birth of the child?: Yes",
+          "formFieldPath": "rfe-forms-isThereSomeoneTreatedForTbSinceTheBirthOfTheChild"
+        },
+        {
+          "uuid": "7b7c1648-21da-4f96-9d52-be9ddd4779c9",
+          "value": "Sibling",
+          "concept": {
+            "uuid": "903fb769-4ea4-4f54-b1b4-aa80bf473b91",
+            "display": "Someone in the family coughing for more than one month - Specify who"
+          },
+          "display": "Someone in the family coughing for more than one month - Specify who: Sibling",
+          "formFieldPath": "rfe-forms-isThereSomeoneInTheFamilyCoughingForMoreThanOneMonth_specifyWho"
+        },
+        {
+          "uuid": "12376efb-291a-44f5-88a4-3ff2a8687381",
+          "value": "vegetables",
+          "concept": {
+            "uuid": "2cdeae3a-911a-4427-85f5-8ed9b9e265ed",
+            "display": "Type of meals before illness"
+          },
+          "display": "Type of meals before illness: vegetables",
+          "formFieldPath": "rfe-forms-typeOfMealsBeforeIllness"
+        },
+        {
+          "uuid": "7d11986e-32ab-4b1c-a964-b715a73ba1a2",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "Hyperglycemia",
+              "uuid": "3d22393f-ed9e-4850-8c67-c219480f50bc",
+              "locale": "en",
+              "display": "Hyperglycemia",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "f4b8e92b-94eb-40ed-a4cc-f072cb62b764",
+            "names": [
+              {
+                "uuid": "3d22393f-ed9e-4850-8c67-c219480f50bc",
+                "display": "Hyperglycemia"
+              },
+              {
+                "uuid": "117744BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Hyperglykemie"
+              },
+              {
+                "uuid": "66945BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "hiperglucemia"
+              },
+              {
+                "uuid": "108055BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Elevated blood glucose"
+              },
+              {
+                "uuid": "137112BBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+                "display": "Hyperglycémie"
+              }
+            ],
+            "answers": [],
+            "display": "Hyperglycemia",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "49735051-9b42-4391-bea4-b7bd755778cb",
+                "display": "SNOMED CT: 80394007"
+              },
+              {
+                "uuid": "297f6264-daab-48e4-921b-f6707b6d67d0",
+                "display": "3BT: 10043296"
+              },
+              {
+                "uuid": "4e7a8929-7190-44ec-bb1a-22b189734a15",
+                "display": "IMO ProblemIT: 46709"
+              },
+              {
+                "uuid": "88846f3c-8bb3-4cc1-b2fc-e976b6adc239",
+                "display": "ICD-10-WHO: R73.9"
+              },
+              {
+                "uuid": "228a438f-de98-4f47-862f-8bba51c8f84f",
+                "display": "CIEL: 138291"
+              },
+              {
+                "uuid": "c29b319b-07bf-40e0-af0c-055076ded938",
+                "display": "ICPC2: A91"
+              },
+              {
+                "uuid": "8981d9d5-5568-4c64-bbff-211e022005c7",
+                "display": "PIH: 7138"
+              },
+              {
+                "uuid": "55ddcf35-66bd-4945-af7f-1ed386f2f837",
+                "display": "ICD-11-WHO: MA18.0"
+              },
+              {
+                "uuid": "251d38d5-536e-4b88-a03e-d67eb247ed62",
+                "display": "MSF: 4389"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d4918b0-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Diagnosis"
+            },
+            "descriptions": [
+              {
+                "uuid": "11759FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF",
+                "display": "Abnormally increased content of sugar in the blood. (Dorland, 27th ed)"
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "3a03bdb4-4b3f-45c3-966a-97843ec88680",
+            "display": "Diagnosis - Secondary 1"
+          },
+          "display": "Diagnosis - Secondary 1: Hyperglycemia",
+          "formFieldPath": "rfe-forms-diagnosisAtAdmissionSecondary1"
+        },
+        {
+          "uuid": "c4fbc902-654a-4d18-b394-51d3616bc9c2",
+          "value": 1,
+          "concept": {
+            "uuid": "3fdddaa7-1583-4bc2-b81c-de592b4c0e31",
+            "display": "Number of meals during the last 24 hours"
+          },
+          "display": "Number of meals during the last 24 hours: 1.0",
+          "formFieldPath": "rfe-forms-numberOfMealsDuringTheLast24Hours"
+        },
+        {
+          "uuid": "baa84a04-a7fe-427c-9f81-53f598c5a303",
+          "value": "Father",
+          "concept": {
+            "uuid": "84bf2d2a-854b-4f3a-b702-3b7b5e65c815",
+            "display": "Guardian"
+          },
+          "display": "Guardian: Father",
+          "formFieldPath": "rfe-forms-whoIsTakingCareOfTheChild"
+        },
+        {
+          "uuid": "67311597-dfdf-4cc7-86f3-0bdfd5e34828",
+          "value": {
+            "set": false,
+            "name": {
+              "name": "No",
+              "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+              "locale": "en",
+              "display": "No",
+              "conceptNameType": "FULLY_SPECIFIED",
+              "localePreferred": true,
+              "resourceVersion": "1.9"
+            },
+            "uuid": "a5c5563e-df0e-4742-a335-b24fb63664ee",
+            "names": [
+              {
+                "uuid": "5f0c7812-04f3-4fc9-a587-e8741c3d8b6b",
+                "display": "لا"
+              },
+              {
+                "uuid": "6709bd29-0c93-36ab-b7f1-756150504255",
+                "display": "Non"
+              },
+              {
+                "uuid": "0f8565ec-eede-3a20-b8ca-d1fcacc9fa03",
+                "display": "No"
+              },
+              {
+                "uuid": "c21fd127-1638-300c-8fe6-ee45d0febfd4",
+                "display": "No"
+              }
+            ],
+            "answers": [],
+            "display": "No",
+            "retired": false,
+            "datatype": {
+              "uuid": "8d4a4c94-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "N/A"
+            },
+            "mappings": [
+              {
+                "uuid": "c716ad06-e41c-4a91-b1d5-493dd12af992",
+                "display": "CIEL: 1066"
+              },
+              {
+                "uuid": "2944837c-a8a5-48dd-a88d-fc38b0834982",
+                "display": "PIH: 1066"
+              },
+              {
+                "uuid": "a030990f-8529-4459-9dc7-4a53d0ba8c98",
+                "display": "AMPATH: 1066"
+              },
+              {
+                "uuid": "6e8d7aad-7e65-4c44-9eab-c883e5a5c13a",
+                "display": "SNOMED CT: 373067005"
+              },
+              {
+                "uuid": "0818b63f-3214-45eb-83f4-92ce2dd58efa",
+                "display": "MSF: 930"
+              }
+            ],
+            "attributes": [],
+            "setMembers": [],
+            "conceptClass": {
+              "uuid": "8d492774-c2cc-11de-8d13-0010c6dffd0f",
+              "display": "Misc"
+            },
+            "descriptions": [
+              {
+                "uuid": "13b8ccad-9586-42e8-8ab2-fb03f6463fde",
+                "display": "Generic answer to a question."
+              }
+            ],
+            "resourceVersion": "2.0"
+          },
+          "concept": {
+            "uuid": "80469ebc-e769-4edd-a9b6-ecb5c517e2db",
+            "display": "Oedema classification"
+          },
+          "display": "Oedema classification: No",
+          "formFieldPath": "rfe-forms-oedema"
+        }
+      ],
+      "form": {
+        "name": "F08-ITFC Admission",
+        "uuid": "f87cdfde-7132-3006-89f7-ed291f84bcf0",
+        "display": "F08-ITFC Admission",
+        "description": "MSF Form - F08-ITFC Admission form"
+      },
+      "uuid": "53b69b39-1b1e-4014-8686-0544545c1ad4",
+      "visit": {
+        "uuid": "a36cf036-b718-4655-a04b-03c7a0673775"
+      },
+      "patient": {
+        "uuid": "ba544deb-4683-4e21-96d2-7ab15a0ebd68",
+        "display": "IQ146-26-000-029 - Jonathan Jansen"
+      },
+      "encounterDatetime": "2026-02-03T08:22:21.000+0000"
+    }
+  ]
