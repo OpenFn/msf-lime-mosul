@@ -4,18 +4,18 @@ const findTeiByPatientUuid = (
   patientUuid,
   teis,
   program = null,
-  orgUnit = null,
+  orgUnit = null
 ) => {
   return teis.find((tei) => {
     const omrsPatientUuid = tei.attributes.find(
-      ({ attribute }) => attribute === "AYbfTPYMNJH",
+      ({ attribute }) => attribute === "AYbfTPYMNJH"
     )?.value;
 
     if (omrsPatientUuid !== patientUuid) return false;
 
     if (program && orgUnit) {
       return tei.programOwners?.some(
-        (po) => po.program === program && tei.orgUnit === orgUnit,
+        (po) => po.program === program && tei.orgUnit === orgUnit
       );
     }
 
@@ -123,7 +123,7 @@ each(
           patientUuid,
           state.data.instances,
           program,
-          orgUnit,
+          orgUnit
         );
 
         const patientOuProgram = `${orgUnit}-${program}-${patientUuid}`;
@@ -140,7 +140,7 @@ each(
           console.log("Child TEI not found for patient:", patientUuid);
           const parentTei =
             state?.parentTeis[
-            `${state.orgUnit}-${state.program}-${patientUuid}`
+              `${state.orgUnit}-${state.program}-${patientUuid}`
             ];
           state.childTeisToCreate[patientOuProgram] = {
             relationshipType,
@@ -159,7 +159,6 @@ each(
               },
             ],
 
-
             attributes: parentTei?.attributes || [],
             orgUnit,
             program,
@@ -172,12 +171,12 @@ each(
     .then(async (state) => {
       await delay(2000);
       return state;
-    }),
+    })
 );
 
 fn((state) => {
-  const { data, references, currChildTeis, ...next } = state;
-  const parentTeis = next.parentTeis
+  const { data, references, response, currChildTeis, ...next } = state;
+  const parentTeis = next.parentTeis;
   next.existingTeis = { ...currChildTeis, ...parentTeis };
   return next;
 });

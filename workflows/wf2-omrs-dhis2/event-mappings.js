@@ -2165,6 +2165,12 @@ const dataValueByConcept = (encounter, de, state) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
+    if (!opt) {
+      console.log(
+        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
+
     // Removed fallback logic to DHIS2 Option name and answer.value.display
     // Now only using DHIS2 Option Code to ensure proper validation
     const matchingOption = opt?.["DHIS2 Option Code"];
@@ -2184,10 +2190,6 @@ const dataValueByConcept = (encounter, de, state) => {
         patientUuid: encounter.patient.uuid,
         sourceFile: state.sourceFile,
       });
-
-      console.log(
-        `⚠️  Missing DHIS2 Option Code - Question: "${answer.concept.display}", Answer: "${answer.value.display}", OptionSet: ${matchingOptionSet}`
-      );
     }
 
     if (["FALSE", "No"].includes(matchingOption)) return "false";
@@ -2245,10 +2247,6 @@ const findDataValue = (encounter, dataElement, state) => {
         patientUuid: encounter.patient.uuid,
         sourceFile: state.sourceFile,
       });
-
-      console.log(
-        `⚠️  Missing DHIS2 Option Code - Question: "${answer.concept.display}", Answer: "${answer.value.display}", OptionSet: ${matchingOptionSet}`
-      );
     }
 
     if (["FALSE", "No"].includes(matchingOption)) return "false";
@@ -2543,3 +2541,23 @@ fn((state) => {
   state.eventsMapping = mergeEvents(state.eventsMapping);
   return state;
 });
+
+fnIf(
+  (state) => state.missingOptsets.length > 0 && state.testMode,
+  (state) => {
+    console.log("⚠️  Missing DHIS2 Option Code");
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    state.missingOptsets.forEach((opt) => {
+      console.log({
+        openMrsQuestion: opt.openMrsQuestion,
+        answerDisplay: opt.answerDisplay,
+        answerValueUuid: opt.answerValueUuid,
+        dhis2DataElementUid: opt.dhis2DataElementUid,
+        dhis2OptionSetUid: opt.dhis2OptionSetUid,
+        formName: opt.metadataFormName,
+      });
+    });
+    console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+    return state;
+  }
+);

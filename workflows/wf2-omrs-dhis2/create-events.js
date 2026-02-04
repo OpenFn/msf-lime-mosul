@@ -77,6 +77,8 @@ fn((state) => {
     eventsMapping,
     formUuids,
     references,
+    data,
+    response,
     ...next
   } = state;
 

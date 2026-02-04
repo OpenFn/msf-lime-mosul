@@ -140,6 +140,7 @@ fn((state) => {
   if (testMode) {
     return {
       cursor,
+      testMode,
       lastRunDateTime,
       patients,
       patientUuids: [...new Set(searchPatientUuids)],

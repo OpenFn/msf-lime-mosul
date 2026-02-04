@@ -80,6 +80,7 @@ each(
 );
 
 fn((state) => {
-  state.existingTeis = { ...state.existingTeis, ...state.createdChildTeis };
-  return state;
+  const { data, references, response, ...next } = state;
+  next.existingTeis = { ...next.existingTeis, ...next.createdChildTeis };
+  return next;
 });
