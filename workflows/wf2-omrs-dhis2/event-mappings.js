@@ -1706,26 +1706,35 @@ function mapF59(encounter, events) {
   return [defaultEvent, exitEvent];
 }
 
-function mapF60(encounter, events) {
+function mapF60(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
   const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
-  const typeOfExit = findAnswerByConcept(
+  const typeOfExit = dataValueByConcept(
     encounter,
-    "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
+    {
+      dataElement: "LhgHv4gjW18",
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
   );
 
-  const typeOfExitOther = findAnswerByConcept(
+  const typeOfExitOther = dataValueByConcept(
     encounter,
-    "790b41ce-e1e7-11e8-b02f-0242ac130002"
+    {
+      dataElement: "k64e6bcyPtH",
+      conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+      questionId: "rfe-forms-Type of Exit",
+    },
+    state
   );
-  const dischargeDate = encounter.obs.find(
-    (o) => o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d"
-  )?.value;
+  const dischargeDate = encounter.encounterDatetime.replace("+0000", "");
 
   return [
     {
       event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
       programStage: defaultProgramStage,
+      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
       dataValues: [
         {
           dataElement: "JvgfNjNklmI",
@@ -2345,7 +2354,7 @@ const buildExitEvent = (encounter, tei, state) => {
     }
   }
   if (encounter.form.name.includes("F60-Social Work Follow-up")) {
-    const eventsMap = mapF60(encounter, events);
+    const eventsMap = mapF60(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
