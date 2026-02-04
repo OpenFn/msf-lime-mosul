@@ -1602,12 +1602,28 @@ function mapF58(encounter, events, state) {
       dataValues: [
         {
           dataElement: "gn40F7cEQTI",
-          value: findDataValue(encounter, "gn40F7cEQTI", state),
           // value: encounter.encounterDatetime.replace("+0000", ""),
+          value: dataValueByConcept(
+            encounter,
+            {
+              dataElement: "gn40F7cEQTI",
+              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+              questionId: "rfe-forms-typeOfExit",
+            },
+            state
+          ),
         },
         {
           dataElement: "rmYRcxE5I5G",
-          value: findDataValue(encounter, "rmYRcxE5I5G", state),
+          value: dataValueByConcept(
+            encounter,
+            {
+              dataElement: "rmYRcxE5I5G",
+              conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
+              questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
+            },
+            state
+          ),
           // value: findAnswerByConcept(
           //   encounter,
           //   "0f478fde-1219-4815-9481-f507e8457c38"
@@ -1618,9 +1634,8 @@ function mapF58(encounter, events, state) {
   ];
 }
 
-function mapF59(encounter, events, state) {
-  const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
-
+function mapF59(encounter, events) {
+  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
   const typeOfIncome = findAnswerByConcept(
     encounter,
     "f501e482-d6cd-45d7-be5d-ef6e09461380"
@@ -1634,6 +1649,31 @@ function mapF59(encounter, events, state) {
     encounter,
     "30837713-453e-4456-ac48-b3886acf02ac"
   );
+  const defaultEvent = {
+    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    programStage: defaultProgramStage,
+    dataValues: [
+      {
+        dataElement: "CttkesLrFyG",
+        value: ["full time", "part time"].some((keyword) =>
+          typeOfIncome?.toLowerCase()?.includes(keyword)
+        )
+          ? "Employment"
+          : null,
+      },
+
+      {
+        dataElement: "Ir0qLWsNv4n",
+        value: ["in the past", "currently"].some((keyword) =>
+          usedDrug?.toLowerCase()?.includes(keyword)
+        )
+          ? "Yes"
+          : null,
+      },
+    ],
+  };
+
+  const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
   const typeOfExit = findAnswerByConcept(
     encounter,
     "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
@@ -1644,50 +1684,31 @@ function mapF59(encounter, events, state) {
     "790b41ce-e1e7-11e8-b02f-0242ac130002"
   );
 
-  // const programStage = state.formMaps[encounter.form.uuid].programStage;
-  return [
-    {
-      event,
-      // programStage,
-      programStage: "sBepdVG2c9O",
-      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-      dataValues: [
-        {
-          dataElement: "Nfd45uVy6lc", // TODO @Aisha not part of sBepdVG2c9O program stage
-          value: ["full time", "part time"].some((keyword) =>
-            typeOfIncome?.toLowerCase()?.includes(keyword)
-          )
-            ? "Employment"
-            : null,
-        },
-
-        {
-          dataElement: "Ir0qLWsNv4n", // TODO @Aisha not part of sBepdVG2c9O program stage
-          value: ["in the past", "currently"].some((keyword) =>
-            usedDrug?.toLowerCase()?.includes(keyword)
-          )
-            ? "Yes"
-            : null,
-        },
-        {
-          dataElement: "JvgfNjNklmI",
-          value: dischargeDate,
-        },
-        {
-          dataElement: "LhgHv4gjW18",
-          value: typeOfExit,
-        },
-        {
-          dataElement: "k64e6bcyPtH",
-          value: typeOfExitOther,
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  const exitEvent = {
+    event,
+    programStage: "sBepdVG2c9O",
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+    dataValues: [
+      {
+        dataElement: "JvgfNjNklmI",
+        value: dischargeDate,
+      },
+      {
+        dataElement: "LhgHv4gjW18",
+        value: typeOfExit,
+      },
+      {
+        dataElement: "k64e6bcyPtH",
+        value: typeOfExitOther,
+      },
+    ].filter((d) => d.value),
+  };
+  return [defaultEvent, exitEvent];
 }
 
 function mapF60(encounter, events) {
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
+  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
   const typeOfExit = findAnswerByConcept(
     encounter,
     "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
@@ -1703,14 +1724,20 @@ function mapF60(encounter, events) {
 
   return [
     {
-      event,
-      programStage: "sBepdVG2c9O",
-      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+      event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+      programStage: defaultProgramStage,
       dataValues: [
         {
           dataElement: "JvgfNjNklmI",
           value: dischargeDate,
         },
+      ],
+    },
+    {
+      event,
+      programStage: "sBepdVG2c9O",
+      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+      dataValues: [
         {
           dataElement: "LhgHv4gjW18",
           value: typeOfExit,
@@ -1962,44 +1989,11 @@ function mapF61(encounter, events) {
 }
 
 function mapF62(encounter, events) {
-  const hospitalisationEvent = {
-    event: events?.find((e) => e.programStage === "YivvTlIw5Ep")?.event,
-    programStage: "YivvTlIw5Ep",
+  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const defaultEvent = {
+    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    programStage: defaultProgramStage,
     dataValues: [
-      {
-        dataElement: "d3BwrZYHAbK",
-        value: encounter.encounterDatetime
-          .replace("+0000", "")
-          .substring(11, 19),
-      },
-      {
-        dataElement: "RSQqK2yZGz6",
-        value: findAnswerByConcept(
-          encounter,
-          "c149755e-dd32-43b0-b643-ab14aa483207"
-        ),
-      },
-      {
-        dataElement: "NHBJjpIXPBI",
-        value: findAnswerByConcept(
-          encounter,
-          "b996944c-b136-4e8e-9068-562476a0595a"
-        ),
-      },
-      {
-        dataElement: "LPIyv58pWVg",
-        value: findAnswerByConcept(
-          encounter,
-          "13cea1c8-e426-411f-95b4-33651fc4325d"
-        ),
-      },
-      {
-        dataElement: "nrqutHXxAUk",
-        value: findAnswerByConcept(
-          encounter,
-          "09a06404-afc5-457a-91b9-54152e45a854"
-        ),
-      },
       {
         dataElement: "dNJ9ZJ4zaJw",
         value: conceptNotValue(
@@ -2048,6 +2042,48 @@ function mapF62(encounter, events) {
           "c884bf19-6791-4c38-af6b-1ad910191a89"
         ),
       },
+    ],
+  };
+  const hospitalisationEvent = {
+    event: events?.find((e) => e.programStage === "YivvTlIw5Ep")?.event,
+    programStage: "YivvTlIw5Ep",
+
+    dataValues: [
+      {
+        dataElement: "d3BwrZYHAbK",
+        value: encounter.encounterDatetime
+          .replace("+0000", "")
+          .substring(11, 19),
+      },
+      {
+        dataElement: "RSQqK2yZGz6",
+        value: findAnswerByConcept(
+          encounter,
+          "c149755e-dd32-43b0-b643-ab14aa483207"
+        ),
+      },
+      {
+        dataElement: "NHBJjpIXPBI",
+        value: findAnswerByConcept(
+          encounter,
+          "b996944c-b136-4e8e-9068-562476a0595a"
+        ),
+      },
+      {
+        dataElement: "LPIyv58pWVg",
+        value: findAnswerByConcept(
+          encounter,
+          "13cea1c8-e426-411f-95b4-33651fc4325d"
+        ),
+      },
+      {
+        dataElement: "nrqutHXxAUk",
+        value: findAnswerByConcept(
+          encounter,
+          "09a06404-afc5-457a-91b9-54152e45a854"
+        ),
+      },
+
       {
         dataElement: "PG9mocTexDK",
         value: conceptNotValue(
@@ -2095,7 +2131,7 @@ function mapF62(encounter, events) {
       },
     ],
   };
-  const f62Events = [hospitalisationEvent, exitEvent];
+  const f62Events = [defaultEvent, hospitalisationEvent, exitEvent];
 
   return f62Events;
 }
@@ -2104,6 +2140,62 @@ function mapF63(encounter, events) {
   return mapF62(encounter, events); // TODO @Aisha to confirm with ludovic
 }
 
+const dataValueByConcept = (encounter, de, state) => {
+  const { dataElement, conceptUuid, questionId } = de;
+
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const isObjectAnswer = answer && typeof answer.value === "object";
+  const isStringAnswer = answer && typeof answer.value === "string";
+  const isNumberAnswer = answer && typeof answer.value === "number";
+
+  if (isStringAnswer || isNumberAnswer) {
+    return answer.value;
+  }
+
+  if (isObjectAnswer) {
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
+
+    const matchingOptionSet = state.optionSetKey[optionKey];
+
+    const opt = state.optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === answer.value.uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet
+    );
+
+    // Removed fallback logic to DHIS2 Option name and answer.value.display
+    // Now only using DHIS2 Option Code to ensure proper validation
+    const matchingOption = opt?.["DHIS2 Option Code"];
+
+    // Capture missing DHIS2 Option Codes for tracking
+    if (!matchingOption && state.missingOptsets) {
+      state.missingOptsets.push({
+        timestamp: new Date().toISOString(),
+        openMrsQuestion: answer.concept.display || "N/A",
+        conceptExternalId: answer.concept.uuid,
+        answerDisplay: answer.value.display,
+        answerValueUuid: answer.value.uuid,
+        dhis2DataElementUid: dataElement,
+        dhis2OptionSetUid: matchingOptionSet || "N/A",
+        metadataFormName: encounter.form.name || encounter.form.uuid,
+        encounterUuid: encounter.uuid,
+        patientUuid: encounter.patient.uuid,
+        sourceFile: state.sourceFile,
+      });
+
+      console.log(
+        `⚠️  Missing DHIS2 Option Code - Question: "${answer.concept.display}", Answer: "${answer.value.display}", OptionSet: ${matchingOptionSet}`
+      );
+    }
+
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+
+    return matchingOption;
+  }
+};
 const findDataValue = (encounter, dataElement, state) => {
   const form = state.formMaps[encounter.form.uuid];
   const [conceptUuid, questionId] =
@@ -2113,6 +2205,10 @@ const findDataValue = (encounter, dataElement, state) => {
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
 
+  if (dataElement === "gn40F7cEQTI") {
+    console.log(form.dataValueMap[dataElement]);
+    console.log({ dataElement, answer, conceptUuid, questionId });
+  }
   if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
@@ -2399,7 +2495,12 @@ fn((state) => {
         }
       );
 
-      const mappings = [formEvent, ...exitFormEvents];
+      const mappings = [
+        formEvent,
+        ...exitFormEvents.map((e) => {
+          return { ...e, dataValues: e.dataValues.filter((d) => d.value) };
+        }),
+      ];
 
       return mappings;
     })
@@ -2407,5 +2508,38 @@ fn((state) => {
     .filter(Boolean);
   console.log("Final eventsMapping length:", state.eventsMapping.length);
 
+  return state;
+});
+
+const mergeEvents = (events) => {
+  const eventMap = new Map();
+
+  events.forEach((event) => {
+    // Create a unique key based on all properties except dataValues
+    const key = JSON.stringify({
+      program: event.program,
+      orgUnit: event.orgUnit,
+      trackedEntity: event.trackedEntity,
+      enrollment: event.enrollment,
+      occurredAt: event.occurredAt,
+      programStage: event.programStage,
+    });
+
+    if (eventMap.has(key)) {
+      // Merge dataValues if event already exists
+      const existing = eventMap.get(key);
+      existing.dataValues = [...existing.dataValues, ...event.dataValues];
+    } else {
+      // Add new event to map
+      eventMap.set(key, { ...event });
+    }
+  });
+
+  return Array.from(eventMap.values());
+};
+
+// Combinining events and exit events
+fn((state) => {
+  state.eventsMapping = mergeEvents(state.eventsMapping);
   return state;
 });
