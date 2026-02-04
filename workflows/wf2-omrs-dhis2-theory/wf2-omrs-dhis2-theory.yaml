@@ -1,0 +1,152 @@
+id: wf2-omrs-dhis2-theory
+name: wf2-omrs-dhis2-theory
+start: cron
+options: {}
+steps:
+  - id: create-child-teis
+    name: Create Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    expression: ./create-child-teis.js
+    next:
+      create-teis-relationship:
+        disabled: false
+        condition: on_job_success
+  - id: create-events
+    name: Create Events
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    expression: ./create-events.js
+    next:
+      update-teis:
+        disabled: false
+        condition: |
+          state?.teisToUpdate?.length > 0
+        name: has-gender-updated
+      populate-outcomes-in-test-suite:
+        disabled: false
+        condition: on_job_success
+  - id: create-teis-relationship
+    name: Create TEIs Relationship
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    expression: ./create-teis-relationship.js
+    next:
+      event-mappings:
+        disabled: false
+        condition: on_job_success
+  - id: cron
+    type: cron
+    next:
+      get-patients:
+        disabled: false
+        condition: always
+  - id: event-mappings
+    name: Event Mappings
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./event-mappings.js
+    next:
+      missing-optionsets:
+        disabled: false
+        condition: "!state.errors && state.missingOptsets.length > 0"
+        name: missing-opts
+      create-events:
+        disabled: false
+        condition: |
+          state?.eventsMapping?.length > 0 && !state.errors
+        name: has-events
+  - id: get-encounters
+    name: Get Encounters
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: c53d5795-f47c-41cf-8f97-5c5ef162b34e
+    expression: ./get-encounters.js
+    next:
+      get-parent-and-child-teis:
+        disabled: false
+        condition: |
+          !state.errors && state.encounters.length > 0
+        name: has-encounters
+  - id: get-parent-and-child-teis
+    name: Get Parent and Child TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    expression: ./get-parent-and-child-teis.js
+    next:
+      event-mappings:
+        disabled: false
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
+          && state?.existingTeis"
+        name: has-existing-teis
+      create-child-teis:
+        disabled: false
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
+        name: has-child-teis-to-create
+  - id: get-patients
+    name: Get Patients
+    adaptor: "@openfn/language-openmrs@4.3.0"
+    configuration: c53d5795-f47c-41cf-8f97-5c5ef162b34e
+    expression: ./get-patients.js
+    next:
+      mappings:
+        disabled: false
+        condition: on_job_success
+  - id: mappings
+    name: Mappings
+    adaptor: "@openfn/language-common@3.2.2"
+    configuration: 1296d9ea-9c40-494a-99cb-8e7f8a65f88c
+    expression: ./mappings.js
+    next:
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        name: has-patients
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        name: has-no-patients
+  - id: missing-optionsets
+    name: Missing OptionSets
+    adaptor: "@openfn/language-googlesheets@4.0.7"
+    configuration: dd690541-71e5-4baa-a755-3610abc79c00
+    expression: ./missing-optionsets.js
+  - id: populate-outcomes-in-test-suite
+    name: Populate Outcomes in Test Suite
+    adaptor: "@openfn/language-googlesheets@4.0.8"
+    expression: ./populate-outcomes-in-test-suite.js
+  - id: prepare-tests
+    name: Prepare Tests
+    adaptor: "@openfn/language-common@3.2.2"
+    expression: ./prepare-tests.js
+    next:
+      get-patients:
+        disabled: true
+        condition: "!state.errors & state.test_scenario === null"
+        name: Not Test Mode
+      event-mappings:
+        disabled: false
+        condition: always
+        name: "Test: Create Events"
+  - id: update-teis
+    name: Update TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    expression: ./update-teis.js
+  - id: upsert-teis
+    name: Upsert TEIs
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    expression: ./upsert-teis.js
+    next:
+      get-encounters:
+        disabled: false
+        condition: |
+          state.patientUuids.length > 0 && !state.errors
+        name: has-patient-uuids
+  - id: webhook
+    type: webhook
+    next:
+      prepare-tests:
+        disabled: false
+        condition: always
