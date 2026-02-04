@@ -1,4 +1,5 @@
-"latestEncountersByVisit": [
+{
+  "latestEncountersByVisit": [
     {
       "obs": [
         {
@@ -1565,3 +1566,4 @@
       "encounterDatetime": "2026-02-03T08:22:21.000+0000"
     }
   ]
+}
