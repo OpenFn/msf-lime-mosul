@@ -46,15 +46,15 @@ steps:
     adaptor: "@openfn/language-common@2.1.1"
     expression: ./event-mappings.js
     next:
-      missing-optionsets:
-        disabled: false
-        condition: "!state.errors && state.missingOptsets.length > 0"
-        name: missing-opts
       create-events:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         name: has-events
+      missing-optionsets:
+        disabled: false
+        condition: "!state.errors && state.missingOptsets.length > 0"
+        name: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -72,15 +72,15 @@ steps:
     configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
     expression: ./get-parent-and-child-teis.js
     next:
+      create-child-teis:
+        disabled: false
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
+        name: has-child-teis-to-create
       event-mappings:
         disabled: false
         condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
           && state?.existingTeis"
         name: has-existing-teis
-      create-child-teis:
-        disabled: false
-        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
-        name: has-child-teis-to-create
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -96,16 +96,16 @@ steps:
     configuration: 1296d9ea-9c40-494a-99cb-8e7f8a65f88c
     expression: ./mappings.js
     next:
-      upsert-teis:
-        disabled: false
-        condition: |
-          state.patients.length > 0 && !state.errors
-        name: has-patients
       get-encounters:
         disabled: false
         condition: |
           !state.errors && state.patients.length === 0
         name: has-no-patients
+      upsert-teis:
+        disabled: false
+        condition: |
+          state.patients.length > 0 && !state.errors
+        name: has-patients
   - id: missing-optionsets
     name: Missing OptionSets
     adaptor: "@openfn/language-googlesheets@4.0.7"

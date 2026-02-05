@@ -22,7 +22,7 @@ steps:
   - id: read-test-cases-from-google-sheet
     name: Read test cases from Google Sheet
     adaptor: "@openfn/language-googlesheets@latest"
-    configuration: 021a76a5-8bdf-432d-9aba-a403588ca052
+    configuration: 65da56fb-c063-41bd-b975-03c8a4ff2c6f
     expression: ./read-test-cases-from-google-sheet.js
     next:
       get-inputs-from-github:

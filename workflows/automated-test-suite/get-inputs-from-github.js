@@ -10,5 +10,3 @@ each(
     return state
   })
 );
-
-//https://app.openfn.org/i/ad302bba-2054-414d-80b7-c7acc06c5183
