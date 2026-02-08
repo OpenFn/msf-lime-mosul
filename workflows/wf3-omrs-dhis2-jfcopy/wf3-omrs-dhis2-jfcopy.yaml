@@ -7,10 +7,6 @@ steps:
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
     expression: ./create-events.js
-    next:
-      populate-outcomes-in-test-suite:
-        disabled: false
-        condition: on_job_success
   - id: cron
     type: cron
     next:
@@ -23,10 +19,14 @@ steps:
     expression: ./custom-logic-for-events.js
     next:
       create-events:
-        disabled: true
+        disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
         name: has-events
+      populate-outcomes-in-test-suite:
+        disabled: false
+        condition: "!state.errors && state.testMode"
+        name: is-test
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -77,6 +77,7 @@ steps:
   - id: populate-outcomes-in-test-suite
     name: Populate Outcomes in Test Suite
     adaptor: "@openfn/language-googlesheets@4.0.8"
+    configuration: 65da56fb-c063-41bd-b975-03c8a4ff2c6f
     expression: ./populate-outcomes-in-test-suite.js
   - id: prepare-tests
     name: Prepare Tests
@@ -84,7 +85,7 @@ steps:
     expression: ./prepare-tests.js
     next:
       get-patients:
-        disabled: true
+        disabled: false
         condition: on_job_success
   - id: upsert-teis
     name: Upsert TEIs
