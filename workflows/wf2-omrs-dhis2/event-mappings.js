@@ -590,472 +590,543 @@ function mapF38(encounter) {
   return f38Mapping;
 }
 
+const F49_CONFIG = {
+  diagnosisAtAdmissionUuid: "22809b19-54ca-4d88-8d26-9577637c184e",
+
+  diagnosisMappings: [
+    {
+      de: "mjnK3aUJuTa",
+      concept: "fad7b56b-7633-4467-9e6a-17328278b580",
+      qid: "rfe-forms-hypertension",
+      answer: "10f3b49c-c3dc-4aa7-857f-3f9bb7df8dd0",
+    },
+    {
+      de: "onGHyvZ2RmZ",
+      concept: "f9bd6164-18e9-41ce-97cd-45ff85d6f124",
+      qid: "rfe-forms-diabetesTypeI",
+      answer: "ed1150fd-278f-4012-b3d7-a795ac9fac82",
+    },
+    {
+      de: "E9BaT4zG4J4",
+      concept: "db973d66-e027-4238-87c9-fa6e53026d12",
+      qid: "rfe-forms-diabetesTypeIi",
+      answer: "f1ee73b2-08cb-4373-80ac-357a704d3608",
+    },
+    {
+      de: "iFvba0J2evJ",
+      concept: "3a5da658-2750-4872-9499-3c9e858f5eb6",
+      qid: "rfe-forms-gestationalDiabetes",
+      answer: "84fc5a0d-0158-4c41-b6e5-8ac7ebfccc0c",
+    },
+    {
+      de: "J21496i94EP",
+      concept: "10ea847e-58c7-4da0-a112-ee1f0883e31b",
+      qid: "rfe-forms-hypothyroidism",
+      answer: "aecac536-6eea-4de8-a450-a9ad9608514a",
+    },
+    {
+      de: "JznJsvXpTnK",
+      concept: "42e81b70-63ab-4387-aebe-90e20db918e7",
+      qid: "rfe-forms-chronicRenalDisease",
+      answer: "2066f043-2f21-4c19-8c04-77301d7404f9",
+    },
+    {
+      de: "pGT54AYo27j",
+      concept: "82a5dadc-77ea-4765-b766-fb1e0336a736",
+      qid: "rfe-forms-asthma",
+      answer: "c10a05bc-e814-4693-a789-1eb884270381",
+    },
+    {
+      de: "ajFiLhKjK53",
+      concept: "68b7e054-046a-4ec1-8c6a-b05d0480da47",
+      qid: "rfe-forms-copd",
+      answer: "0d9a7323-b54a-4d2b-a231-e34fa54e3a54",
+    },
+    {
+      de: "ymMmDdzmXJB",
+      concept: "5078ef27-0826-46c2-ac50-30ebf25cb686",
+      qid: "rfe-forms-cardiovascularDisorders",
+      answer: "6541ddce-0e3c-4b7d-ad52-2bfe18e24dd5",
+    },
+    {
+      de: "Pl71DwAselm",
+      concept: "ada7c7aa-261c-4808-b3ec-1236952ad1da",
+      qid: "rfe-forms-cardiovascularOther",
+      answer: "ada7c7aa-261c-4808-b3ec-1236952ad1da",
+    },
+    {
+      de: "eQfdTbag11h",
+      concept: "fe989a53-9788-46e9-a170-f1f4b7abfddf",
+      qid: "rfe-forms-heartFailure",
+      answer: "6a7a9d6a-e8b6-4ffb-8321-a56e9e4473e0",
+    },
+    {
+      de: "WpyNugbQKYk",
+      concept: "09334f94-5efd-49f0-b494-68b9192f2fd8",
+      qid: "rfe-forms-epilepsy",
+      answer: "681cf0bc-5213-492a-8470-0a0b3cc324dd",
+    },
+    {
+      de: "n36Fq9tLoWJ",
+      concept: "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
+      qid: "rfe-forms-otherNcd",
+      answer: "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
+    },
+    {
+      de: "yHYhmy1H46g",
+      concept: "d48039ad-1700-406d-b9c2-b3bf355d61f9",
+      qid: "rfe-forms-depression",
+      answer: "2066f043-2f21-4c19-8c04-77301d7404f9",
+    },
+    {
+      de: "zWqzSMJlxCz",
+      concept: "6c0beb80-d7bd-4580-8f36-b6ffee8661fe",
+      qid: "rfe-forms-psychosisOrBpad",
+      answer: "10336195-ecd9-45bc-b6b4-b08ff1498e1b",
+    },
+    {
+      de: "CqqksYsDFDE",
+      concept: "7aff0f40-e039-43fb-971d-0c07ed9fcde1",
+      qid: "rfe-forms-stressRelatedDisorder",
+      answer: "7aff0f40-e039-43fb-971d-0c07ed9fcde1",
+    },
+    {
+      de: "QkgnTdel3HA",
+      concept: "43024c85-60c3-4dd0-acde-33d259ad1e33",
+      qid: "rfe-forms-substanceDisorders",
+      answer: "fcc01124-3d7b-4e6f-be35-50233a7f64cb",
+    },
+    {
+      de: "uXKjVsrotpW",
+      concept: "fef73529-e631-4620-920b-ff7fc5d458da",
+      qid: "rfe-forms-childOrAdolescentDisorder",
+      answer: "fef73529-e631-4620-920b-ff7fc5d458da",
+    },
+    {
+      de: "EAhwOfxv3Zx",
+      concept: "af23b916-3e95-4bd4-8804-a4b1649ff365",
+      qid: "rfe-forms-selfHarmOrSuicide",
+      answer: "b27187bd-e94a-4dbc-9a77-46c0cefad25a",
+    },
+    {
+      de: "UGcyXNE5aDG",
+      concept: "88fc3c44-9ad1-4d33-b4ea-d2223c906f42",
+      qid: "rfe-forms-otherMhDisease",
+      answer: "88fc3c44-9ad1-4d33-b4ea-d2223c906f42",
+    },
+  ],
+
+  // ✅ IMPROVED: Multi-select with type indicator
+  multiSelect: {
+    observedComplications: {
+      concept: "ec9ffc6e-22c9-4489-ab88-c517460e7838",
+      qid: "rfe-forms-observedComplication",
+      dataElements: [
+        "Ff5TAZQB2Gx",
+        "jy6y43zcjIF",
+        "nroQVwfad5s",
+        "zzlWrNP7L9F",
+      ],
+      type: "coded", // ✅ Needs dataValueByConcept
+    },
+    medications: {
+      concept: "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef",
+      qid: "rfe-forms-medication",
+      dataElements: [
+        "pfOVAvGLYVi",
+        "iY9Y8G4uOod",
+        "q3QvzsuauGq",
+        "ekSky9wr0MO",
+        "zgSRhgLfTn4",
+        "nimcdwULYjp",
+        "NfDhplV9xJA",
+        "LBWHFdwKzKO",
+        "VIXCChJKawm",
+        "wrVSDgmMj4j",
+      ],
+      type: "coded", // ✅ Needs dataValueByConcept
+    },
+    specialistTypes: {
+      concept: "8fb3bb7d-c935-4b57-8444-1b953470e109",
+      qid: "rfe-forms-referralSpecialistType",
+      dataElements: ["Atg3aAfVv2V", "a35jmcOCCwc", "eurWUL2l6Gw"],
+      type: "coded", // ✅ Needs dataValueByConcept
+    },
+    ifOtherSpecialistTypes: {
+      concept: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+      qid: "rfe-forms-specialistIfOtherPleaseSpecify",
+      dataElements: ["iXRsVYYypkU", "xnpdL9cgpDH", "NYEmxR8LW75"],
+      type: "text", // ✅ Plain text values (no option set mapping needed)
+    },
+  },
+
+  pregnancyStage: {
+    programStage: "RVgciZl54Aj",
+    mappings: [
+      {
+        de: "aFc9FG0PaRf",
+        concept: "4cc41121-74da-42ac-ab89-e8878db66020",
+        qid: "rfe-forms-estimatedDateOfDelivery",
+      },
+      {
+        de: "J62aIKRxrBQ",
+        concept: "bf704b21-d203-4fb8-9b90-a2c29caad61b",
+        qid: "rfe-forms-antenatalConsultations",
+      },
+      {
+        de: "b6dGoMJm1jO",
+        concept: "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14",
+        qid: "rfe-forms-currentlyOnContraception",
+      },
+      {
+        de: "clnZXAAKStw",
+        concept: "6afb5d27-3e86-42ff-bad1-38f90897e0b6",
+        qid: "rfe-forms-method",
+      },
+    ],
+  },
+
+  investigationStage: {
+    programStage: "zqmLGzSPv3T",
+    simpleValues: [
+      {
+        de: "QJXo4pwCxJR",
+        concept: "033ff20d-4cc5-4da0-ad5e-c42ce25df1e1",
+        qid: "rfe-forms-hba1c",
+      },
+      {
+        de: "pG7e3WfYoTL",
+        concept: "bc6f8c3a-80ad-46f2-ad76-bd4189ea61c7",
+        qid: "rfe-forms-creatinine",
+      },
+      {
+        de: "BdSAkE2x4k2",
+        concept: "397b7cc1-9687-4796-a2a6-52d04f963e71",
+        qid: "rfe-forms-creatinine_1",
+      },
+      {
+        de: "qd60Le4nrd6",
+        concept: "910cf2bc-b9fe-4997-845f-409583bbd2fd",
+        qid: "rfe-forms-egfr",
+      },
+      {
+        de: "dV5ngpIQymO",
+        concept: "ee8dd465-4f0c-4f81-9c9f-8dd1e419a9d8",
+        qid: "rfe-forms-creatinineClearance",
+      },
+    ],
+    trueOnly: [
+      {
+        de: "YAkbJFXtTFU",
+        concept: "9265064e-104f-431d-b50d-4cd8b7a39526",
+        qid: "rfe-forms-totalCholesterolDone",
+      },
+      {
+        de: "nqINkxxSTe1",
+        concept: "b20c05db-cc1e-41f8-abbe-cdd8fcef82cc",
+        qid: "rfe-forms-creatinineDone",
+      },
+      {
+        de: "tK9u009wENy",
+        concept: "19d395d5-9e2f-4f9b-9723-1fd64e879421",
+        qid: "rfe-forms-urineAnalysisDone",
+      },
+      {
+        de: "AosqYtkFCzH",
+        concept: "41e0892a-3962-4ee6-8adc-b65322da183b",
+        qid: "rfe-forms-altDone",
+      },
+      {
+        de: "Ucg0LjdAiqu",
+        concept: "e2826aa6-af7b-49cd-b3a3-5ffae92c202d",
+        qid: "rfe-forms-kDone",
+      },
+      {
+        de: "bG9RawjSauF",
+        concept: "1b1ddab9-1463-4b79-9d25-b591bca6127e",
+        qid: "rfe-forms-tshDone",
+      },
+      {
+        de: "pdzQ3dYXcKh",
+        concept: "382d6a15-1e60-43a3-8ee5-bb0f7b11b17b",
+        qid: "rfe-forms-inrDone",
+      },
+      {
+        de: "NqrNohB1MRq",
+        concept: "1ecf8c4a-c70c-4fa6-b840-2e13cdb217fe",
+        qid: "rfe-forms-ldlDone",
+      },
+    ],
+    codedValues: [
+      {
+        de: "gPplT1Gk1uB",
+        concept: "3fe91b1d-3c94-4752-ac36-75d4e6af379c",
+        qid: "rfe-forms-extremitiesOrFootExam",
+      },
+      {
+        de: "zmn2V11p3SW",
+        concept: "f5b2b5ff-47bb-41e1-bbcc-3d7b2ecb373f",
+        qid: "rfe-forms-ecg",
+      },
+      {
+        de: "DWYLDxxZpK5",
+        concept: "b754e7bb-d425-4f62-988e-3bccc2abf332",
+        qid: "rfe-forms-echoResult",
+      },
+    ],
+  },
+};
+/**
+ * Maps diagnosis with conditional logic
+ */
+function mapDiagnosisF49(encounter, mapping, state) {
+  const diagnosisObs = encounter.obs.find(
+    (o) => o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
+  );
+
+  if (diagnosisObs?.value) {
+    return dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
+      },
+      state
+    );
+  }
+
+  const diagnosisAtAdmission = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === F49_CONFIG.diagnosisAtAdmissionUuid &&
+      o.value?.uuid === mapping.answer
+  );
+
+  return diagnosisAtAdmission ? "unknown" : "no";
+}
+
+function mapMultiSelect(encounter, config, state) {
+  const { concept, qid, dataElements, type } = config;
+
+  // Get all observations for this multi-select field
+  const observations = filterObsByConcept(encounter, `${concept}-${qid}`);
+
+  // Map each observation to its data element
+  return observations
+    .map((obs, index) => {
+      const de = dataElements[index];
+      if (!de) {
+        console.warn(
+          `No data element for observation at index ${index} in multi-select ${qid}`
+        );
+        return null;
+      }
+
+      let value;
+
+      if (type === "coded") {
+        // ✅ Use dataValueByConcept for coded values (proper option set mapping)
+        // Create a temporary encounter with just this observation to get the value
+        value = dataValueByConcept(
+          { ...encounter, obs: [obs] }, // Pass single obs
+          {
+            dataElement: de,
+            conceptUuid: concept,
+            questionId: qid,
+          },
+          state
+        );
+      } else if (type === "text") {
+        // ✅ For text values, use the value directly
+        value = obs.value;
+      } else {
+        console.warn(`Unknown multi-select type: ${type}`);
+        value = obs.value?.display || obs.value;
+      }
+
+      return {
+        dataElement: de,
+        value: value,
+      };
+    })
+    .filter((dv) => dv && dv.value); // Filter out null/undefined values
+}
+
 function mapF49(encounter, events, state) {
-  const { dhis2Map, optionSetKey, optsMap } = state;
+  const { dhis2Map } = state;
   const programStage = state.formMaps[encounter.form.uuid]?.programStage;
   const dataEl = dhis2Map.de;
+
   const defaultEvent = events?.find(
     (e) => e.programStage === programStage
   )?.event;
+  const pregnancyEvent = events?.find(
+    (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+  )?.event;
+  const investigationEvent = events?.find(
+    (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+  )?.event;
 
+  // ========== DEFAULT STAGE ==========
+  const defaultDataValues = [];
+
+  // 1. Consultation date
   const consultationDate = encounter.obs.find(
     (o) => o.concept.uuid === "d329cd4b-a10f-4a4d-96b5-c907bf87e721"
   )?.value;
 
-  const isReadmission =
-    encounter.obs
-      .find((o) => o.concept.uuid === "4dae5b12-070f-4153-b1ca-fbec906106e1")
-      ?.value?.display?.toLowerCase() === "re-admission";
+  if (consultationDate) {
+    defaultDataValues.push({
+      dataElement: dataEl.f49.ncdEventDate,
+      value: consultationDate,
+    });
+  }
 
-  const diagnosisMap = (encounter, extId, answerUuid) => {
-    const diagnosis = encounter.obs.find((o) => o.concept.uuid === extId)?.value
-      ?.display;
-    if (diagnosis) {
-      return diagnosis;
+  // 2. Is readmission
+  const admissionTypeObs = encounter.obs.find(
+    (o) => o.concept.uuid === "4dae5b12-070f-4153-b1ca-fbec906106e1"
+  );
+
+  if (admissionTypeObs) {
+    const isReadmission =
+      admissionTypeObs.value?.display?.toLowerCase() === "re-admission";
+    defaultDataValues.push({
+      dataElement: "SjNE9mM7Yu4",
+      value: `${isReadmission}`,
+    });
+  }
+
+  // 3. Diagnosis mappings
+  F49_CONFIG.diagnosisMappings.forEach((mapping) => {
+    const value = mapDiagnosisF49(encounter, mapping, state);
+    if (value) {
+      defaultDataValues.push({
+        dataElement: mapping.de,
+        value: value,
+      });
     }
-    const diagnosisAtAdmission = encounter.obs.find((o) => {
-      o.value.uuid === answerUuid &&
-        o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e";
-    })?.value;
-    if (diagnosisAtAdmission) {
-      return "uknown";
-    }
-    return "no";
-  };
+  });
 
-  const observedComplications = filterObsByConcept(
-    encounter,
-    "ec9ffc6e-22c9-4489-ab88-c517460e7838"
-  ).map((o) => o.value.display);
+  // 4-7. Multi-select fields
+  // ✅ IMPROVED: Now uses proper dataValueByConcept for coded values!
 
-  const medications = filterObsByConcept(
-    encounter,
-    "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef"
-  ).map((o) => o.value.display);
+  // Observed Complications
+  defaultDataValues.push(
+    ...mapMultiSelect(
+      encounter,
+      F49_CONFIG.multiSelect.observedComplications,
+      state
+    )
+  );
 
-  const specialistTypes = filterObsByConcept(
-    encounter,
-    "8fb3bb7d-c935-4b57-8444-1b953470e109"
-  ).map((o) => o.value.display);
+  // Medications
+  defaultDataValues.push(
+    ...mapMultiSelect(encounter, F49_CONFIG.multiSelect.medications, state)
+  );
 
-  const ifOtherSpecialistTypes = filterObsByConcept(
-    encounter,
-    "790b41ce-e1e7-11e8-b02f-0242ac130002"
-  ).map((o) => o.value.display);
+  // Specialist Types
+  defaultDataValues.push(
+    ...mapMultiSelect(encounter, F49_CONFIG.multiSelect.specialistTypes, state)
+  );
 
-  const defaultDataValues = [
-    { dataElement: dataEl.ncdEventDate, value: consultationDate },
-    { dataElement: "SjNE9mM7Yu4", value: isReadmission },
-    {
-      dataElement: "mjnK3aUJuTa",
-      value: diagnosisMap(
-        encounter,
-        "fad7b56b-7633-4467-9e6a-17328278b580",
-        "10f3b49c-c3dc-4aa7-857f-3f9bb7df8dd0"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.diabetesTypeI,
-      value: diagnosisMap(
-        encounter,
-        "f9bd6164-18e9-41ce-97cd-45ff85d6f124",
-        "ed1150fd-278f-4012-b3d7-a795ac9fac82"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.diabetesTypeII,
-      value: diagnosisMap(
-        encounter,
-        "db973d66-e027-4238-87c9-fa6e53026d12",
-        "f1ee73b2-08cb-4373-80ac-357a704d3608"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.gestationalDiabetes,
-      value: diagnosisMap(
-        encounter,
-        "3a5da658-2750-4872-9499-3c9e858f5eb6",
-        "84fc5a0d-0158-4c41-b6e5-8ac7ebfccc0c"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.hypothyroidism,
-      value: diagnosisMap(
-        encounter,
-        "10ea847e-58c7-4da0-a112-ee1f0883e31b",
-        "aecac536-6eea-4de8-a450-a9ad9608514a"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.chronicKidneyDisease,
-      value: diagnosisMap(
-        encounter,
-        "42e81b70-63ab-4387-aebe-90e20db918e7",
-        "2066f043-2f21-4c19-8c04-77301d7404f9"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.asthma,
-      value: diagnosisMap(
-        encounter,
-        "82a5dadc-77ea-4765-b766-fb1e0336a736",
-        "c10a05bc-e814-4693-a789-1eb884270381"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.copd,
-      value: diagnosisMap(
-        encounter,
-        "68b7e054-046a-4ec1-8c6a-b05d0480da47",
-        "0d9a7323-b54a-4d2b-a231-e34fa54e3a54"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.cardiovascularDisease,
-      value: diagnosisMap(
-        encounter,
-        "5078ef27-0826-46c2-ac50-30ebf25cb686",
-        "6541ddce-0e3c-4b7d-ad52-2bfe18e24dd5"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.otherCardiovascularDisorder,
-      value: diagnosisMap(
-        encounter,
-        "ada7c7aa-261c-4808-b3ec-1236952ad1da",
-        "ada7c7aa-261c-4808-b3ec-1236952ad1da"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.heartfailure,
-      value: diagnosisMap(
-        encounter,
-        "fe989a53-9788-46e9-a170-f1f4b7abfddf",
-        "6a7a9d6a-e8b6-4ffb-8321-a56e9e4473e0"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.epilepsy,
-      value: diagnosisMap(
-        encounter,
-        "09334f94-5efd-49f0-b494-68b9192f2fd8",
-        "681cf0bc-5213-492a-8470-0a0b3cc324dd"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.otherNCD,
-      value: () => {
-        const conceptUuid = "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc";
-        const obs = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-        const optionKey = `${encounter.form.uuid}-${conceptUuid}-${obs.formFieldPath}`;
-        const matchingOptionSet = optionSetKey[optionKey];
-        const optCodeByExtId = optsMap.find(
-          (o) =>
-            o["value.uuid - External ID"] === conceptUuid &&
-            o["DHIS2 Option Set UID"] === matchingOptionSet
-        )?.["DHIS2 Option Code"];
+  // If Other Specialist Types (text values)
+  defaultDataValues.push(
+    ...mapMultiSelect(
+      encounter,
+      F49_CONFIG.multiSelect.ifOtherSpecialistTypes,
+      state
+    )
+  );
 
-        return optCodeByExtId;
+  // ========== PREGNANCY STAGE ==========
+  const pregnancyDataValues = [];
+
+  F49_CONFIG.pregnancyStage.mappings.forEach((mapping) => {
+    const value = dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
       },
-    },
-    {
-      dataElement: dataEl.f49.depression,
-      value: diagnosisMap(
-        encounter,
-        "d48039ad-1700-406d-b9c2-b3bf355d61f9",
-        "2066f043-2f21-4c19-8c04-77301d7404f9"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.psychosis,
-      value: diagnosisMap(
-        encounter,
-        "6c0beb80-d7bd-4580-8f36-b6ffee8661fe",
-        "10336195-ecd9-45bc-b6b4-b08ff1498e1b"
-      ),
-    },
-    {
-      dataElement: dataEl.f49.stressRelated,
-      value: diagnosisMap(
-        encounter,
-        "7aff0f40-e039-43fb-971d-0c07ed9fcde1",
-        "7aff0f40-e039-43fb-971d-0c07ed9fcde1" //stress-related disorder diagnosis status
-      ),
-    },
-    {
-      dataElement: dataEl.f49.substanceDisorder,
-      value: diagnosisMap(
-        encounter,
-        "43024c85-60c3-4dd0-acde-33d259ad1e33",
-        "fcc01124-3d7b-4e6f-be35-50233a7f64cb" //substance-related disorders
-      ),
-    },
-    {
-      dataElement: dataEl.f49.childAdolescence,
-      value: diagnosisMap(
-        encounter,
-        "d30db8b8-f8fb-450c-9562-629195212a45",
-        "fef73529-e631-4620-920b-ff7fc5d458da" //child & adolescent disorder diagnosis status
-      ),
-    },
-    {
-      dataElement: dataEl.f49.selfHarm,
-      value: diagnosisMap(
-        encounter,
-        "af23b916-3e95-4bd4-8804-a4b1649ff365",
-        "b27187bd-e94a-4dbc-9a77-46c0cefad25a" //Self-harming behavior / Suicide attempt
-      ),
-    },
-    {
-      dataElement: dataEl.f49.otherMH,
-      value: diagnosisMap(
-        encounter,
-        "88fc3c44-9ad1-4d33-b4ea-d2223c906f42",
-        "88fc3c44-9ad1-4d33-b4ea-d2223c906f42" //"Other mental health diseases"
-      ),
-    },
+      state
+    );
 
-    {
-      dataElement: dataEl.f49.observedComplication1,
-      value: observedComplications?.[0],
-    },
-    {
-      dataElement: dataEl.f49.observedComplication2,
-      value: observedComplications?.[1],
-    },
-    {
-      dataElement: dataEl.f49.observedComplication3,
-      value: observedComplications?.[2],
-    },
-    {
-      dataElement: dataEl.f49.observedComplication4,
-      value: observedComplications?.[3],
-    },
+    if (value !== undefined && value !== null) {
+      pregnancyDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
 
-    {
-      dataElement: dataEl.f49.medication1,
-      value: medications?.[0],
-    },
-    {
-      dataElement: dataEl.f49.medication2,
-      value: medications?.[1],
-    },
-    {
-      dataElement: dataEl.f49.medication3,
-      value: medications?.[2],
-    },
-    {
-      dataElement: dataEl.f49.medication4,
-      value: medications?.[3],
-    },
-    {
-      dataElement: dataEl.f49.medication5,
-      value: medications?.[4],
-    },
-    {
-      dataElement: dataEl.f49.medication6,
-      value: medications?.[5],
-    },
-    {
-      dataElement: dataEl.f49.medication7,
-      value: medications?.[6],
-    },
-    {
-      dataElement: dataEl.f49.medication8,
-      value: medications?.[7],
-    },
-    {
-      dataElement: dataEl.f49.medication9,
-      value: medications?.[8],
-    },
-    {
-      dataElement: dataEl.f49.medication10,
-      value: medications?.[9],
-    },
-    {
-      dataElement: dataEl.f49.specialistType1,
-      value: specialistTypes?.[0],
-    },
-    {
-      dataElement: dataEl.f49.specialistType2,
-      value: specialistTypes?.[1],
-    },
-    {
-      dataElement: dataEl.f49.specialistType3,
-      value: specialistTypes?.[2],
-    },
+  // ========== INVESTIGATION RESULTS STAGE ==========
+  const investigationDataValues = [];
 
-    {
-      dataElement: dataEl.f49.ifOtherSpecialistType1,
-      value: ifOtherSpecialistTypes?.[0],
-    },
-    {
-      dataElement: dataEl.f49.ifOtherSpecialistType2,
-      value: ifOtherSpecialistTypes?.[1],
-    },
-    {
-      dataElement: dataEl.f49.ifOtherSpecialistType3,
-      value: ifOtherSpecialistTypes?.[2],
-    },
-  ];
+  // Simple values
+  F49_CONFIG.investigationStage.simpleValues.forEach((mapping) => {
+    const obs = encounter.obs.find(
+      (o) =>
+        o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
+    );
 
+    if (obs?.value !== undefined && obs?.value !== null) {
+      investigationDataValues.push({
+        dataElement: mapping.de,
+        value: obs.value,
+      });
+    }
+  });
+
+  // TRUE_ONLY values
+  F49_CONFIG.investigationStage.trueOnly.forEach((mapping) => {
+    const value = conceptTrueOnly(encounter, mapping.concept);
+    if (value) {
+      investigationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  // Coded values
+  F49_CONFIG.investigationStage.codedValues.forEach((mapping) => {
+    const value = findAnswerByConcept(encounter, mapping.concept);
+    if (value) {
+      investigationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  // ========== RETURN EVENTS ==========
   return [
     {
       event: defaultEvent,
       programStage,
-      dataValues: defaultDataValues.filter((d) => d.value),
+      dataValues: defaultDataValues,
     },
-    {
-      event: events?.find((e) => e.programStage === "RVgciZl54Aj")?.event,
-      programStage: "RVgciZl54Aj",
-      dataValues: [
-        {
-          dataElement: dataEl.f49.estDeliveryDate,
-          value: findAnswerByConcept(
-            encounter,
-            "4cc41121-74da-42ac-ab89-e8878db66020"
-          ),
-        },
-        {
-          dataElement: dataEl.f49.antenatalConsultation,
-          value: findAnswerByConcept(
-            encounter,
-            "bf704b21-d203-4fb8-9b90-a2c29caad61b"
-          ),
-        },
-        {
-          dataElement: dataEl.f49.contraception,
-          value: findAnswerByConcept(
-            encounter,
-            "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14"
-          ),
-        },
-        {
-          dataElement: dataEl.f49.pregnancyMethod,
-          value: findAnswerByConcept(
-            encounter,
-            "6afb5d27-3e86-42ff-bad1-38f90897e0b6"
-          ),
-        },
-      ].filter((d) => d.value),
-    },
-    {
-      event: events?.find((e) => e.programStage === "zqmLGzSPv3T")?.event,
-      programStage: "zqmLGzSPv3T",
-      dataValues: [
-        {
-          dataElement: dataEl.extremistFootExam,
-          value: findAnswerByConcept(
-            encounter,
-            "3fe91b1d-3c94-4752-ac36-75d4e6af379c"
-          ),
-        },
-        {
-          dataElement: dataEl.hba1cValue,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "033ff20d-4cc5-4da0-ad5e-c42ce25df1e1"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.totalCholesterolValue,
-          value: conceptTrueOnly(
-            encounter,
-            "9265064e-104f-431d-b50d-4cd8b7a39526"
-          ),
-        },
-        {
-          dataElement: dataEl.creatinineDone,
-          value: conceptTrueOnly(
-            encounter,
-            "b20c05db-cc1e-41f8-abbe-cdd8fcef82cc"
-          ),
-        },
-        {
-          dataElement: dataEl.creatinineMgPerDl,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "bc6f8c3a-80ad-46f2-ad76-bd4189ea61c7"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.creatinineUmolPerl,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "397b7cc1-9687-4796-a2a6-52d04f963e71"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.creatinineEgfr,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "910cf2bc-b9fe-4997-845f-409583bbd2fd"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.creatinineMlPerMin,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "ee8dd465-4f0c-4f81-9c9f-8dd1e419a9d8"
-          )?.value,
-        },
-
-        {
-          dataElement: dataEl.urineAnalysis,
-          value: conceptTrueOnly(
-            encounter,
-            "19d395d5-9e2f-4f9b-9723-1fd64e879421"
-          ),
-        },
-        {
-          dataElement: dataEl.altDone,
-          value: conceptTrueOnly(
-            encounter,
-            "41e0892a-3962-4ee6-8adc-b65322da183b"
-          ),
-        },
-        {
-          dataElement: dataEl.kDone,
-          value: conceptTrueOnly(
-            encounter,
-            "e2826aa6-af7b-49cd-b3a3-5ffae92c202d"
-          ),
-        },
-        {
-          dataElement: dataEl.tshDone,
-          value: conceptTrueOnly(
-            encounter,
-            "1b1ddab9-1463-4b79-9d25-b591bca6127e"
-          ),
-        },
-        {
-          dataElement: dataEl.inrDone,
-          value: conceptTrueOnly(
-            encounter,
-            "382d6a15-1e60-43a3-8ee5-bb0f7b11b17b"
-          ),
-        },
-        {
-          dataElement: dataEl.ldlDone,
-          value: conceptTrueOnly(
-            encounter,
-            "1ecf8c4a-c70c-4fa6-b840-2e13cdb217fe"
-          ),
-        },
-        {
-          dataElement: dataEl.ecg,
-          value: findAnswerByConcept(
-            encounter,
-            "f5b2b5ff-47bb-41e1-bbcc-3d7b2ecb373f"
-          ),
-        },
-        {
-          dataElement: dataEl.echo,
-          value: findAnswerByConcept(
-            encounter,
-            "b754e7bb-d425-4f62-988e-3bccc2abf332"
-          ),
-        },
-      ].filter((d) => d.value),
-    },
+    ...(pregnancyDataValues.length > 0
+      ? [
+          {
+            event: pregnancyEvent,
+            programStage: F49_CONFIG.pregnancyStage.programStage,
+            dataValues: pregnancyDataValues,
+          },
+        ]
+      : []),
+    ...(investigationDataValues.length > 0
+      ? [
+          {
+            event: investigationEvent,
+            programStage: F49_CONFIG.investigationStage.programStage,
+            dataValues: investigationDataValues,
+          },
+        ]
+      : []),
   ];
 }
-
 function mapF50(encounter, events, state) {
   const dataEl = state.dhis2Map.de;
   const programStage = state.formMaps[encounter.form.uuid]?.programStage;
