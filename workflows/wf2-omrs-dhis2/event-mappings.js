@@ -876,9 +876,6 @@ const F49_CONFIG = {
     ],
   },
 };
-/**
- * Maps diagnosis with conditional logic
- */
 function mapDiagnosisF49(encounter, mapping, state) {
   const diagnosisObs = encounter.obs.find(
     (o) => o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
@@ -967,7 +964,7 @@ function mapF49(encounter, events, state) {
     (e) => e.programStage === F49_CONFIG.investigationStage.programStage
   )?.event;
 
-  // ========== DEFAULT STAGE ==========
+  // DEFAULT STAGE
   const defaultDataValues = [];
 
   // 1. Consultation date
@@ -1008,8 +1005,6 @@ function mapF49(encounter, events, state) {
   });
 
   // 4-7. Multi-select fields
-  // ✅ IMPROVED: Now uses proper dataValueByConcept for coded values!
-
   // Observed Complications
   defaultDataValues.push(
     ...mapMultiSelect(
@@ -1038,7 +1033,7 @@ function mapF49(encounter, events, state) {
     )
   );
 
-  // ========== PREGNANCY STAGE ==========
+  // PREGNANCY STAGE
   const pregnancyDataValues = [];
 
   F49_CONFIG.pregnancyStage.mappings.forEach((mapping) => {
@@ -1060,7 +1055,7 @@ function mapF49(encounter, events, state) {
     }
   });
 
-  // ========== INVESTIGATION RESULTS STAGE ==========
+  // INVESTIGATION RESULTS STAGE
   const investigationDataValues = [];
 
   // Simple values
@@ -1100,7 +1095,6 @@ function mapF49(encounter, events, state) {
     }
   });
 
-  // ========== RETURN EVENTS ==========
   return [
     {
       event: defaultEvent,
@@ -1127,301 +1121,246 @@ function mapF49(encounter, events, state) {
       : []),
   ];
 }
+
+// F50 CONFIGURATION
+const F50_CONFIG = {
+  newDiagnosisUuid: "f63e1804-0062-4a4a-a412-d07dad95e960",
+  diagnosisRemainsTheSameUuid: "22809b19-54ca-4d88-8d26-9577637c184e",
+
+  diagnosisMappings: [
+    {
+      de: "AXoG311ik9e",
+      answer: "c10a05bc-e814-4693-a789-1eb884270381",
+      qid: "rfe-forms-asthma",
+    },
+    {
+      de: "bpsI6R1AYIb",
+      answer: "6541ddce-0e3c-4b7d-ad52-2bfe18e24dd5",
+      qid: "rfe-forms-cardiovascularDisorders",
+    },
+    {
+      de: "dFDzcBWC4mP",
+      answer: "ada7c7aa-261c-4808-b3ec-1236952ad1da",
+      qid: "rfe-forms-cardiovascularOther",
+    },
+    {
+      de: "TG4Z9U0Dviz",
+      answer: "fef73529-e631-4620-920b-ff7fc5d458da",
+      qid: "rfe-forms-childOrAdolescentDisorder",
+    },
+    {
+      de: "GBBL7viQXvt",
+      answer: "84fc5a0d-0158-4c41-b6e5-8ac7ebfccc0c",
+      qid: "rfe-forms-chronicRenalDisease",
+    },
+    {
+      de: "HGUVMcvDNl0",
+      answer: "0d9a7323-b54a-4d2b-a231-e34fa54e3a54",
+      qid: "rfe-forms-copd",
+    },
+    {
+      de: "Ds7biYZkd2d",
+      answer: "2066f043-2f21-4c19-8c04-77301d7404f9",
+      qid: "rfe-forms-depression",
+    },
+    {
+      de: "G2k65mDPn2e",
+      answer: "ed1150fd-278f-4012-b3d7-a795ac9fac82",
+      qid: "rfe-forms-diabetesTypeI",
+    },
+    {
+      de: "OGlbbWRjbQI",
+      answer: "f1ee73b2-08cb-4373-80ac-357a704d3608",
+      qid: "rfe-forms-diabetesTypeIi",
+    },
+    {
+      de: "oAxAngdds50",
+      answer: "221d041d-1c52-49aa-a370-d0c763893b8f",
+      qid: "rfe-forms-epilepsy",
+    },
+    {
+      de: "Td54s1N65No",
+      answer: "2b816c77-3c82-4444-b91a-f0f7b9ddaad5",
+      qid: "rfe-forms-gestationalDiabetes",
+    },
+    {
+      de: "oqHxcCMjpTK",
+      answer: "6a7a9d6a-e8b6-4ffb-8321-a56e9e4473e0",
+      qid: "rfe-forms-heartFailure",
+    },
+    {
+      de: "Bew76ch1i4i",
+      answer: "10f3b49c-c3dc-4aa7-857f-3f9bb7df8dd0",
+      qid: "rfe-forms-hypertension",
+    },
+    {
+      de: "wyjVWkgUdJG",
+      answer: "aecac536-6eea-4de8-a450-a9ad9608514a",
+      qid: "rfe-forms-hypothyroidism",
+    },
+    {
+      de: "C7zJtdEdZws",
+      answer: "88fc3c44-9ad1-4d33-b4ea-d2223c906f42",
+      qid: "rfe-forms-otherMhDisease",
+    },
+    {
+      de: "mlDXttAXrWI",
+      answer: "37b7ceb1-2ebd-43c5-9be7-c1c5e29e1dbc",
+      qid: "rfe-forms-otherNcd",
+    },
+    {
+      de: "TSSN2CT6OGr",
+      answer: "10336195-ecd9-45bc-b6b4-b08ff1498e1b",
+      qid: "rfe-forms-psychosisOrBpad",
+    },
+    {
+      de: "TuK457D8sTi",
+      answer: "b27187bd-e94a-4dbc-9a77-46c0cefad25a",
+      qid: "rfe-forms-selfHarmOrSuicide",
+    },
+    {
+      de: "PRKYg4AApSm",
+      answer: "7aff0f40-e039-43fb-971d-0c07ed9fcde1",
+      qid: "rfe-forms-stressRelatedDisorder",
+    },
+    {
+      de: "CFFTmUlb5un",
+      answer: "fcc01124-3d7b-4e6f-be35-50233a7f64cb",
+      qid: "rfe-forms-substanceDisorders",
+    },
+  ],
+
+  multiSelect: {
+    observedComplications: {
+      concept: "ec9ffc6e-22c9-4489-ab88-c517460e7838",
+      qid: "rfe-forms-observedComplication",
+      dataElements: [
+        "as6ICto55cO",
+        "y8TsEYlp5ai",
+        "U4N9k9q8iM8",
+        "M3rXGXDLVjx",
+      ],
+      type: "coded",
+    },
+    medications: {
+      concept: "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef",
+      qid: "rfe-forms-medicationPrescribedInCurrentConsultation",
+      dataElements: [
+        "gipSPNNghXK",
+        "sZastBLPgJY",
+        "SHEM1CY8873",
+        "HIfDsB1IsSk",
+        "X5Owq7U5Y4E",
+        "cRm0JmltkJX",
+        "TzL2jbQo6nH",
+        "E1dUkfQ2v47",
+        "H8E7EJgibdt",
+        "ScOa7FiWJTm",
+      ],
+      type: "coded",
+    },
+    specialistTypes: {
+      concept: "8fb3bb7d-c935-4b57-8444-1b953470e109",
+      qid: "rfe-forms-referralSpecialistType",
+      dataElements: ["TsG88CXqaii", "GeqxZYGIjPC", "QThCIIp4FRC"],
+      type: "coded",
+    },
+    ifOtherSpecialistTypes: {
+      concept: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+      qid: "rfe-forms-specialistIfOtherPleaseSpecify",
+      dataElements: ["u68lzJcSaBa", "PO19ZbOBOO1", "OdrZUtuEaUU"],
+      type: "text",
+    },
+  },
+};
+
+function mapDiagnosisF50(encounter, mapping) {
+  // Check if this diagnosis was selected in "New diagnosis" question
+  const newDiagnosisObs = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === F50_CONFIG.newDiagnosisUuid &&
+      o.value?.uuid === mapping.answer
+  );
+
+  if (newDiagnosisObs) {
+    return "newly_diagnosed";
+  }
+
+  // Check if "Diagnosis remains the same?" was answered with this diagnosis
+  const diagnosisRemainsObs = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === F50_CONFIG.diagnosisRemainsTheSameUuid &&
+      o.value?.uuid === mapping.answer
+  );
+
+  return diagnosisRemainsObs ? "unknown" : "no";
+}
+
 function mapF50(encounter, events, state) {
-  const dataEl = state.dhis2Map.de;
+  const { dhis2Map } = state;
   const programStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const dataEl = dhis2Map.de;
+
   const defaultEvent = events?.find(
     (e) => e.programStage === programStage
   )?.event;
 
+  // DEFAULT STAGE
+  const defaultDataValues = [];
+
+  // 1. Consultation date
   const consultationDate = encounter.obs.find(
     (o) => o.concept.uuid === "d329cd4b-a10f-4a4d-96b5-c907bf87e721"
   )?.value;
 
-  const isReadmission =
-    encounter.obs
-      .find((o) => o.concept.uuid === "4dae5b12-070f-4153-b1ca-fbec906106e1")
-      ?.value?.display?.toLowerCase() === "re-admission";
-
-  const diagnosisMap = (encounter, extId, answerUuid) => {
-    const diagnosis = encounter.obs.find((o) => o.concept.uuid === extId)?.value
-      ?.display;
-    if (diagnosis) {
-      return diagnosis;
-    }
-    const diagnosisAtAdmission = encounter.obs.find((o) => {
-      o.value.uuid === answerUuid &&
-        o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e";
-    })?.value;
-    if (diagnosisAtAdmission) {
-      return "uknown";
-    }
-    return "no";
-  };
-
-  const observedComplications = filterObsByConcept(
-    encounter,
-    "ec9ffc6e-22c9-4489-ab88-c517460e7838"
-  ).map((o) => o.value.display);
-
-  const medications = filterObsByConcept(
-    encounter,
-    "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef"
-  ).map((o) => o.value.display);
-
-  const specialistTypes = filterObsByConcept(
-    encounter,
-    "8fb3bb7d-c935-4b57-8444-1b953470e109"
-  ).map((o) => o.value.display);
-
-  const ifOtherSpecialistTypes = filterObsByConcept(
-    encounter,
-    "790b41ce-e1e7-11e8-b02f-0242ac130002"
-  ).map((o) => o.value.display);
-
-  const newDiagnosisExtId = "f63e1804-0062-4a4a-a412-d07dad95e960";
-  const defaultDataValues = [
-    {
+  if (consultationDate) {
+    defaultDataValues.push({
       dataElement: dataEl.ncdEventDate,
-      value: encounter.encounterDatetime.replace("+0000", ""),
-    },
-    {
-      dataElement: dataEl.f50.asthma,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "c10a05bc-e814-4693-a789-1eb884270381"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.cardiovascularDisorder,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "6541ddce-0e3c-4b7d-ad52-2bfe18e24dd5"
-      ),
-    },
-    {
-      dataElement: dataEl.cardiovascularOther,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "ada7c7aa-261c-4808-b3ec-1236952ad1da"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.childAdolescence,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "fef73529-e631-4620-920b-ff7fc5d458da"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.chronicKidneyDisease,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "84fc5a0d-0158-4c41-b6e5-8ac7ebfccc0c"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.copd,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "0d9a7323-b54a-4d2b-a231-e34fa54e3a54"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.depression,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "2066f043-2f21-4c19-8c04-77301d7404f9"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.diabetesTypeI,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "ed1150fd-278f-4012-b3d7-a795ac9fac82"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.diabetesTypeII,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "f1ee73b2-08cb-4373-80ac-357a704d3608"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.epilepsy,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "221d041d-1c52-49aa-a370-d0c763893b8f"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.gestationalDiabetes,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "2b816c77-3c82-4444-b91a-f0f7b9ddaad5"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.heartfailure,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "6a7a9d6a-e8b6-4ffb-8321-a56e9e4473e0"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.hypertension,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "10f3b49c-c3dc-4aa7-857f-3f9bb7df8dd0"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.hypothyroidism,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "aecac536-6eea-4de8-a450-a9ad9608514a"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.otherMH,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "88fc3c44-9ad1-4d33-b4ea-d2223c906f42"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.psychosis,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "10336195-ecd9-45bc-b6b4-b08ff1498e1b"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.selfHarm,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "b27187bd-e94a-4dbc-9a77-46c0cefad25a"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.stressRelated,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "7aff0f40-e039-43fb-971d-0c07ed9fcde1"
-      ),
-    },
-    {
-      dataElement: dataEl.f50.substanceDisorder,
-      value: diagnosisMap(
-        encounter,
-        newDiagnosisExtId,
-        "fcc01124-3d7b-4e6f-be35-50233a7f64cb"
-      ),
-    },
+      value: consultationDate,
+    });
+  }
 
-    {
-      dataElement: dataEl.f50.observedComplication1,
-      value: observedComplications?.[0],
-    },
-    {
-      dataElement: dataEl.f50.observedComplication2,
-      value: observedComplications?.[1],
-    },
-    {
-      dataElement: dataEl.f50.observedComplication3,
-      value: observedComplications?.[2],
-    },
-    {
-      dataElement: dataEl.f50.observedComplication4,
-      value: observedComplications?.[3],
-    },
+  // 2. Diagnosis mappings
+  F50_CONFIG.diagnosisMappings.forEach((mapping) => {
+    const value = mapDiagnosisF50(encounter, mapping);
+    if (value) {
+      defaultDataValues.push({
+        dataElement: mapping.de,
+        value: value,
+      });
+    }
+  });
 
-    {
-      dataElement: dataEl.f50.medication1,
-      value: medications?.[0],
-    },
-    {
-      dataElement: dataEl.f50.medication2,
-      value: medications?.[1],
-    },
-    {
-      dataElement: dataEl.f50.medication3,
-      value: medications?.[2],
-    },
-    {
-      dataElement: dataEl.f50.medication4,
-      value: medications?.[3],
-    },
-    {
-      dataElement: dataEl.medication5,
-      value: medications?.[4],
-    },
-    {
-      dataElement: dataEl.f50.medication6,
-      value: medications?.[5],
-    },
-    {
-      dataElement: dataEl.f50.medication7,
-      value: medications?.[6],
-    },
-    {
-      dataElement: dataEl.f50.medication8,
-      value: medications?.[7],
-    },
-    {
-      dataElement: dataEl.f50.medication9,
-      value: medications?.[8],
-    },
-    {
-      dataElement: dataEl.f50.medication10,
-      value: medications?.[9],
-    },
-    {
-      dataElement: dataEl.f50.specialistType1,
-      value: specialistTypes?.[0],
-    },
-    {
-      dataElement: dataEl.f50.specialistType2,
-      value: specialistTypes?.[1],
-    },
-    {
-      dataElement: dataEl.f50.specialistType3,
-      value: specialistTypes?.[2],
-    },
+  // 3. Multi-select fields
+  // Observed Complications
+  defaultDataValues.push(
+    ...mapMultiSelect(
+      encounter,
+      F50_CONFIG.multiSelect.observedComplications,
+      state
+    )
+  );
 
-    {
-      dataElement: dataEl.f50.ifOtherSpecialistType1,
-      value: ifOtherSpecialistTypes?.[0],
-    },
-    {
-      dataElement: dataEl.f50.ifOtherSpecialistType2,
-      value: ifOtherSpecialistTypes?.[1],
-    },
-    {
-      dataElement: dataEl.f50.ifOtherSpecialistType3,
-      value: ifOtherSpecialistTypes?.[2],
-    },
-  ];
+  // Medications
+  defaultDataValues.push(
+    ...mapMultiSelect(encounter, F50_CONFIG.multiSelect.medications, state)
+  );
 
+  // Specialist Types
+  defaultDataValues.push(
+    ...mapMultiSelect(encounter, F50_CONFIG.multiSelect.specialistTypes, state)
+  );
+
+  // If Other Specialist Types (text values)
+  defaultDataValues.push(
+    ...mapMultiSelect(
+      encounter,
+      F50_CONFIG.multiSelect.ifOtherSpecialistTypes,
+      state
+    )
+  );
+
+  // RETURN EVENTS
   return [
     {
       event: defaultEvent,
