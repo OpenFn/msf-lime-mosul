@@ -22,7 +22,7 @@ steps:
       create-events:
         disabled: false
         condition: |
-          state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
+          state?.eventsMapping?.length > 0 && !state.errors
         name: has-events
   - id: get-encounters
     name: Get Encounters
