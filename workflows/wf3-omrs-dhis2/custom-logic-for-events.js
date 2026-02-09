@@ -281,20 +281,26 @@ function f64(encounter) {
       dataElement: "aBFddBaxqmt", // ICU - Patient transferred from
       value: patientTransferredFrom.display,
     });
-  }
 
-  // If other, specify (Question #3)
-  // Concept: 790b41ce-e1e7-11e8-b02f-0242ac130002
-  const otherSpecify = findObsByConcept(
-    encounter,
-    "790b41ce-e1e7-11e8-b02f-0242ac130002"
-  )?.value;
+    // If other, specify (Question #3) - Only relevant if "Other" was selected
+    // Concept: 790b41ce-e1e7-11e8-b02f-0242ac130002
+    if (
+      patientTransferredFrom.display &&
+      (patientTransferredFrom.display.toLowerCase().includes("other") ||
+        patientTransferredFrom.display.toLowerCase().includes("autre"))
+    ) {
+      const otherSpecify = findObsByConcept(
+        encounter,
+        "790b41ce-e1e7-11e8-b02f-0242ac130002"
+      )?.value;
 
-  if (otherSpecify) {
-    mappings.push({
-      dataElement: "bSjWec25a2M", // ICU - if other, specify
-      value: otherSpecify,
-    });
+      if (otherSpecify) {
+        mappings.push({
+          dataElement: "bSjWec25a2M", // ICU - if other, specify
+          value: otherSpecify,
+        });
+      }
+    }
   }
 
   // Re-admission (Question #4)
@@ -393,7 +399,8 @@ function f64(encounter) {
 function f65(encounter) {
   const mappings = [];
 
-  // Discharge date and time
+  // Discharge date and time (Question #1)
+  // Concept: d92dd800-b048-4724-86fa-91d006f9caa8
   const dischargeDateTime = findObsByConcept(
     encounter,
     "d92dd800-b048-4724-86fa-91d006f9caa8"
@@ -404,17 +411,18 @@ function f65(encounter) {
     const timePart = dischargeDateTime.substring(11, 16);
     mappings.push(
       {
-        dataElement: "GwlaaueZOz1",
+        dataElement: "GwlaaueZOz1", // ICU - Discharge date
         value: datePart,
       },
       {
-        dataElement: "Me7I97tO6lt",
+        dataElement: "Me7I97tO6lt", // ICU - Discharge time (HH:MM)
         value: timePart,
       }
     );
   }
 
-  // Complications concept
+  // Complications (Question #3)
+  // Concept: ec9ffc6e-22c9-4489-ab88-c517460e7838
   const COMPLICATIONS_CONCEPT = "ec9ffc6e-22c9-4489-ab88-c517460e7838";
   const complications = [
     {
@@ -460,7 +468,27 @@ function f65(encounter) {
     });
   });
 
-  // Procedures concept
+  // Helper: Get all "Comments" observations to handle multiple comment fields
+  // Concept: db316f14-259b-40ab-89c5-7d3187967f82
+  const commentObs = filterObsByConcept(
+    encounter,
+    "db316f14-259b-40ab-89c5-7d3187967f82"
+  );
+
+  // Notes on complications (Question #4) - if any complications selected
+  if (commentObs.length > 0) {
+    const notesOnComplications = commentObs[0]?.value;
+    if (notesOnComplications) {
+      mappings.push({
+        dataElement: "D5ECjU5w0S8", // ICU - if Other complications specify
+        value: notesOnComplications,
+      });
+      commentObs.shift(); // Remove the used observation
+    }
+  }
+
+  // Procedures (Question #7)
+  // Concept: d3ffa682-10ab-41f3-8965-d5835028ddf1
   const PROCEDURES_CONCEPT = "d3ffa682-10ab-41f3-8965-d5835028ddf1";
   const procedures = [
     {
@@ -565,6 +593,350 @@ function f65(encounter) {
         : false,
     });
   });
+
+  // If oxygen therapy, how many hours? (Question #8)
+  // Concept: dfd75194-5e4c-4cfd-9fa3-2bbb9a8ac9f8
+  const oxygenTherapyHours = findObsByConcept(
+    encounter,
+    "dfd75194-5e4c-4cfd-9fa3-2bbb9a8ac9f8"
+  )?.value;
+
+  if (oxygenTherapyHours !== undefined) {
+    mappings.push({
+      dataElement: "xTeMtjKirxp", // ICU - If oxygen therapy, how many hours?
+      value: oxygenTherapyHours,
+    });
+  }
+
+  // If ventilation, how many hours? (Question #9)
+  // Concept: 9cd8fdd5-fdbd-4e85-baf0-4d8c162e1711
+  const ventilationHours = findObsByConcept(
+    encounter,
+    "9cd8fdd5-fdbd-4e85-baf0-4d8c162e1711"
+  )?.value;
+
+  if (ventilationHours !== undefined) {
+    mappings.push({
+      dataElement: "AyJOgCdsjCB", // ICU - if ventilation, how many hours?
+      value: ventilationHours,
+    });
+  }
+
+  // If sedation, how many hours? (Question #10)
+  // Concept: 6d36b085-2844-441a-9e62-2cbce2b89436
+  const sedationHours = findObsByConcept(
+    encounter,
+    "6d36b085-2844-441a-9e62-2cbce2b89436"
+  )?.value;
+
+  if (sedationHours !== undefined) {
+    mappings.push({
+      dataElement: "Xyq5RpkLBrP", // ICU - Sedation (how many hours)
+      value: sedationHours,
+    });
+  }
+
+  // Weight at discharge (Question #14)
+  // Concept: cdb8c5f1-1afd-41d0-ba30-714440441555
+  const weightAtDischarge = findObsByConcept(
+    encounter,
+    "cdb8c5f1-1afd-41d0-ba30-714440441555"
+  )?.value;
+
+  if (weightAtDischarge !== undefined) {
+    mappings.push({
+      dataElement: "dbfPrOrNd0Z", // ICU - Weight at discharge (in Kg)
+      value: weightAtDischarge,
+    });
+  }
+
+  // Helper: Get all "Other, specify" observations
+  // Concept: 790b41ce-e1e7-11e8-b02f-0242ac130002
+  const otherSpecifyObs = filterObsByConcept(
+    encounter,
+    "790b41ce-e1e7-11e8-b02f-0242ac130002"
+  );
+
+  // Final main diagnosis (Question #23)
+  // Concept: 9da302ed-948f-4030-8f0a-a294dd3dff21
+  const finalMainDiagnosis = findObsByConcept(
+    encounter,
+    "9da302ed-948f-4030-8f0a-a294dd3dff21"
+  )?.value;
+
+  if (finalMainDiagnosis) {
+    mappings.push({
+      dataElement: "VF9mO17BUGq", // ICU - Final main diagnosis (non surgical conditions)
+      value: finalMainDiagnosis.display,
+    });
+
+    // Final main diagnosis - if 'other', specify (Question #24)
+    if (
+      finalMainDiagnosis.display &&
+      (finalMainDiagnosis.display.toLowerCase().includes("other") ||
+        finalMainDiagnosis.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "lN6UabysLNl", // ICU - Final main diagnosis - if 'other', specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // Final secondary diagnosis 1 (Question #25)
+  // Concept: 3a03bdb4-4b3f-45c3-966a-97843ec88680
+  const finalSecondaryDiagnosis1 = findObsByConcept(
+    encounter,
+    "3a03bdb4-4b3f-45c3-966a-97843ec88680"
+  )?.value;
+
+  if (finalSecondaryDiagnosis1) {
+    mappings.push({
+      dataElement: "ye41OtFZ21M", // ICU - Final secondary diagnosis 1
+      value: finalSecondaryDiagnosis1.display,
+    });
+
+    // Final 2nd diagnosis 1 - if 'other', specify (Question #26)
+    if (
+      finalSecondaryDiagnosis1.display &&
+      (finalSecondaryDiagnosis1.display.toLowerCase().includes("other") ||
+        finalSecondaryDiagnosis1.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "RA2msXsMUjE", // ICU - Final 2nd diagnosis 1 - if 'other', specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // Final secondary diagnosis 2 (Question #27)
+  // Concept: e9ff5084-8d17-48e8-a1b7-890d1b4e14b1
+  const finalSecondaryDiagnosis2 = findObsByConcept(
+    encounter,
+    "e9ff5084-8d17-48e8-a1b7-890d1b4e14b1"
+  )?.value;
+
+  if (finalSecondaryDiagnosis2) {
+    mappings.push({
+      dataElement: "SXYe6Df4fy1", // ICU - Final secondary diagnosis 2
+      value: finalSecondaryDiagnosis2.display,
+    });
+
+    // Final 2nd diagnosis 2 - if 'other', specify (Question #28)
+    if (
+      finalSecondaryDiagnosis2.display &&
+      (finalSecondaryDiagnosis2.display.toLowerCase().includes("other") ||
+        finalSecondaryDiagnosis2.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "RGsyqjcPLy4", // ICU - Final 2nd diagnosis 2 - if 'other', specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // Final secondary diagnosis 3 (Question #29)
+  // Concept: d1e43f55-4432-4a19-bf17-5a1c97b2226f
+  const finalSecondaryDiagnosis3 = findObsByConcept(
+    encounter,
+    "d1e43f55-4432-4a19-bf17-5a1c97b2226f"
+  )?.value;
+
+  if (finalSecondaryDiagnosis3) {
+    mappings.push({
+      dataElement: "ah8p7pDGvSn", // ICU - Final secondary diagnosis 3
+      value: finalSecondaryDiagnosis3.display,
+    });
+
+    // Final 2nd diagnosis 3 - if 'other', specify (Question #30)
+    if (
+      finalSecondaryDiagnosis3.display &&
+      (finalSecondaryDiagnosis3.display.toLowerCase().includes("other") ||
+        finalSecondaryDiagnosis3.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "Pp4sZGw19NB", // ICU - Final 2nd diagnosis 3 - if 'other', specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // Type of discharge (Question #31)
+  // Concept: 09a06404-afc5-457a-91b9-54152e45a854
+  const typeOfDischarge = findObsByConcept(
+    encounter,
+    "09a06404-afc5-457a-91b9-54152e45a854"
+  )?.value;
+
+  if (typeOfDischarge) {
+    mappings.push({
+      dataElement: "X5USNxYfnw8", // ICU - Type of discharge
+      value: typeOfDischarge.display,
+    });
+
+    // If other type of discharge, specify (Question #32)
+    if (
+      typeOfDischarge.display &&
+      (typeOfDischarge.display.toLowerCase().includes("other") ||
+        typeOfDischarge.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "Gq8L0KVLS1m", // ICU - If type of discharge other, specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // If referred, to where (Question #33)
+  // Concept: 93eb9716-6866-4d13-9b8f-59c0a7605a11
+  const referredToWhere = findObsByConcept(
+    encounter,
+    "93eb9716-6866-4d13-9b8f-59c0a7605a11"
+  )?.value;
+
+  if (referredToWhere) {
+    mappings.push({
+      dataElement: "Dh6a82Fu7Zv", // ICU - If referred, to where
+      value: referredToWhere.display,
+    });
+
+    // If referred, to where - if other, specify (Question #34)
+    if (
+      referredToWhere.display &&
+      (referredToWhere.display.toLowerCase().includes("other") ||
+        referredToWhere.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "xHtopHW9tN5", // ICU - If referred, to where - if other, specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // Cause of referral (Question #35)
+  // Concept: 53b450aa-d27c-4c2f-9a4e-98513bbe645f
+  const causeOfReferral = findObsByConcept(
+    encounter,
+    "53b450aa-d27c-4c2f-9a4e-98513bbe645f"
+  )?.value;
+
+  if (causeOfReferral) {
+    mappings.push({
+      dataElement: "GZwo0YTh18F", // ICU - Cause of referral
+      value: causeOfReferral,
+    });
+  }
+
+  // If transfer, to where (Question #36)
+  // Concept: eef5efc1-4d6a-43fb-87e1-4cca9842678d
+  const transferToWhere = findObsByConcept(
+    encounter,
+    "eef5efc1-4d6a-43fb-87e1-4cca9842678d"
+  )?.value;
+
+  if (transferToWhere) {
+    mappings.push({
+      dataElement: "NgnZrz8aeKN", // ICU - If transfer, to where
+      value: transferToWhere.display,
+    });
+
+    // If transfer, to where - if other, specify (Question #37)
+    if (
+      transferToWhere.display &&
+      (transferToWhere.display.toLowerCase().includes("other") ||
+        transferToWhere.display.toLowerCase().includes("autre"))
+    ) {
+      const otherValue = otherSpecifyObs[0]?.value;
+      if (otherValue) {
+        mappings.push({
+          dataElement: "NjDrYZ1BYSs", // ICU - If transfer, to where - if other, specify
+          value: otherValue,
+        });
+        otherSpecifyObs.shift(); // Remove the used observation
+      }
+    }
+  }
+
+  // Death cause (Question #38)
+  // Concept: 778b70b5-c6de-4459-a101-6bf02f77d5c7
+  const deathCause = findObsByConcept(
+    encounter,
+    "778b70b5-c6de-4459-a101-6bf02f77d5c7"
+  )?.value;
+
+  if (deathCause) {
+    mappings.push({
+      dataElement: "eKtwjKyRgTN", // ICU - Death cause
+      value: deathCause.display,
+    });
+  }
+
+  // Specify death cause (Question #39)
+  // Concept: e364431c-0eee-4acc-a1e6-d9c4484903f2
+  const specifyDeathCause = findObsByConcept(
+    encounter,
+    "e364431c-0eee-4acc-a1e6-d9c4484903f2"
+  )?.value;
+
+  if (specifyDeathCause) {
+    mappings.push({
+      dataElement: "dSEw5AdEZIf", // ICU - Specify death cause
+      value: specifyDeathCause,
+    });
+  }
+
+  // Death within 48h? (Question #40)
+  // Concept: ab9fcaa9-0d65-4755-be0d-092d1cdaadb8
+  const deathWithin48h = findObsByConcept(
+    encounter,
+    "ab9fcaa9-0d65-4755-be0d-092d1cdaadb8"
+  )?.value;
+
+  if (deathWithin48h !== undefined) {
+    mappings.push({
+      dataElement: "NcMO7ye3tbx", // ICU - Death within 48h?
+      value:
+        deathWithin48h.display === "Yes" ||
+        deathWithin48h.display === "TRUE" ||
+        deathWithin48h === true,
+    });
+  }
+
+  // Comments (Question #41) - General comments field
+  // Use remaining comment observation if available
+  if (commentObs.length > 0) {
+    const comments = commentObs[0]?.value;
+    if (comments) {
+      mappings.push({
+        dataElement: "NHA7cwXqQWE", // ICU - Comments
+        value: comments,
+      });
+    }
+  }
 
   return mappings;
 }
