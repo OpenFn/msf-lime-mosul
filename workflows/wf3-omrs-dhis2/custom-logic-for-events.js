@@ -171,6 +171,7 @@ function f26(encounter, optsMap, optionSetKey) {
   }
   return [];
 }
+
 function f41(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
@@ -251,21 +252,142 @@ function f43(encounter, tei, dhis2Attr) {
 }
 
 function f64(encounter) {
+  const mappings = [];
+
+  // Admission date and time (Question #1)
+  // Concept: 7f00c65d-de60-467a-8964-fe80c7a85ef0
   const admissionTime = findObsByConcept(
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
 
-  if (!admissionTime) return [];
-
-  const timePart = admissionTime.substring(11, 16);
-
-  return [
-    {
-      dataElement: "KDZguOxdsZk",
+  if (admissionTime) {
+    const timePart = admissionTime.substring(11, 16);
+    mappings.push({
+      dataElement: "KDZguOxdsZk", // ICU - Admission time
       value: timePart,
-    },
-  ];
+    });
+  }
+
+  // Patient transferred from (Question #2)
+  // Concept: b3a5baf0-31bb-43cc-9a74-e9ea6b29d713
+  const patientTransferredFrom = findObsByConcept(
+    encounter,
+    "b3a5baf0-31bb-43cc-9a74-e9ea6b29d713"
+  )?.value;
+
+  if (patientTransferredFrom) {
+    mappings.push({
+      dataElement: "aBFddBaxqmt", // ICU - Patient transferred from
+      value: patientTransferredFrom.display,
+    });
+  }
+
+  // If other, specify (Question #3)
+  // Concept: 790b41ce-e1e7-11e8-b02f-0242ac130002
+  const otherSpecify = findObsByConcept(
+    encounter,
+    "790b41ce-e1e7-11e8-b02f-0242ac130002"
+  )?.value;
+
+  if (otherSpecify) {
+    mappings.push({
+      dataElement: "bSjWec25a2M", // ICU - if other, specify
+      value: otherSpecify,
+    });
+  }
+
+  // Re-admission (Question #4)
+  // Concept: e4e42ecd-196b-4aa8-a265-bfbed09d77cf
+  const reAdmission = findObsByConcept(
+    encounter,
+    "e4e42ecd-196b-4aa8-a265-bfbed09d77cf"
+  )?.value;
+
+  if (reAdmission !== undefined) {
+    mappings.push({
+      dataElement: "k9oIzraTTCY", // ICU - Re-admission
+      value:
+        reAdmission.display === "Yes" ||
+        reAdmission.display === "TRUE" ||
+        reAdmission === true,
+    });
+  }
+
+  // In-admission criteria (Question #5)
+  // Concept: a1546b77-181d-4cea-b21d-33ab07b328e1
+  const admissionCriteria = findObsByConcept(
+    encounter,
+    "a1546b77-181d-4cea-b21d-33ab07b328e1"
+  )?.value;
+
+  if (admissionCriteria !== undefined) {
+    mappings.push({
+      dataElement: "fYaH1aRPWKd", // ICU - In-admission criteria
+      value:
+        admissionCriteria.display === "Yes" ||
+        admissionCriteria.display === "TRUE" ||
+        admissionCriteria === true,
+    });
+  }
+
+  // Reason for admission (Question #6)
+  // Concept: 65a0f171-8c4f-4f69-acee-79e73b896a0f
+  const reasonForAdmission = findObsByConcept(
+    encounter,
+    "65a0f171-8c4f-4f69-acee-79e73b896a0f"
+  )?.value;
+
+  if (reasonForAdmission) {
+    mappings.push({
+      dataElement: "caDcY34IBaM", // ICU - Reason for admission 2
+      value: reasonForAdmission.display,
+    });
+  }
+
+  // Hospitalisation cause (Question #18)
+  // Concept: 808a581e-cf83-45eb-b46b-de5ebb8d5dfe
+  const hospitalisationCause = findObsByConcept(
+    encounter,
+    "808a581e-cf83-45eb-b46b-de5ebb8d5dfe"
+  )?.value;
+
+  if (hospitalisationCause) {
+    mappings.push({
+      dataElement: "cvrP0fldn57", // ICU - Hospitalisation cause
+      value: hospitalisationCause.display,
+    });
+  }
+
+  // Weight at admission (Question #41)
+  // Concept: 9e3c4083-21bd-42d4-a2b5-657bc0b8a4a5
+  const weightAtAdmission = findObsByConcept(
+    encounter,
+    "9e3c4083-21bd-42d4-a2b5-657bc0b8a4a5"
+  )?.value;
+
+  if (weightAtAdmission !== undefined) {
+    mappings.push({
+      dataElement: "PIgCQWLxywu", // ICU - Weight at admission (in Kg)
+      value: weightAtAdmission,
+    });
+  }
+
+  // Comments (Question #45)
+  // Concept: db316f14-259b-40ab-89c5-7d3187967f82
+  const comments = findObsByConcept(
+    encounter,
+    "db316f14-259b-40ab-89c5-7d3187967f82"
+  )?.value;
+
+  if (comments) {
+    mappings.push({
+      dataElement: "NHA7cwXqQWE", // ICU - Comments
+      value: comments,
+    });
+  }
+
+  return mappings;
 }
 
 function f65(encounter) {
