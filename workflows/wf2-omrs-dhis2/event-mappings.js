@@ -906,6 +906,7 @@ function mapMultiSelect(encounter, config, state) {
   const { concept, qid, dataElements, type } = config;
   // Get all observations for this multi-select field
   const observations = filterObsByConcept(encounter, `${concept}-${qid}`);
+
   // Map each observation to its data element
   return observations
     .slice(0, dataElements.length)
@@ -2226,7 +2227,6 @@ function mapF63(encounter, events) {
 }
 
 const dataValueByConcept = (encounter, de, state) => {
-  state.missingOptsets ??= [];
   const { dataElement, conceptUuid, questionId } = de;
 
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -2257,15 +2257,10 @@ const dataValueByConcept = (encounter, de, state) => {
       );
     }
 
-    // Removed fallback logic to DHIS2 Option name and answer.value.display
-    // Now only using DHIS2 Option Code to ensure proper validation
     const matchingOption = opt?.["DHIS2 Option Code"];
-    // if (!matchingOption) {
-    //   console.log({ optionKey });
-    // }
+
     if (!matchingOption) {
-      // Capture missing DHIS2 Option Codes for tracking
-      state.missingOptsets.push({
+      const optSet = {
         timestamp: new Date().toISOString(),
         openMrsQuestion: answer.concept.display || "N/A",
         conceptExternalId: answer.concept.uuid,
@@ -2278,7 +2273,9 @@ const dataValueByConcept = (encounter, de, state) => {
         patientUuid: encounter.patient.uuid,
         sourceFile: state.sourceFile,
         optionKey,
-      });
+      };
+      // Capture missing DHIS2 Option Codes for tracking
+      state.missingOptsets.push(optSet);
     }
 
     if (["FALSE", "No"].includes(matchingOption)) return "false";
@@ -2322,7 +2319,7 @@ const findDataValue = (encounter, dataElement, state) => {
     const matchingOption = opt?.["DHIS2 Option Code"];
 
     // Capture missing DHIS2 Option Codes for tracking
-    if (!matchingOption && state.missingOptsets) {
+    if (!matchingOption) {
       state.missingOptsets.push({
         timestamp: new Date().toISOString(),
         openMrsQuestion: answer.concept.display || "N/A",
@@ -2464,7 +2461,7 @@ const buildExitEvent = (encounter, tei, state) => {
 
 fn((state) => {
   // Initialize array to track missing DHIS2 Option Codes
-  state.missingOptsets = [];
+  state.missingOptsets ??= [];
 
   const handleMissingRecord = (data, state) => {
     const { uuid, display } = data.patient;
@@ -2575,12 +2572,7 @@ fn((state) => {
           enrollment,
           events,
         },
-        {
-          formMaps: state.formMaps,
-          dhis2Map: state.dhis2Map,
-          optionSetKey: state.optionSetKey,
-          optsMap: state.optsMap,
-        }
+        state
       );
 
       const mappings = [
