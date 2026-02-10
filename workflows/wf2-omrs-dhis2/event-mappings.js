@@ -904,20 +904,13 @@ function mapDiagnosisF49(encounter, mapping, state) {
 
 function mapMultiSelect(encounter, config, state) {
   const { concept, qid, dataElements, type } = config;
-
   // Get all observations for this multi-select field
   const observations = filterObsByConcept(encounter, `${concept}-${qid}`);
-
   // Map each observation to its data element
   return observations
+    .slice(0, dataElements.length)
     .map((obs, index) => {
       const de = dataElements[index];
-      if (!de) {
-        console.warn(
-          `No data element for observation at index ${index} in multi-select ${qid}`
-        );
-        return null;
-      }
 
       let value;
 
@@ -1086,7 +1079,15 @@ function mapF49(encounter, events, state) {
 
   // Coded values
   F49_CONFIG.investigationStage.codedValues.forEach((mapping) => {
-    const value = findAnswerByConcept(encounter, mapping.concept);
+    const value = dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
+      },
+      state
+    );
     if (value) {
       investigationDataValues.push({
         dataElement: mapping.de,
@@ -1272,6 +1273,122 @@ const F50_CONFIG = {
       type: "text",
     },
   },
+
+  pregnancyStage: {
+    programStage: "RVgciZl54Aj",
+    mappings: [
+      {
+        de: "aFc9FG0PaRf",
+        concept: "4cc41121-74da-42ac-ab89-e8878db66020",
+        qid: "rfe-forms-estimatedDateOfDelivery",
+      },
+      {
+        de: "J62aIKRxrBQ",
+        concept: "bf704b21-d203-4fb8-9b90-a2c29caad61b",
+        qid: "rfe-forms-antenatalConsultations",
+      },
+      {
+        de: "b6dGoMJm1jO",
+        concept: "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14",
+        qid: "rfe-forms-currentlyOnContraception",
+      },
+      {
+        de: "clnZXAAKStw",
+        concept: "6afb5d27-3e86-42ff-bad1-38f90897e0b6",
+        qid: "rfe-forms-method",
+      },
+    ],
+  },
+
+  investigationStage: {
+    programStage: "zqmLGzSPv3T",
+    simpleValues: [
+      {
+        de: "QJXo4pwCxJR",
+        concept: "033ff20d-4cc5-4da0-ad5e-c42ce25df1e1",
+        qid: "rfe-forms-hba1c_1",
+      },
+      {
+        de: "pG7e3WfYoTL",
+        concept: "bc6f8c3a-80ad-46f2-ad76-bd4189ea61c7",
+        qid: "rfe-forms-creatinine",
+      },
+      {
+        de: "BdSAkE2x4k2",
+        concept: "397b7cc1-9687-4796-a2a6-52d04f963e71",
+        qid: "rfe-forms-creatinine_1",
+      },
+      {
+        de: "qd60Le4nrd6",
+        concept: "910cf2bc-b9fe-4997-845f-409583bbd2fd",
+        qid: "rfe-forms-egfr",
+      },
+      {
+        de: "dV5ngpIQymO",
+        concept: "ee8dd465-4f0c-4f81-9c9f-8dd1e419a9d8",
+        qid: "rfe-forms-creatinineClearance",
+      },
+    ],
+    trueOnly: [
+      {
+        de: "YAkbJFXtTFU",
+        concept: "9265064e-104f-431d-b50d-4cd8b7a39526",
+        qid: "rfe-forms-totalCholesterolDone",
+      },
+      {
+        de: "nqINkxxSTe1",
+        concept: "b20c05db-cc1e-41f8-abbe-cdd8fcef82cc",
+        qid: "rfe-forms-creatinineDone",
+      },
+      {
+        de: "tK9u009wENy",
+        concept: "19d395d5-9e2f-4f9b-9723-1fd64e879421",
+        qid: "rfe-forms-urineAnalysisDone",
+      },
+      {
+        de: "AosqYtkFCzH",
+        concept: "41e0892a-3962-4ee6-8adc-b65322da183b",
+        qid: "rfe-forms-altDone",
+      },
+      {
+        de: "Ucg0LjdAiqu",
+        concept: "e2826aa6-af7b-49cd-b3a3-5ffae92c202d",
+        qid: "rfe-forms-kDone",
+      },
+      {
+        de: "bG9RawjSauF",
+        concept: "1b1ddab9-1463-4b79-9d25-b591bca6127e",
+        qid: "rfe-forms-tshDone",
+      },
+      {
+        de: "pdzQ3dYXcKh",
+        concept: "382d6a15-1e60-43a3-8ee5-bb0f7b11b17b",
+        qid: "rfe-forms-inrDone",
+      },
+      {
+        de: "NqrNohB1MRq",
+        concept: "1ecf8c4a-c70c-4fa6-b840-2e13cdb217fe",
+        qid: "rfe-forms-ldlDone",
+      },
+    ],
+    codedValues: [
+      {
+        de: "gPplT1Gk1uB",
+        concept: "3fe91b1d-3c94-4752-ac36-75d4e6af379c",
+        qid: "rfe-forms-extremitiesOrFootExam",
+      },
+      {
+        de: "zmn2V11p3SW",
+        concept: "f5b2b5ff-47bb-41e1-bbcc-3d7b2ecb373f",
+        qid: "rfe-forms-ecg",
+      },
+      {
+        de: "DWYLDxxZpK5",
+        concept: "b754e7bb-d425-4f62-988e-3bccc2abf332",
+        qid: "rfe-forms-echoResult",
+      },
+    ],
+  },
 };
 
 function mapDiagnosisF50(encounter, mapping) {
@@ -1360,6 +1477,85 @@ function mapF50(encounter, events, state) {
     )
   );
 
+  // PREGNANCY STAGE
+  const pregnancyEvent = events?.find(
+    (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+  )?.event;
+  const pregnancyDataValues = [];
+
+  F50_CONFIG.pregnancyStage.mappings.forEach((mapping) => {
+    const value = dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
+      },
+      state
+    );
+
+    if (value !== undefined && value !== null) {
+      pregnancyDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  // INVESTIGATION RESULTS STAGE
+  const investigationEvent = events?.find(
+    (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+  )?.event;
+  const investigationDataValues = [];
+
+  // Simple values (numeric)
+  F50_CONFIG.investigationStage.simpleValues.forEach((mapping) => {
+    const obs = encounter.obs.find(
+      (o) =>
+        o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
+    );
+
+    if (obs?.value !== undefined && obs?.value !== null) {
+      investigationDataValues.push({
+        dataElement: mapping.de,
+        value: obs.value,
+      });
+    }
+  });
+
+  // TRUE_ONLY values
+  F50_CONFIG.investigationStage.trueOnly.forEach((mapping) => {
+    const obs = encounter.obs.find(
+      (o) =>
+        o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
+    );
+    if (obs && ["yes", "true"].includes(obs?.value?.display?.toLowerCase())) {
+      investigationDataValues.push({
+        dataElement: mapping.de,
+        value: "TRUE",
+      });
+    }
+  });
+
+  // Coded values
+  F50_CONFIG.investigationStage.codedValues.forEach((mapping) => {
+    const value = dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
+      },
+      state
+    );
+    if (value) {
+      investigationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
   // RETURN EVENTS
   return [
     {
@@ -1394,154 +1590,24 @@ function mapF50(encounter, events, state) {
         },
       ].filter((d) => d.value),
     },
-    {
-      event: events?.find((e) => e.programStage === "RVgciZl54Aj")?.event,
-      programStage: "RVgciZl54Aj",
-      dataValues: [
-        {
-          dataElement: dataEl.f50.estDeliveryDate,
-          value: findAnswerByConcept(
-            encounter,
-            "4cc41121-74da-42ac-ab89-e8878db66020"
-          ),
-        },
-        {
-          dataElement: dataEl.f50.antenatalConsultation,
-          value: findAnswerByConcept(
-            encounter,
-            "bf704b21-d203-4fb8-9b90-a2c29caad61b"
-          ),
-        },
-        {
-          dataElement: dataEl.f50.contraception,
-          value: findAnswerByConcept(
-            encounter,
-            "422c3a5d-4f67-4cbf-9236-3b7bfdcd8e14"
-          ),
-        },
-        {
-          dataElement: dataEl.f50.pregnancyMethod,
-          value: findAnswerByConcept(
-            encounter,
-            "6afb5d27-3e86-42ff-bad1-38f90897e0b6"
-          ),
-        },
-      ].filter((d) => d.value),
-    },
-    {
-      event: events?.find((e) => e.programStage === "zqmLGzSPv3T")?.event,
-      programStage: "zqmLGzSPv3T",
-      dataValues: [
-        {
-          dataElement: dataEl.extremistFootExam,
-          value: findAnswerByConcept(
-            encounter,
-            "3fe91b1d-3c94-4752-ac36-75d4e6af379c"
-          ),
-        },
-        {
-          dataElement: dataEl.hba1cValue,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "033ff20d-4cc5-4da0-ad5e-c42ce25df1e1"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.totalCholesterolValue,
-          value: conceptTrueOnly(
-            encounter,
-            "9265064e-104f-431d-b50d-4cd8b7a39526"
-          ),
-        },
-        {
-          dataElement: dataEl.creatinineDone,
-          value: conceptTrueOnly(
-            encounter,
-            "b20c05db-cc1e-41f8-abbe-cdd8fcef82cc"
-          ),
-        },
-        {
-          dataElement: dataEl.creatinineMgPerDl,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "bc6f8c3a-80ad-46f2-ad76-bd4189ea61c7"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.creatinineUmolPerl,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "397b7cc1-9687-4796-a2a6-52d04f963e71"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.creatinineEgfr,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "910cf2bc-b9fe-4997-845f-409583bbd2fd"
-          )?.value,
-        },
-        {
-          dataElement: dataEl.creatinineMlPerMin,
-          value: encounter.obs.find(
-            (o) => o.concept.uuid === "ee8dd465-4f0c-4f81-9c9f-8dd1e419a9d8"
-          )?.value,
-        },
-
-        {
-          dataElement: dataEl.urineAnalysis,
-          value: conceptTrueOnly(
-            encounter,
-            "19d395d5-9e2f-4f9b-9723-1fd64e879421"
-          ),
-        },
-        {
-          dataElement: dataEl.altDone,
-          value: conceptTrueOnly(
-            encounter,
-            "41e0892a-3962-4ee6-8adc-b65322da183b"
-          ),
-        },
-        {
-          dataElement: dataEl.kDone,
-          value: conceptTrueOnly(
-            encounter,
-            "e2826aa6-af7b-49cd-b3a3-5ffae92c202d"
-          ),
-        },
-        {
-          dataElement: dataEl.tshDone,
-          value: conceptTrueOnly(
-            encounter,
-            "1b1ddab9-1463-4b79-9d25-b591bca6127e"
-          ),
-        },
-        {
-          dataElement: dataEl.inrDone,
-          value: conceptTrueOnly(
-            encounter,
-            "382d6a15-1e60-43a3-8ee5-bb0f7b11b17b"
-          ),
-        },
-        {
-          dataElement: dataEl.ldlDone,
-          value: conceptTrueOnly(
-            encounter,
-            "1ecf8c4a-c70c-4fa6-b840-2e13cdb217fe"
-          ),
-        },
-        {
-          dataElement: dataEl.ecg,
-          value: findAnswerByConcept(
-            encounter,
-            "f5b2b5ff-47bb-41e1-bbcc-3d7b2ecb373f"
-          ),
-        },
-        {
-          dataElement: dataEl.echo,
-          value: findAnswerByConcept(
-            encounter,
-            "b754e7bb-d425-4f62-988e-3bccc2abf332"
-          ),
-        },
-      ].filter((d) => d.value),
-    },
+    ...(pregnancyDataValues.length > 0
+      ? [
+          {
+            event: pregnancyEvent,
+            programStage: F50_CONFIG.pregnancyStage.programStage,
+            dataValues: pregnancyDataValues,
+          },
+        ]
+      : []),
+    ...(investigationDataValues.length > 0
+      ? [
+          {
+            event: investigationEvent,
+            programStage: F50_CONFIG.investigationStage.programStage,
+            dataValues: investigationDataValues,
+          },
+        ]
+      : []),
   ];
 }
 
@@ -2160,6 +2226,7 @@ function mapF63(encounter, events) {
 }
 
 const dataValueByConcept = (encounter, de, state) => {
+  state.missingOptsets ??= [];
   const { dataElement, conceptUuid, questionId } = de;
 
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -2184,7 +2251,7 @@ const dataValueByConcept = (encounter, de, state) => {
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
 
-    if (!opt) {
+    if (!opt && matchingOptionSet) {
       console.log(
         `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
       );
@@ -2193,9 +2260,11 @@ const dataValueByConcept = (encounter, de, state) => {
     // Removed fallback logic to DHIS2 Option name and answer.value.display
     // Now only using DHIS2 Option Code to ensure proper validation
     const matchingOption = opt?.["DHIS2 Option Code"];
-
-    // Capture missing DHIS2 Option Codes for tracking
-    if (!matchingOption && state.missingOptsets) {
+    // if (!matchingOption) {
+    //   console.log({ optionKey });
+    // }
+    if (!matchingOption) {
+      // Capture missing DHIS2 Option Codes for tracking
       state.missingOptsets.push({
         timestamp: new Date().toISOString(),
         openMrsQuestion: answer.concept.display || "N/A",
@@ -2208,6 +2277,7 @@ const dataValueByConcept = (encounter, de, state) => {
         encounterUuid: encounter.uuid,
         patientUuid: encounter.patient.uuid,
         sourceFile: state.sourceFile,
+        optionKey,
       });
     }
 
@@ -2265,6 +2335,7 @@ const findDataValue = (encounter, dataElement, state) => {
         encounterUuid: encounter.uuid,
         patientUuid: encounter.patient.uuid,
         sourceFile: state.sourceFile,
+        optionKey,
       });
     }
 
@@ -2574,6 +2645,7 @@ fnIf(
         dhis2DataElementUid: opt.dhis2DataElementUid,
         dhis2OptionSetUid: opt.dhis2OptionSetUid,
         formName: opt.metadataFormName,
+        optionSetKey: opt.optionKey,
       });
     });
     console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
