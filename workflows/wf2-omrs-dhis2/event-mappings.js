@@ -47,6 +47,13 @@ const conceptTrueOnly = (encounter, conceptUuid) => {
   return answer ? "TRUE" : undefined;
 };
 
+const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
+  const answer = encounter.obs.find(
+    (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
+  );
+  return answer ? "TRUE" : undefined;
+};
+
 function mapF11(encounter, optsMap) {
   if (encounter.form.name.includes("F11-Family Planning Assessment")) {
     const answers = encounter.obs.filter(
@@ -1877,7 +1884,7 @@ function mapF60(encounter, events, state) {
   return [defaultEvent, exitEvent];
 }
 
-function mapF61(encounter, events) {
+function mapF61(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "y8MvLYtuKE3")?.event;
 
   return [
@@ -1887,14 +1894,15 @@ function mapF61(encounter, events) {
       dataValues: [
         {
           dataElement: "wqSAGFM1Oz8",
-          value: conceptNotValue(
-            encounter,
-            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"
-          ),
+          value: encounter.obs.some(
+            (o) => o.concept.uuid === "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"
+          )
+            ? "TRUE"
+            : "FALSE",
         },
         {
           dataElement: "M7aqCkQSnIP",
-          value: conceptAndValue(
+          value: conceptAndValueTrueOnly(
             encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "95ac8931-7222-4d14-9d94-2e55074e6261"
@@ -1902,7 +1910,7 @@ function mapF61(encounter, events) {
         },
         {
           dataElement: "H6mrPZ2PvGa",
-          value: conceptAndValue(
+          value: conceptAndValueTrueOnly(
             encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "a257d08e-b90d-4505-91c3-e23ea040f61c"
@@ -1910,7 +1918,7 @@ function mapF61(encounter, events) {
         },
         {
           dataElement: "aHEgOilU4Sg",
-          value: conceptAndValue(
+          value: conceptAndValueTrueOnly(
             encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
@@ -1918,7 +1926,7 @@ function mapF61(encounter, events) {
         },
         {
           dataElement: "I64ENhlDzP6",
-          value: conceptAndValue(
+          value: conceptAndValueTrueOnly(
             encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "a6fe73a2-0352-4104-82a7-4456f1866c1e"
@@ -1926,184 +1934,143 @@ function mapF61(encounter, events) {
         },
         {
           dataElement: "i69GqSWXwRZ",
-          value: conceptAndValue(
+          value: conceptAndValueTrueOnly(
             encounter,
             "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
             "9f50dc11-9ed4-4e25-a059-9cb770651c35"
           ),
         },
+        // Difficulties faced - TRUE_ONLY fields
+        // NOTE: Value UUIDs should be verified against actual OMRS data
         {
-          dataElement: "KGwTrsJjYR5",
-          value: conceptNotValue(
+          dataElement: "KGwTrsJjYR5", // Violence
+          value: conceptAndValueTrueOnly(
             encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "ebb50467-1a62-41f0-a849-2ec0ed49607a"
           ),
         },
         {
-          dataElement: "G10cJ5RJ2uE",
-          value: conceptNotValue(
+          dataElement: "G10cJ5RJ2uE", // Hunger
+          value: conceptAndValueTrueOnly(
             encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "04684645-508f-4ec4-91a9-406e5567a934"
           ),
         },
         {
-          dataElement: "Yp6qfnhSbTx",
-          value: conceptNotValue(
+          dataElement: "Yp6qfnhSbTx", // Authorities
+          value: conceptAndValueTrueOnly(
             encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "e81a13a6-d469-465d-9c6b-9930c7bb7d39"
           ),
         },
         {
-          dataElement: "LgoaYXv2mkO",
-          value: conceptNotValue(
+          dataElement: "LgoaYXv2mkO", // Environment conditions
+          value: conceptAndValueTrueOnly(
             encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "05aa3b94-7e7e-47f1-80b9-1304889c293c"
           ),
         },
         {
-          dataElement: "ScHhUDsY1JM",
-          value: conceptNotValue(
+          dataElement: "ScHhUDsY1JM", // Restricted movements
+          value: conceptAndValueTrueOnly(
             encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "b10b22e3-a46d-4682-aba5-fdeac3591d29"
           ),
         },
         {
-          dataElement: "vKTI1wQhhy7",
-          value: conceptNotValue(
+          dataElement: "vKTI1wQhhy7", // Sickness or death
+          value: conceptAndValueTrueOnly(
             encounter,
             "ebb50467-1a62-41f0-a849-2ec0ed49607a",
             "67322e0a-0def-4543-97cd-89cdd03e2950"
           ),
         },
         {
-          dataElement: "qrcrEVE5vOL",
-          value: () => {
-            const hasConceptId = (conceptId) =>
-              encounter.obs.some((o) => o.concept.uuid === conceptId);
-            const notValueId = (valueUuid) =>
-              encounter.obs.find((o) => o.value.uuid !== valueUuid);
-            if (
-              hasConceptId("d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c") &&
-              notValueId("1eff97cc-bec8-4bdf-9022-dc0f2132c260")
-            ) {
-              return "By road";
-            }
-            if (
-              hasConceptId("d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c") &&
-              notValueId("8c5d6c46-1712-483f-91db-c6a9db213c50")
-            ) {
-              return "By plane";
-            }
-            if (
-              hasConceptId("d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c") &&
-              notValueId("1eff97cc-bec8-4bdf-9022-dc0f2132c260") &&
-              notValueId("a31cd4a6-a02b-490b-b913-59cbc8f305f8")
-            ) {
-              return "By road and boat";
-            }
-
-            if (
-              hasConceptId("d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c") &&
-              notValueId("1eff97cc-bec8-4bdf-9022-dc0f2132c260") &&
-              notValueId("8c5d6c46-1712-483f-91db-c6a9db213c50")
-            ) {
-              return "By road and plane";
-            }
-
-            if (
-              hasConceptId("d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c") &&
-              notValueId("b10b22e3-a46d-4682-aba5-fdeac3591d29") &&
-              notValueId("8c5d6c46-1712-483f-91db-c6a9db213c50")
-            ) {
-              return "By boat and plane";
-            }
-
-            if (
-              hasConceptId("d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c") &&
-              notValueId("1eff97cc-bec8-4bdf-9022-dc0f2132c260") &&
-              notValueId("a31cd4a6-a02b-490b-b913-59cbc8f305f8") &&
-              notValueId("8c5d6c46-1712-483f-91db-c6a9db213c50")
-            ) {
-              return "By road, boat and plane";
-            }
-            if (
-              hasConceptId("d30db8b8-f8fb-450c-9562-629195212a45") &&
-              notValueId("a6fe73a2-0352-4104-82a7-4456f1866c1e")
-            ) {
-              return true;
-            }
-          },
+          dataElement: "wiOCvUUHUEr",
+          value: dataValueByConcept(
+            encounter,
+            {
+              dataElement: "wiOCvUUHUEr",
+              conceptUuid: "d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c",
+              questionId: "rfe-forms-howDoYouPlanToTravel",
+            },
+            state
+          ),
         },
+        // Continuity of care needed - TRUE_ONLY fields
         {
-          dataElement: "gJoiya16c1E",
-          value: conceptNotValue(
+          dataElement: "gJoiya16c1E", // NCD
+          value: conceptAndValueTrueOnly(
             encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "a6fe73a2-0352-4104-82a7-4456f1866c1e"
           ),
         },
         {
-          dataElement: "aHEgOilU4Sg",
-          value: conceptNotValue(
+          dataElement: "aHEgOilU4Sg", // SRH
+          value: conceptAndValueTrueOnly(
             encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
           ),
         },
         {
-          dataElement: "ahGVTDSbSaq",
-          value: conceptNotValue(
+          dataElement: "ahGVTDSbSaq", // MH
+          value: conceptAndValueTrueOnly(
             encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "a257d08e-b90d-4505-91c3-e23ea040f61c"
           ),
         },
         {
-          dataElement: "i69GqSWXwRZ",
-          value: conceptNotValue(
+          dataElement: "i69GqSWXwRZ", // Other
+          value: conceptAndValueTrueOnly(
             encounter,
             "d30db8b8-f8fb-450c-9562-629195212a45",
             "9f50dc11-9ed4-4e25-a059-9cb770651c35"
           ),
         },
+        // Care packages given - TRUE_ONLY fields
         {
-          dataElement: "Sp0VsyyvDCI",
-          value: conceptNotValue(
+          dataElement: "Sp0VsyyvDCI", // First aid kit
+          value: conceptAndValueTrueOnly(
+            encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "4a946686-7d67-40d5-b1f1-a0aad133193c"
           ),
         },
         {
-          dataElement: "JNNfaYcPPuS",
-          value: conceptNotValue(
+          dataElement: "JNNfaYcPPuS", // Hygiene kit
+          value: conceptAndValueTrueOnly(
+            encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "9de0f8c5-df5c-4fc2-a586-48acd7219e04"
           ),
         },
         {
-          dataElement: "awIYcHfNEnI",
-          value: conceptNotValue(
+          dataElement: "awIYcHfNEnI", // Baby kit
+          value: conceptAndValueTrueOnly(
             encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "0254978b-c858-4b9d-ba66-074ced37a6d5"
           ),
         },
         {
-          dataElement: "xjG5N6RD9vm",
-          value: conceptNotValue(
+          dataElement: "xjG5N6RD9vm", // Mental Health kit
+          value: conceptAndValueTrueOnly(
             encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "e48a7343-bbc1-4e83-85ab-87e267f15cec"
           ),
         },
         {
-          dataElement: "Lj15WiOE5Jj",
-          value: conceptNotValue(
+          dataElement: "Lj15WiOE5Jj", // Drugs provided - BOOLEAN
+          value: conceptAndValue(
             encounter,
             "96d32363-694a-4d6a-9710-6ceadd0e2894",
             "2b616aa9-e573-40a1-8e01-dfdde229553b"
