@@ -2081,152 +2081,143 @@ function mapF61(encounter, events, state) {
   ];
 }
 
+// F62 Configuration
+const F62_CONFIG = {
+  // Default stage - Other Support section
+  defaultStage: {
+    concept: "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
+    // Boolean data elements from multi-select concept
+    booleanMappings: [
+      { de: "dNJ9ZJ4zaJw", answer: "895813df-fbec-4164-9375-eed588ff0387" }, // Physiotherapy
+      { de: "KlAcesRNOlU", answer: "bfcf416f-8aa1-4b9d-a0f7-77c142c1df67" }, // Psychosocial counseling
+      { de: "pP8Bb7H0arh", answer: "10156771-379a-4eb1-af43-39b418adba4a" }, // Spiritual support
+      { de: "fKmCFuaV2wo", answer: "14e79fdc-4250-428f-949e-dabb2cef4315" }, // Mental health support
+      { de: "oOa893M9qnL", answer: "a39e540e-b988-40e8-a8b2-26b831c179ef" }, // Catheterization
+      { de: "rDJiUSUtmrg", answer: "c884bf19-6791-4c38-af6b-1ad910191a89" }, // N/g tube feeding
+    ],
+    // Special nursing care mapping (TEXT type, stays in default stage)
+    nursingCare: {
+      de: "PG9mocTexDK",
+      dressingAnswer: "d592dcaf-ae83-4acc-921e-127aa27545b5", // Dressing
+    },
+  },
+
+  // Hospitalisation stage
+  hospitalisationStage: {
+    programStage: "YivvTlIw5Ep",
+    timeDataElement: "d3BwrZYHAbK",
+    simpleValues: [
+      { de: "RSQqK2yZGz6", concept: "c149755e-dd32-43b0-b643-ab14aa483207" }, // Admission to ward
+      { de: "NHBJjpIXPBI", concept: "b996944c-b136-4e8e-9068-562476a0595a" }, // Reason of hospitalisation
+      { de: "LPIyv58pWVg", concept: "13cea1c8-e426-411f-95b4-33651fc4325d" }, // Date of discharge
+      { de: "nrqutHXxAUk", concept: "09a06404-afc5-457a-91b9-54152e45a854" }, // Type of discharge
+    ],
+  },
+
+  // Exit stage
+  exitStage: {
+    programStage: "Otoff7Cj8JQ",
+    simpleValues: [
+      { de: "iGsz0Q3b0HC", concept: "1f473371-613f-4ef3-b297-49eb779ccd27" }, // Date of Exit
+      { de: "mpiPBwCu6Xa", concept: "9e861ef1-e07c-4955-9650-2ebac3138fc3" }, // Outcome
+      { de: "d8eoys0WPgR", concept: "a844ff25-b3fb-4873-9681-f2f35f5159ec" }, // Reason for discharge
+      { de: "p1t7OpwVBcl", concept: "778b70b5-c6de-4459-a101-6bf02f77d5c7" }, // Death cause
+    ],
+  },
+};
+
 function mapF62(encounter, events) {
   const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+
+  // DEFAULT STAGE - Other Support
+  const defaultDataValues = [];
+
+  // Map multi-select boolean values
+  F62_CONFIG.defaultStage.booleanMappings.forEach((mapping) => {
+    const value = conceptAndValueTrueOnly(
+      encounter,
+      F62_CONFIG.defaultStage.concept,
+      mapping.answer
+    );
+    if (value) {
+      defaultDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  // Add nursing care special logic (stays in default stage)
+  const dressingValue = conceptAndValueTrueOnly(
+    encounter,
+    F62_CONFIG.defaultStage.concept,
+    F62_CONFIG.defaultStage.nursingCare.dressingAnswer
+  );
+  if (dressingValue) {
+    defaultDataValues.push({
+      dataElement: F62_CONFIG.defaultStage.nursingCare.de,
+      value: "Dressing",
+    });
+  }
+
   const defaultEvent = {
     event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
     programStage: defaultProgramStage,
-    dataValues: [
-      {
-        dataElement: "dNJ9ZJ4zaJw",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "895813df-fbec-4164-9375-eed588ff0387"
-        ),
-      },
-      {
-        dataElement: "KlAcesRNOlU",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "bfcf416f-8aa1-4b9d-a0f7-77c142c1df67"
-        ),
-      },
-      {
-        dataElement: "pP8Bb7H0arh",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "10156771-379a-4eb1-af43-39b418adba4a"
-        ),
-      },
-      {
-        dataElement: "fKmCFuaV2wo",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "14e79fdc-4250-428f-949e-dabb2cef4315"
-        ),
-      },
-      {
-        dataElement: "oOa893M9qnL",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "a39e540e-b988-40e8-a8b2-26b831c179ef"
-        ),
-      },
-      {
-        dataElement: "rDJiUSUtmrg",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "c884bf19-6791-4c38-af6b-1ad910191a89"
-        ),
-      },
-    ],
+    dataValues: defaultDataValues,
   };
+
+  // HOSPITALISATION STAGE
+  const hospitalisationDataValues = [];
+
+  // Add time data element
+  if (encounter.encounterDatetime) {
+    hospitalisationDataValues.push({
+      dataElement: F62_CONFIG.hospitalisationStage.timeDataElement,
+      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
+    });
+  }
+
+  // Add simple values
+  F62_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
+    const value = findAnswerByConcept(encounter, mapping.concept);
+    if (value) {
+      hospitalisationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
   const hospitalisationEvent = {
-    event: events?.find((e) => e.programStage === "YivvTlIw5Ep")?.event,
-    programStage: "YivvTlIw5Ep",
-
-    dataValues: [
-      {
-        dataElement: "d3BwrZYHAbK",
-        value: encounter.encounterDatetime
-          .replace("+0000", "")
-          .substring(11, 19),
-      },
-      {
-        dataElement: "RSQqK2yZGz6",
-        value: findAnswerByConcept(
-          encounter,
-          "c149755e-dd32-43b0-b643-ab14aa483207"
-        ),
-      },
-      {
-        dataElement: "NHBJjpIXPBI",
-        value: findAnswerByConcept(
-          encounter,
-          "b996944c-b136-4e8e-9068-562476a0595a"
-        ),
-      },
-      {
-        dataElement: "LPIyv58pWVg",
-        value: findAnswerByConcept(
-          encounter,
-          "13cea1c8-e426-411f-95b4-33651fc4325d"
-        ),
-      },
-      {
-        dataElement: "nrqutHXxAUk",
-        value: findAnswerByConcept(
-          encounter,
-          "09a06404-afc5-457a-91b9-54152e45a854"
-        ),
-      },
-
-      {
-        dataElement: "PG9mocTexDK",
-        value: conceptNotValue(
-          encounter,
-          "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-          "d592dcaf-ae83-4acc-921e-127aa27545b5"
-        )
-          ? "Dressing"
-          : null,
-      },
-    ],
+    event: events?.find(
+      (e) => e.programStage === F62_CONFIG.hospitalisationStage.programStage
+    )?.event,
+    programStage: F62_CONFIG.hospitalisationStage.programStage,
+    dataValues: hospitalisationDataValues,
   };
+
+  // EXIT STAGE
+  const exitDataValues = [];
+
+  F62_CONFIG.exitStage.simpleValues.forEach((mapping) => {
+    const value = findAnswerByConcept(encounter, mapping.concept);
+    if (value) {
+      exitDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
 
   const exitEvent = {
-    event: events?.find((e) => e.programStage === "Otoff7Cj8JQ")?.event,
-    programStage: "Otoff7Cj8JQ",
-    dataValues: [
-      {
-        dataElement: "iGsz0Q3b0HC",
-        value: findAnswerByConcept(
-          encounter,
-          "1f473371-613f-4ef3-b297-49eb779ccd27"
-        ),
-      },
-      {
-        dataElement: "mpiPBwCu6Xa",
-        value: findAnswerByConcept(
-          encounter,
-          "9e861ef1-e07c-4955-9650-2ebac3138fc3"
-        ),
-      },
-      {
-        dataElement: "d8eoys0WPgR",
-        value: findAnswerByConcept(
-          encounter,
-          "a844ff25-b3fb-4873-9681-f2f35f5159ec"
-        ),
-      },
-      {
-        dataElement: "p1t7OpwVBcl",
-        value: findAnswerByConcept(
-          encounter,
-          "778b70b5-c6de-4459-a101-6bf02f77d5c7"
-        ),
-      },
-    ],
+    event: events?.find(
+      (e) => e.programStage === F62_CONFIG.exitStage.programStage
+    )?.event,
+    programStage: F62_CONFIG.exitStage.programStage,
+    dataValues: exitDataValues,
   };
-  const f62Events = [defaultEvent, hospitalisationEvent, exitEvent];
 
-  return f62Events;
+  return [defaultEvent, hospitalisationEvent, exitEvent];
 }
 
 function mapF63(encounter, events) {
