@@ -1711,54 +1711,88 @@ function mapF58(encounter, events, state) {
   ];
 }
 
-function mapF59(encounter, events) {
+function mapF59(encounter, events, state) {
   const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
-  const typeOfIncome = findAnswerByConcept(
+
+  // Get raw values using dataValueByConcept with concept + questionId pattern
+  const typeOfIncomeRaw = dataValueByConcept(
     encounter,
-    "f501e482-d6cd-45d7-be5d-ef6e09461380"
+    {
+      dataElement: "CttkesLrFyG",
+      conceptUuid: "f501e482-d6cd-45d7-be5d-ef6e09461380",
+      questionId: "rfe-forms-typeOfIncome",
+    },
+    state
   );
 
-  const dischargeDate = encounter.obs.find(
-    (o) => o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d"
-  )?.value;
-
-  const usedDrug = findAnswerByConcept(
+  const usedDrugRaw = dataValueByConcept(
     encounter,
-    "30837713-453e-4456-ac48-b3886acf02ac"
+    {
+      dataElement: "Ir0qLWsNv4n",
+      conceptUuid: "30837713-453e-4456-ac48-b3886acf02ac",
+      questionId: "rfe-forms-hasThePatientEverUsedAnyDrugOrSubstance",
+    },
+    state
   );
+
+  // Apply custom logic for Type of Income
+  // Fill DHIS2 with 'Employment' if the answer is 'Full time job' or 'Part time job'
+  const typeOfIncomeValue = ["full time", "part time"].some((keyword) =>
+    typeOfIncomeRaw?.toLowerCase()?.includes(keyword)
+  )
+    ? "Employment"
+    : null;
+
+  // Apply custom logic for Drug Use
+  // Fill DHIS2 with 'Yes' if the answer is 'Yes, in the past' or 'Yes, currently'
+  const usedDrugValue = ["in the past", "currently"].some((keyword) =>
+    usedDrugRaw?.toLowerCase()?.includes(keyword)
+  )
+    ? "Yes"
+    : null;
+
   const defaultEvent = {
     event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
     programStage: defaultProgramStage,
     dataValues: [
       {
         dataElement: "CttkesLrFyG",
-        value: ["full time", "part time"].some((keyword) =>
-          typeOfIncome?.toLowerCase()?.includes(keyword)
-        )
-          ? "Employment"
-          : null,
+        value: typeOfIncomeValue,
       },
-
       {
         dataElement: "Ir0qLWsNv4n",
-        value: ["in the past", "currently"].some((keyword) =>
-          usedDrug?.toLowerCase()?.includes(keyword)
-        )
-          ? "Yes"
-          : null,
+        value: usedDrugValue,
       },
-    ],
+    ].filter((d) => d.value),
   };
 
+  // Discharge event mappings
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
-  const typeOfExit = findAnswerByConcept(
+
+  const dischargeDate = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d" &&
+      o.formFieldPath === "rfe-forms-dateOfDischarge"
+  )?.value;
+
+  const typeOfExit = dataValueByConcept(
     encounter,
-    "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
+    {
+      dataElement: "LhgHv4gjW18",
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
   );
 
-  const typeOfExitOther = findAnswerByConcept(
+  const typeOfExitOther = dataValueByConcept(
     encounter,
-    "790b41ce-e1e7-11e8-b02f-0242ac130002"
+    {
+      dataElement: "k64e6bcyPtH",
+      conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+      questionId: "rfe-forms-typeOfExitIfOtherSpecify",
+    },
+    state
   );
 
   const exitEvent = {
@@ -1786,6 +1820,13 @@ function mapF59(encounter, events) {
 function mapF60(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
   const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+
+  const dischargeDate = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d" &&
+      o.formFieldPath === "rfe-forms-dateOfDischarge"
+  )?.value;
+
   const typeOfExit = dataValueByConcept(
     encounter,
     {
@@ -1801,40 +1842,39 @@ function mapF60(encounter, events, state) {
     {
       dataElement: "k64e6bcyPtH",
       conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
-      questionId: "rfe-forms-Type of Exit",
+      questionId: "rfe-forms-typeOfExitIfOtherSpecify",
     },
     state
   );
-  const dischargeDate = encounter.encounterDatetime.replace("+0000", "");
 
-  return [
-    {
-      event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
-      programStage: defaultProgramStage,
-      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-      dataValues: [
-        {
-          dataElement: "JvgfNjNklmI",
-          value: dischargeDate,
-        },
-      ],
-    },
-    {
-      event,
-      programStage: "sBepdVG2c9O",
-      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-      dataValues: [
-        {
-          dataElement: "LhgHv4gjW18",
-          value: typeOfExit,
-        },
-        {
-          dataElement: "k64e6bcyPtH",
-          value: typeOfExitOther,
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  const defaultEvent = {
+    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    programStage: defaultProgramStage,
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+    dataValues: [],
+  };
+
+  const exitEvent = {
+    event,
+    programStage: "sBepdVG2c9O",
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+    dataValues: [
+      {
+        dataElement: "JvgfNjNklmI",
+        value: dischargeDate,
+      },
+      {
+        dataElement: "LhgHv4gjW18",
+        value: typeOfExit,
+      },
+      {
+        dataElement: "k64e6bcyPtH",
+        value: typeOfExitOther,
+      },
+    ].filter((d) => d.value),
+  };
+
+  return [defaultEvent, exitEvent];
 }
 
 function mapF61(encounter, events) {
