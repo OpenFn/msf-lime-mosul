@@ -2220,8 +2220,143 @@ function mapF62(encounter, events) {
   return [defaultEvent, hospitalisationEvent, exitEvent];
 }
 
+// F63 Configuration
+const F63_CONFIG = {
+  // Default stage - Other Support section
+  defaultStage: {
+    concept: "6b3cf530-e574-419a-9dd4-2c8d3ad69562", // Same concept as F62
+    // Boolean data elements from multi-select concept (DIFFERENT UIDs from F62)
+    booleanMappings: [
+      { de: "xYKYFOhYU8H", answer: "895813df-fbec-4164-9375-eed588ff0387" }, // Physiotherapy
+      { de: "ZiUJxGceREv", answer: "bfcf416f-8aa1-4b9d-a0f7-77c142c1df67" }, // Psychosocial counseling
+      { de: "cx6nwmLSmR7", answer: "10156771-379a-4eb1-af43-39b418adba4a" }, // Spiritual support
+      { de: "eyg7Rh69ScO", answer: "14e79fdc-4250-428f-949e-dabb2cef4315" }, // Mental health support
+      { de: "zPtuGGASJZ0", answer: "a39e540e-b988-40e8-a8b2-26b831c179ef" }, // Catheterization
+      { de: "PzwXcfb3s6h", answer: "c884bf19-6791-4c38-af6b-1ad910191a89" }, // N/g tube feeding
+    ],
+    // Special nursing care mapping (TEXT type, stays in default stage, DIFFERENT UID from F62)
+    nursingCare: {
+      de: "LIlfhZdkMpB",
+      dressingAnswer: "d592dcaf-ae83-4acc-921e-127aa27545b5", // Dressing
+    },
+  },
+
+  // Hospitalisation stage (SAME as F62)
+  hospitalisationStage: {
+    programStage: "YivvTlIw5Ep",
+    timeDataElement: "d3BwrZYHAbK",
+    simpleValues: [
+      { de: "RSQqK2yZGz6", concept: "c149755e-dd32-43b0-b643-ab14aa483207" }, // Admission to ward
+      { de: "NHBJjpIXPBI", concept: "b996944c-b136-4e8e-9068-562476a0595a" }, // Reason of hospitalisation
+      { de: "LPIyv58pWVg", concept: "13cea1c8-e426-411f-95b4-33651fc4325d" }, // Date of discharge
+      { de: "nrqutHXxAUk", concept: "09a06404-afc5-457a-91b9-54152e45a854" }, // Type of discharge
+    ],
+  },
+
+  // Exit stage (SAME as F62)
+  exitStage: {
+    programStage: "Otoff7Cj8JQ",
+    simpleValues: [
+      { de: "iGsz0Q3b0HC", concept: "1f473371-613f-4ef3-b297-49eb779ccd27" }, // Date of Exit
+      { de: "mpiPBwCu6Xa", concept: "9e861ef1-e07c-4955-9650-2ebac3138fc3" }, // Outcome
+      { de: "d8eoys0WPgR", concept: "a844ff25-b3fb-4873-9681-f2f35f5159ec" }, // Reason for discharge
+      { de: "p1t7OpwVBcl", concept: "778b70b5-c6de-4459-a101-6bf02f77d5c7" }, // Death cause
+    ],
+  },
+};
+
 function mapF63(encounter, events) {
-  return mapF62(encounter, events); // TODO @Aisha to confirm with ludovic
+  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+
+  // DEFAULT STAGE - Other Support
+  const defaultDataValues = [];
+
+  // Map multi-select boolean values
+  F63_CONFIG.defaultStage.booleanMappings.forEach((mapping) => {
+    const value = conceptAndValueTrueOnly(
+      encounter,
+      F63_CONFIG.defaultStage.concept,
+      mapping.answer
+    );
+    if (value) {
+      defaultDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  // Add nursing care special logic (stays in default stage)
+  const dressingValue = conceptAndValueTrueOnly(
+    encounter,
+    F63_CONFIG.defaultStage.concept,
+    F63_CONFIG.defaultStage.nursingCare.dressingAnswer
+  );
+  if (dressingValue) {
+    defaultDataValues.push({
+      dataElement: F63_CONFIG.defaultStage.nursingCare.de,
+      value: "Dressing",
+    });
+  }
+
+  const defaultEvent = {
+    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    programStage: defaultProgramStage,
+    dataValues: defaultDataValues,
+  };
+
+  // HOSPITALISATION STAGE
+  const hospitalisationDataValues = [];
+
+  // Add time data element
+  if (encounter.encounterDatetime) {
+    hospitalisationDataValues.push({
+      dataElement: F63_CONFIG.hospitalisationStage.timeDataElement,
+      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
+    });
+  }
+
+  // Add simple values
+  F63_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
+    const value = findAnswerByConcept(encounter, mapping.concept);
+    if (value) {
+      hospitalisationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  const hospitalisationEvent = {
+    event: events?.find(
+      (e) => e.programStage === F63_CONFIG.hospitalisationStage.programStage
+    )?.event,
+    programStage: F63_CONFIG.hospitalisationStage.programStage,
+    dataValues: hospitalisationDataValues,
+  };
+
+  // EXIT STAGE
+  const exitDataValues = [];
+
+  F63_CONFIG.exitStage.simpleValues.forEach((mapping) => {
+    const value = findAnswerByConcept(encounter, mapping.concept);
+    if (value) {
+      exitDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
+  const exitEvent = {
+    event: events?.find(
+      (e) => e.programStage === F63_CONFIG.exitStage.programStage
+    )?.event,
+    programStage: F63_CONFIG.exitStage.programStage,
+    dataValues: exitDataValues,
+  };
+
+  return [defaultEvent, hospitalisationEvent, exitEvent];
 }
 
 const dataValueByConcept = (encounter, de, state) => {
