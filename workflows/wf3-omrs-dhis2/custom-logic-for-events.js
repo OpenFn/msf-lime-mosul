@@ -35,6 +35,78 @@ const ageInDays = (dob, encounterDate) => {
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
 
+const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
+  const answer = encounter.obs.find(
+    (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
+  );
+  return answer ? "TRUE" : "FALSE";
+};
+const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
+  const answer = encounter.obs.find(
+    (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
+  );
+  return answer ? "TRUE" : undefined;
+};
+
+const dataValueByConcept = (encounter, de, state) => {
+  const { dataElement, conceptUuid, questionId } = de;
+
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const isObjectAnswer = answer && typeof answer.value === "object";
+  const isStringAnswer = answer && typeof answer.value === "string";
+  const isNumberAnswer = answer && typeof answer.value === "number";
+
+  if (isStringAnswer || isNumberAnswer) {
+    return answer.value;
+  }
+
+  if (isObjectAnswer) {
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
+
+    const matchingOptionSet = state.optionSetKey[optionKey];
+
+    const opt = state.optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === answer.value.uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet
+    );
+
+    if (!opt && matchingOptionSet) {
+      console.log(
+        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
+
+    const matchingOption = opt?.["DHIS2 Option Code"];
+
+    if (!matchingOption) {
+      const optSet = {
+        timestamp: new Date().toISOString(),
+        openMrsQuestion: answer.concept.display || "N/A",
+        conceptExternalId: answer.concept.uuid,
+        answerDisplay: answer.value.display,
+        answerValueUuid: answer.value.uuid,
+        dhis2DataElementUid: dataElement,
+        dhis2OptionSetUid: matchingOptionSet || "N/A",
+        metadataFormName: encounter.form.name || encounter.form.uuid,
+        encounterUuid: encounter.uuid,
+        patientUuid: encounter.patient.uuid,
+        sourceFile: state.sourceFile,
+        optionKey,
+      };
+      // Capture missing DHIS2 Option Codes for tracking
+      state.missingOptsets.push(optSet);
+    }
+
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+
+    return matchingOption;
+  }
+};
+
 function f8(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
@@ -249,6 +321,203 @@ function f43(encounter, tei, dhis2Attr) {
     });
   }
   return mappings;
+}
+
+function f61(encounter, events, state) {
+  const event = events?.find((e) => e.programStage === "y8MvLYtuKE3")?.event;
+
+  return [
+    {
+      event,
+      programStage: "y8MvLYtuKE3",
+      dataValues: [
+        {
+          dataElement: "wqSAGFM1Oz8",
+          value: encounter.obs.some(
+            (o) => o.concept.uuid === "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"
+          )
+            ? "TRUE"
+            : "FALSE",
+        },
+        {
+          dataElement: "M7aqCkQSnIP",
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
+            "95ac8931-7222-4d14-9d94-2e55074e6261"
+          ),
+        },
+        {
+          dataElement: "H6mrPZ2PvGa",
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
+            "a257d08e-b90d-4505-91c3-e23ea040f61c"
+          ),
+        },
+        {
+          dataElement: "aHEgOilU4Sg",
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
+            "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
+          ),
+        },
+        {
+          dataElement: "I64ENhlDzP6",
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
+            "a6fe73a2-0352-4104-82a7-4456f1866c1e"
+          ),
+        },
+        {
+          dataElement: "i69GqSWXwRZ",
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
+            "9f50dc11-9ed4-4e25-a059-9cb770651c35"
+          ),
+        },
+        // Difficulties faced - TRUE_ONLY fields
+        // NOTE: Value UUIDs should be verified against actual OMRS data
+        {
+          dataElement: "KGwTrsJjYR5", // Violence
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a",
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a"
+          ),
+        },
+        {
+          dataElement: "G10cJ5RJ2uE", // Hunger
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a",
+            "04684645-508f-4ec4-91a9-406e5567a934"
+          ),
+        },
+        {
+          dataElement: "Yp6qfnhSbTx", // Authorities
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a",
+            "e81a13a6-d469-465d-9c6b-9930c7bb7d39"
+          ),
+        },
+        {
+          dataElement: "LgoaYXv2mkO", // Environment conditions
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a",
+            "05aa3b94-7e7e-47f1-80b9-1304889c293c"
+          ),
+        },
+        {
+          dataElement: "ScHhUDsY1JM", // Restricted movements
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a",
+            "b10b22e3-a46d-4682-aba5-fdeac3591d29"
+          ),
+        },
+        {
+          dataElement: "vKTI1wQhhy7", // Sickness or death
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "ebb50467-1a62-41f0-a849-2ec0ed49607a",
+            "67322e0a-0def-4543-97cd-89cdd03e2950"
+          ),
+        },
+        {
+          dataElement: "wiOCvUUHUEr",
+          value: dataValueByConcept(
+            encounter,
+            {
+              dataElement: "wiOCvUUHUEr",
+              conceptUuid: "d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c",
+              questionId: "rfe-forms-howDoYouPlanToTravel",
+            },
+            state
+          ),
+        },
+        // Continuity of care needed - TRUE_ONLY fields
+        {
+          dataElement: "gJoiya16c1E", // NCD
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "d30db8b8-f8fb-450c-9562-629195212a45",
+            "a6fe73a2-0352-4104-82a7-4456f1866c1e"
+          ),
+        },
+        {
+          dataElement: "aHEgOilU4Sg", // SRH
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "d30db8b8-f8fb-450c-9562-629195212a45",
+            "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
+          ),
+        },
+        {
+          dataElement: "ahGVTDSbSaq", // MH
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "d30db8b8-f8fb-450c-9562-629195212a45",
+            "a257d08e-b90d-4505-91c3-e23ea040f61c"
+          ),
+        },
+        {
+          dataElement: "i69GqSWXwRZ", // Other
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "d30db8b8-f8fb-450c-9562-629195212a45",
+            "9f50dc11-9ed4-4e25-a059-9cb770651c35"
+          ),
+        },
+        // Care packages given - TRUE_ONLY fields
+        {
+          dataElement: "Sp0VsyyvDCI", // First aid kit
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "96d32363-694a-4d6a-9710-6ceadd0e2894",
+            "4a946686-7d67-40d5-b1f1-a0aad133193c"
+          ),
+        },
+        {
+          dataElement: "JNNfaYcPPuS", // Hygiene kit
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "96d32363-694a-4d6a-9710-6ceadd0e2894",
+            "9de0f8c5-df5c-4fc2-a586-48acd7219e04"
+          ),
+        },
+        {
+          dataElement: "awIYcHfNEnI", // Baby kit
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "96d32363-694a-4d6a-9710-6ceadd0e2894",
+            "0254978b-c858-4b9d-ba66-074ced37a6d5"
+          ),
+        },
+        {
+          dataElement: "xjG5N6RD9vm", // Mental Health kit
+          value: conceptAndValueTrueOnly(
+            encounter,
+            "96d32363-694a-4d6a-9710-6ceadd0e2894",
+            "e48a7343-bbc1-4e83-85ab-87e267f15cec"
+          ),
+        },
+        {
+          dataElement: "Lj15WiOE5Jj", // Drugs provided - BOOLEAN
+          value: conceptAndValue(
+            encounter,
+            "96d32363-694a-4d6a-9710-6ceadd0e2894",
+            "2b616aa9-e573-40a1-8e01-dfdde229553b"
+          ),
+        },
+      ].filter((d) => d.value),
+    },
+  ];
 }
 
 function f64(encounter) {
@@ -1483,10 +1752,10 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     f41Form,
     f42Form,
     f43Form,
+    f61Form,
     f64Form,
     f65Form,
     f66Form,
-    f67Form,
   } = mappingConfig;
   let formMapping = [];
   const visitUuid = encounter.visit.uuid;
@@ -1511,7 +1780,10 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     const f09Mapping = mapAttribute(tei.attributes, attributeMap);
     formMapping.push(...f09Mapping);
   }
-
+  if (f61Form === encounter.form.uuid) {
+    const f61Mapping = f61(encounter, tei.events, state);
+    formMapping.push(...f61Mapping);
+  }
   if ([f23Form, f24Form].includes(encounter.form.uuid)) {
     // F23 Form Encounter Mapping
     const f23Mapping = f23(encounter);
@@ -1807,10 +2079,7 @@ fn((state) => {
   const f64Form = formIdByName("F64-ICU Admission", state.formMaps);
   const f65Form = formIdByName("F65-ICU Discharge", state.formMaps);
   const f66Form = formIdByName("F66-Snakebite Admission", state.formMaps);
-  const f67Form = formIdByName(
-    "F67-Snakebite Patient Registration",
-    state.formMaps
-  );
+  const f61Form = formIdByName("F61-Travel medicine", state.formMaps);
 
   const pairedEncounters = state.latestEncountersByVisit.reduce((acc, obj) => {
     const program = state.formMaps[obj.form.uuid].programId;
