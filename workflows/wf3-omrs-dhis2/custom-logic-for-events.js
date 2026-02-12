@@ -185,14 +185,14 @@ function f23(encounter) {
 }
 
 // F24 Configuration - Neonatal Discharge
-// NOTE: F24 discharge form mappings are handled in buildDataValues function
-// All custom logic is for TEI attributes:
-//   - Patient number (fnH6H3biOkE) - from MSF ID in Patient registration
-//   - Sex (Hww0CNYYt3E) - from Sex concept in Patient registration
-//   - Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
-//   - Age in months (L97SmAK11DN) - from estimated age if DOB not available
-//   - Place of living (yE0dIWW0TXP) - from Place of living in Patient registration
-// "Days since admission" is a form field but not mapped to DHIS2 (DHIS2 DE UID = NA in metadata)
+// Custom logic maps TEI attributes from Patient registration to DHIS2 data elements:
+//   - fnH6H3biOkE: Patient number (MSF ID)
+//   - Hww0CNYYt3E: Sex
+//   - Z7vMFdnQxpE: Age in days - calculated from birthdate and encounter date if DOB available
+//   - L97SmAK11DN: Age in months - from estimated age attribute if DOB not available
+//   - yE0dIWW0TXP: Place of living
+// Implemented in buildDataValues function alongside F23 form
+// NOTE: "Days since admission" field has DHIS2 DE UID = NA (not mapped)
 
 function f26(encounter, state) {
   const config = {
@@ -206,7 +206,7 @@ function f26(encounter, state) {
   );
 
   return antimalariaType.slice(0, 2).map((obs, index) => {
-    const de = dataElements[index];
+    const de = config.dataElements[index];
 
     const value = dataValueByConcept(
       { ...encounter, obs: [obs] }, // Pass single obs
@@ -1782,37 +1782,39 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     formMapping.push(...f23Mapping);
 
     // F24 Form Encounter Mapping
+    // Maps TEI attributes to DHIS2 data elements
     const attributeMap = {
-      Hww0CNYYt3E: dhis2Map.attr.sex,
-      // Z7vMFdnQxpE: dhis2Map.attr.birthdate,
-      // L97SmAK11DN: dhis2Map.attr.ageInYears,
-      yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr,
-      fnH6H3biOkE: dhis2Map.attr.patientNumber,
+      Hww0CNYYt3E: dhis2Map.attr.sex, // Sex from Patient registration
+      yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr, // Place of living
+      fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
+    // Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
     const dob = tei?.attributes?.find(
       (attr) => attr.attribute === dhis2Map.attr.birthdate
     )?.value;
 
     if (dob) {
-      let ageInDays = calculateAge(dob) * 365;
+      const ageInDaysValue = ageInDays(dob, encounter.encounterDatetime);
       attributeMapping.push({
         dataElement: "Z7vMFdnQxpE",
-        value: ageInDays,
+        value: ageInDaysValue,
       });
     }
+
+    // Age in months (L97SmAK11DN) - from estimated age if DOB not available
     if (!dob) {
-      const age = tei?.attributes?.find(
-        (attr) => attr.attribute === dhis2Map.attr.ageInYears
+      const ageInMonthsValue = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.ageInMonth
       )?.value;
 
-      const ageInMonths = age * 12;
-
-      attributeMapping.push({
-        dataElement: "L97SmAK11DN",
-        value: ageInMonths,
-      });
+      if (ageInMonthsValue) {
+        attributeMapping.push({
+          dataElement: "L97SmAK11DN",
+          value: ageInMonthsValue,
+        });
+      }
     }
 
     formMapping.push(...attributeMapping);
