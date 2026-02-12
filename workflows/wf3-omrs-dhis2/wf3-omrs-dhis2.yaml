@@ -24,6 +24,10 @@ steps:
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         name: has-events
+      missing-optionsets:
+        disabled: false
+        condition: '"!state.errors && state.missingOptsets.length > 0"'
+        name: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -82,6 +86,11 @@ steps:
         condition: |
           state.testMode
         name: test-mode
+  - id: missing-optionsets
+    name: Missing OptionSets
+    adaptor: "@openfn/language-googlesheets@4.0.8"
+    configuration: dd690541-71e5-4baa-a755-3610abc79c00
+    expression: ./missing-optionsets.js
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
