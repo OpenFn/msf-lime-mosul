@@ -2229,10 +2229,6 @@ const findDataValue = (encounter, dataElement, state) => {
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
 
-  if (dataElement === "gn40F7cEQTI") {
-    console.log(form.dataValueMap[dataElement]);
-    console.log({ dataElement, answer, conceptUuid, questionId });
-  }
   if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
