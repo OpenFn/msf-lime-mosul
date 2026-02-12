@@ -130,25 +130,6 @@ function f8(encounter) {
   return [];
 }
 
-function f27(encounter) {
-  const admissionDate = findObsByConcept(
-    encounter,
-    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  )?.value;
-  if (!admissionDate) return [];
-  const timePart = admissionDate.substring(11, 16);
-  const datePart = admissionDate.replace("+0000", "");
-  return [
-    {
-      dataElement: "eYvDzr2m8f5",
-      value: timePart,
-    },
-    {
-      eventDate: datePart,
-    },
-  ];
-}
-
 function f23(encounter) {
   // Define concept mappings object for cleaner reference
   const CONCEPT_ID = "f587c6a3-6a71-48ae-83b2-5e2417580b6f";
@@ -228,6 +209,25 @@ function f26(encounter, state) {
       value: value,
     };
   });
+}
+
+function f27(encounter) {
+  const admissionDate = findObsByConcept(
+    encounter,
+    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
+  )?.value;
+  if (!admissionDate) return [];
+  const timePart = admissionDate.substring(11, 16);
+  const datePart = admissionDate.replace("+0000", "");
+  return [
+    {
+      dataElement: "eYvDzr2m8f5",
+      value: timePart,
+    },
+    {
+      eventDate: datePart,
+    },
+  ];
 }
 
 function f41(encounter) {
@@ -1719,8 +1719,6 @@ const findDataValue = (encounter, dataElement, state) => {
 
 const buildDataValues = (encounter, tei, mappingConfig) => {
   const {
-    optsMap,
-    optionSetKey,
     dhis2Map,
     form,
     f08Form,
@@ -2086,8 +2084,6 @@ fn((state) => {
             return null;
           }
           return buildDataValues(encounter, tei, {
-            optsMap: state.optsMap,
-            optionSetKey: state.optionSetKey,
             dhis2Map: state.dhis2Map,
             form,
             f08Form,
