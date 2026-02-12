@@ -2025,11 +2025,6 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     })
     .filter((d) => d.value);
 
-  dataValuesMapping.push({
-    dataElement: "rbFVBI2N6Ex",
-    value: visitUuid,
-  });
-
   //setting the visitUuid here as a data element
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
     Boolean
@@ -2039,6 +2034,8 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 };
 
 fn((state) => {
+  state.missingOptsets ??= [];
+
   const f08Form = formIdByName("F08-ITFC Admission", state.formMaps);
   const f09Form = formIdByName("F09-ITFC Discharge", state.formMaps);
   const f23Form = formIdByName("F23-Neonatal Admission", state.formMaps);
@@ -2097,10 +2094,10 @@ fn((state) => {
             f41Form,
             f42Form,
             f43Form,
+            f61Form,
             f64Form,
             f65Form,
             f66Form,
-            f67Form,
           });
         })
         .flat()
