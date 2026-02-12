@@ -200,48 +200,34 @@ function f23(encounter) {
   }));
 }
 
-function f26(encounter, optsMap, optionSetKey) {
+function f26(encounter, state) {
+  const config = {
+    concept: "8afa4dfc-b2af-452c-b402-4b96b0f334b4",
+    qid: "rfe-forms-antimalariaType",
+    dataElements: ["GUiSgvbwUyc", "F6C5WnGoj5r"],
+  };
   const antimalariaType = filterObsByConcept(
     encounter,
-    "8afa4dfc-b2af-452c-b402-4b96b0f334b4"
+    `${config.concept}-${config.qid}`
   );
 
-  if (antimalariaType.length > 1) {
-    const { value, concept, formFieldPath } = antimalariaType[1];
-    const optionKey = `${encounter.form.uuid}-${concept.uuid}-${formFieldPath}`;
-    const matchingOptionSet = optionSetKey[optionKey];
-    const opt = optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === value.uuid &&
-        o["value.display - Answers"] == value.display
-      // o["DHIS2 Option Set UID"] === matchingOptionSet // TODO: @Aisha to confirm with Ludovic, No matching option set found for this concept
-    );
+  return antimalariaType.slice(0, 2).map((obs, index) => {
+    const de = dataElements[index];
 
-    return [
+    const value = dataValueByConcept(
+      { ...encounter, obs: [obs] }, // Pass single obs
       {
-        dataElement: "GUiSgvbwUyc",
-        value: opt?.["DHIS2 Option Code"],
+        dataElement: de,
+        conceptUuid: config.concept,
+        questionId: config.qid,
       },
-    ];
-  } else if (antimalariaType.length === 1) {
-    const { value, concept, formFieldPath } = antimalariaType[0];
-
-    const optionKey = `${encounter.form.uuid}-${concept.uuid}-${formFieldPath}`;
-    const matchingOptionSet = optionSetKey[optionKey];
-    const opt = optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === value.uuid &&
-        o["value.display - Answers"] == value.display
-      // o["DHIS2 Option Set UID"] === matchingOptionSet
+      state
     );
-    return [
-      {
-        dataElement: "F6C5WnGoj5r",
-        value: opt?.["DHIS2 Option Code"],
-      },
-    ];
-  }
-  return [];
+    return {
+      dataElement: de,
+      value: value,
+    };
+  });
 }
 
 function f41(encounter) {
@@ -1659,11 +1645,11 @@ const findByConceptAndValue = (encounter, conceptUuid, value) => {
   return answer;
 };
 
-const findDataValue = (encounter, dataElement, metadataMap) => {
+const findDataValue = (encounter, dataElement, state) => {
   if (dataElement === "H9noxo3e7ox") {
     return;
   }
-  const { optsMap, optionSetKey, form } = metadataMap;
+  const form = state.formMaps[encounter.form.uuid];
   const [conceptUuid, questionId] =
     form.dataValueMap[dataElement]?.split("-rfe-");
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -1679,43 +1665,39 @@ const findDataValue = (encounter, dataElement, metadataMap) => {
     const optionKey = questionId
       ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
-    const matchingOptionSet = optionSetKey[optionKey];
 
-    const opt = optsMap.find(
+    const matchingOptionSet = state.optionSetKey[optionKey];
+
+    const opt = state.optsMap.find(
       (o) =>
         o["value.uuid - External ID"] === answer.value.uuid &&
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
-    // TODO: Remove this log on prod
-    if (!matchingOptionSet) {
-      console.log("No matching option set found for ", {
-        dataElement,
-        qn: answer.concept.display,
-        ansUuid: answer.value.uuid,
-        ansDisplay: answer.value.display,
-      });
-    }
-    // TODO: Remove this log on prod
-    if (!opt && matchingOptionSet) {
-      console.log("No Option found for ", {
-        dataElement,
-        qn: answer.concept.display,
-        ansUuid: answer.value.uuid,
-        ansDisplay: answer.value.display,
-        matchingOptionSet,
-      });
-    }
-    const matchingOption =
-      opt?.["DHIS2 Option Code"] ||
-      opt?.["DHIS2 Option name"] || // TODO: Sync with AK: We have added this because  Opticon Code is empty in some cases.
-      answer?.value?.display; //TODO: revisit this logic if optionSet not found
 
-    // console.log({ matchingOptionSet, opt, matchingOption });
-    // If we get errors on true/false, yes/no mappings remove && !matchingOptionSet
-    if (["FALSE", "No"].includes(matchingOption) && !matchingOptionSet)
-      return "false";
-    if (["TRUE", "Yes"].includes(matchingOption) && !matchingOptionSet)
-      return "true";
+    // Removed fallback logic to DHIS2 Option name and answer.value.display
+    // Now only using DHIS2 Option Code to ensure proper validation
+    const matchingOption = opt?.["DHIS2 Option Code"];
+
+    // Capture missing DHIS2 Option Codes for tracking
+    if (!matchingOption) {
+      state.missingOptsets.push({
+        timestamp: new Date().toISOString(),
+        openMrsQuestion: answer.concept.display || "N/A",
+        conceptExternalId: answer.concept.uuid,
+        answerDisplay: answer.value.display,
+        answerValueUuid: answer.value.uuid,
+        dhis2DataElementUid: dataElement,
+        dhis2OptionSetUid: matchingOptionSet || "N/A",
+        metadataFormName: encounter.form.name || encounter.form.uuid,
+        encounterUuid: encounter.uuid,
+        patientUuid: encounter.patient.uuid,
+        sourceFile: state.sourceFile,
+        optionKey,
+      });
+    }
+
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
 
     return matchingOption;
   }
@@ -1766,7 +1748,6 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     formMapping.push(...f8Mapping);
 
     // F09 Form Encounter Mapping
-
     const attributeMap = {
       Lg1LrNf9LQR: dhis2Map.attr.sex,
       OVo3FxLURtH: dhis2Map.attr.ageInMonth,
@@ -1843,7 +1824,7 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
       (attr) => attr.attribute === dhis2Map.attr.birthdate
     )?.value;
 
-    const f26Mapping = f26(encounter, optsMap, optionSetKey);
+    const f26Mapping = f26(encounter, state);
     attributeMapping.push(...f26Mapping);
     if (dob) {
       let ageInDays = calculateAge(dob) * 365;
@@ -2041,12 +2022,7 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
   const dataValuesMapping = Object.keys(form.dataValueMap)
     .map((dataElement) => {
-      const value = findDataValue(encounter, dataElement, {
-        optsMap,
-        optionSetKey,
-        form,
-      });
-
+      const value = findDataValue(encounter, dataElement, state);
       return { dataElement, value };
     })
     .filter((d) => d.value);
