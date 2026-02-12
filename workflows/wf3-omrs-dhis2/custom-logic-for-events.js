@@ -130,56 +130,69 @@ function f8(encounter) {
   return [];
 }
 
-function f23(encounter) {
-  // Define concept mappings object for cleaner reference
-  const CONCEPT_ID = "f587c6a3-6a71-48ae-83b2-5e2417580b6f";
-
-  const conditions = [
+// F23 Configuration - Maternal risk factors for neonatal sepsis
+// All mappings are TRUE_ONLY type: returns true if selected, undefined otherwise
+const F23_CONFIG = {
+  concept: "f587c6a3-6a71-48ae-83b2-5e2417580b6f", // Maternal risk factors
+  mappings: [
     {
-      // 'Neonatal infection in previous pregnancy' is selected in OMRS
-      dataElement: "H9noxo3e7ox",
+      de: "H9noxo3e7ox", // Neonatal infection in previous pregnancy
       valueId: "09d6bb71-b061-4cae-85f3-2ff020a10c92",
     },
     {
-      // 'Mother got antibiotics during delivery/post-partum ' is selected in OMRS
-      dataElement: "GfN1TtpqDoJ",
+      de: "GfN1TtpqDoJ", // Mother got antibiotics during delivery/post-partum
       valueId: "3764bd79-9ae2-478a-88e7-51adc0a8a2e3",
     },
     {
-      //'Infection in other baby if multiple pregnancy' is selected in OMRS
-      dataElement: "WS1p4xgbZqU",
+      de: "WS1p4xgbZqU", // Infection in other baby if multiple pregnancy
       valueId: "95d55453-060b-43a2-b4a0-11848dd9ac72",
     },
     {
-      //'Maternal fever during labour' is selected in OMRS
-      dataElement: "WX19iDuB4Dj",
+      de: "WX19iDuB4Dj", // Maternal fever during labour
       valueId: "890f4bdb-91bc-484c-a9cf-17f5068b0507",
     },
     {
-      // 'Rupture of membranes ≥18h' is selected in OMRS
-      dataElement: "eLKs6GUHJdS",
+      de: "eLKs6GUHJdS", // Rupture of membranes ≥18h
       valueId: "28d10ce0-7f72-4654-834d-64fa37ad8e85",
     },
     {
-      // 'Pre-labour rupture of membranes <18h' is selected in OMRS
-      dataElement: "hCfngwimBjX",
+      de: "hCfngwimBjX", // Pre-labour rupture of membranes <18h
       valueId: "cf48d000-a741-44e0-81cb-a51f88595e41",
     },
     {
-      // 'Smelling/cloudy amniotic fluid' is selected in OMRS
-      dataElement: "qc7ubAwULxs",
+      de: "qc7ubAwULxs", // Smelling/cloudy amniotic fluid
       valueId: "49829d18-22c9-404c-a79a-49ed6b21d2be",
     },
-  ];
+  ],
+};
 
-  // Map through conditions and create final mapping
-  return conditions.map((condition) => ({
-    dataElement: condition.dataElement,
-    value: findByConceptAndValue(encounter, CONCEPT_ID, condition.valueId)
-      ? true
-      : undefined,
-  }));
+function f23(encounter) {
+  const dataValues = [];
+
+  // Map TRUE_ONLY fields - returns "TRUE" if selected, undefined otherwise
+  F23_CONFIG.mappings.forEach((mapping) => {
+    dataValues.push({
+      dataElement: mapping.de,
+      value: conceptAndValueTrueOnly(
+        encounter,
+        F23_CONFIG.concept,
+        mapping.valueId
+      ),
+    });
+  });
+
+  return dataValues;
 }
+
+// F24 Configuration - Neonatal Discharge
+// NOTE: F24 discharge form mappings are handled in buildDataValues function
+// All custom logic is for TEI attributes:
+//   - Patient number (fnH6H3biOkE) - from MSF ID in Patient registration
+//   - Sex (Hww0CNYYt3E) - from Sex concept in Patient registration
+//   - Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
+//   - Age in months (L97SmAK11DN) - from estimated age if DOB not available
+//   - Place of living (yE0dIWW0TXP) - from Place of living in Patient registration
+// "Days since admission" is a form field but not mapped to DHIS2 (DHIS2 DE UID = NA in metadata)
 
 function f26(encounter, state) {
   const config = {
@@ -2024,6 +2037,11 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
       return { dataElement, value };
     })
     .filter((d) => d.value);
+
+  dataValuesMapping.push({
+    dataElement: "rbFVBI2N6Ex",
+    value: visitUuid,
+  });
 
   //setting the visitUuid here as a data element
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
