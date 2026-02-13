@@ -289,13 +289,12 @@ function f42(encounter) {
 
 function f43(encounter, tei, dhis2Attr) {
   const mappings = [];
+
+  // Date/Time mapping (Question #1)
+  // Concept: 88472a4e-f26e-4235-8144-4ad6df874949
   const obsDatetime = findObsByConcept(
     encounter,
     "88472a4e-f26e-4235-8144-4ad6df874949"
-  )?.value;
-
-  const birthdate = tei?.attributes?.find(
-    (attr) => attr.attribute === dhis2Attr.birthdate
   )?.value;
 
   if (obsDatetime) {
@@ -303,22 +302,65 @@ function f43(encounter, tei, dhis2Attr) {
     const timePart = obsDatetime.substring(11, 16);
     mappings.push(
       {
-        dataElement: "tR7XL9TPVkr",
+        dataElement: "tR7XL9TPVkr", // Emergency Room - Discharge date
         value: datePart,
       },
       {
-        dataElement: "P8bmDESxYqn",
+        dataElement: "P8bmDESxYqn", // Emergency Room - Time of discharge (HH:MM)
         value: timePart,
       }
     );
   }
 
+  // Age calculations with fallback logic
+  const birthdate = tei?.attributes?.find(
+    (attr) => attr.attribute === dhis2Attr.birthdate
+  )?.value;
+
+  // Age in years (BA7aQjiwlrL) - from attribute or calculated from DOB
+  let ageInYears = tei?.attributes?.find(
+    (attr) => attr.attribute === dhis2Attr.ageInYears
+  )?.value;
+
+  if (!ageInYears && birthdate) {
+    ageInYears = calculateAge(birthdate);
+  }
+
+  if (ageInYears) {
+    mappings.push({
+      dataElement: "BA7aQjiwlrL", // Emergency Room - Age in years
+      value: ageInYears,
+    });
+  }
+
+  // Age in months (hT8pIot8b6Y) - from attribute or calculated from DOB
+  let ageInMonths = tei?.attributes?.find(
+    (attr) => attr.attribute === dhis2Attr.ageInMonth
+  )?.value;
+
+  if (!ageInMonths && birthdate) {
+    const birth = new Date(birthdate);
+    const now = new Date();
+    const diffTime = Math.abs(now - birth);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    ageInMonths = Math.floor(diffDays / 30.44); // approximate months
+  }
+
+  if (ageInMonths) {
+    mappings.push({
+      dataElement: "hT8pIot8b6Y", // Emergency Room - Age in months
+      value: ageInMonths,
+    });
+  }
+
+  // Age in days (Z2RzJFkXzII) - calculated from DOB if available
   if (birthdate) {
     mappings.push({
-      dataElement: "Z2RzJFkXzII",
+      dataElement: "Z2RzJFkXzII", // Emergency Room - Age in days
       value: ageInDays(birthdate, encounter.encounterDatetime),
     });
   }
+
   return mappings;
 }
 
@@ -1822,16 +1864,41 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
 
   if ([f25Form, f26Form].includes(encounter.form.uuid)) {
     const attributeMap = {
-      eDuqRYx3wLx: dhis2Map.attr.sex,
       d7wOfzPBbQD: dhis2Map.attr.ageInYears,
       y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
-      // b7z6xIpzkim: "",
       CDuiRuOcfzj: dhis2Map.attr.currentStatus,
-      JMhFzB97fcS: dhis2Map.attr.legalStatus,
       Nd43pz1Oo62: dhis2Map.attr.placeOfLivingAttr,
       kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
     };
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+
+    // Custom mapping for sex and legalStatus (f26 only)
+    if (encounter.form.uuid === f26Form) {
+      // Sex: leave blank if value is "unknown" or "other"
+      const sexValue = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.sex
+      )?.value;
+      const sexMapping = {
+        dataElement: "eDuqRYx3wLx",
+        value: ["unknown", "other"].includes(sexValue?.toLowerCase())
+          ? ""
+          : sexValue,
+      };
+
+      // LegalStatus: convert "asylum_seeker" to "asylum-seeker"
+      const legalStatusValue = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.legalStatus
+      )?.value;
+      const legalStatusMapping = {
+        dataElement: "JMhFzB97fcS",
+        value:
+          legalStatusValue === "asylum_seeker"
+            ? "asylum-seeker"
+            : legalStatusValue,
+      };
+
+      attributeMapping.push(sexMapping, legalStatusMapping);
+    }
 
     const dob = tei?.attributes?.find(
       (attr) => attr.attribute === dhis2Map.attr.birthdate
@@ -1884,17 +1951,17 @@ const buildDataValues = (encounter, tei, mappingConfig) => {
     const f42Mapping = f42(encounter);
     formMapping.push(...f42Mapping);
 
-    // F43 Form Encounter Mapping
+    // F43 Form Encounter Mapping - TEI attributes and custom logic
     const attributeMap = {
-      eMXqL66pJSV: dhis2Map.attr.sex,
-      hT8pIot8b6Y: dhis2Map.attr.ageInMonth,
-      BA7aQjiwlrL: dhis2Map.attr.ageInYears, // in metadata->"Rv8WM2mTuS5",
-      KRNhyZHeGGM: dhis2Map.attr.currentStatus,
-      fUxvDvbPKlU: dhis2Map.attr.legalStatus,
-      xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr,
-      iGHeO9F8CKm: dhis2Map.attr.nationalityAttr,
+      gHPt2FCZEE6: dhis2Map.attr.patientNumber, // Emergency Room - Patient number
+      eMXqL66pJSV: dhis2Map.attr.sex, // Emergency Room - Sex
+      xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr, // Emergency Room - Place of living
+      iGHeO9F8CKm: dhis2Map.attr.nationalityAttr, // Emergency Room - Nationality
+      KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
+      fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
     };
     const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+    // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
     formMapping.push(
       ...f43AttributeMapping,
       ...f43(encounter, tei, dhis2Map.attr)
