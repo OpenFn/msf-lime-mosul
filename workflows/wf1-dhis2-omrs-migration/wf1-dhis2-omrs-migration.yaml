@@ -10,7 +10,7 @@ steps:
   - id: create-patients
     name: Create Patients
     adaptor: "@openfn/language-openmrs@4.2.0"
-    configuration: c53d5795-f47c-41cf-8f97-5c5ef162b34e
+    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./create-patients.js
     next:
       update-teis:
@@ -18,6 +18,7 @@ steps:
         condition: on_job_success
   - id: cron
     type: cron
+    enabled: false
     next:
       fetch-metadata:
         disabled: false
@@ -33,31 +34,31 @@ steps:
   - id: get-teis-and-locations
     name: Get Teis and Locations
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-teis-and-locations.js
     next:
       create-patients:
         disabled: false
         condition: |
           state.uniqueTeis.length > 0 && !state.errors
-        name: has-teis
+        label: has-teis
       validate-teis-with-omrs-id:
         disabled: false
         condition: |
           !state.errors && state. teisWithOMRSID.length > 0
-        name: has-teisWithOMRSID
+        label: has-teisWithOMRSID
       alert-admin-of-duplicate-teis:
         disabled: false
         condition: |
           state.duplicatePatients.length > 0 && !state.errors
-        name: has-duplicate-patients
+        label: has-duplicate-patients
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./update-teis.js
   - id: validate-teis-with-omrs-id
     name: Validate TEIs with OMRS Id
     adaptor: "@openfn/language-openmrs@4.2.0"
-    configuration: c53d5795-f47c-41cf-8f97-5c5ef162b34e
+    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./validate-teis-with-omrs-id.js

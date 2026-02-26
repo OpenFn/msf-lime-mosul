@@ -6,7 +6,7 @@ steps:
   - id: create-child-teis
     name: Create Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./create-child-teis.js
     next:
       create-teis-relationship:
@@ -15,21 +15,21 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./create-events.js
     next:
       update-teis:
         disabled: false
         condition: |
           state?.teisToUpdate?.length > 0
-        name: has-gender-updated
+        label: has-gender-updated
       populate-outcomes-in-test-suite:
         disabled: false
         condition: on_job_success
   - id: create-teis-relationship
     name: Create TEIs Relationship
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./create-teis-relationship.js
     next:
       event-mappings:
@@ -37,6 +37,7 @@ steps:
         condition: on_job_success
   - id: cron
     type: cron
+    enabled: false
     next:
       get-patients:
         disabled: false
@@ -50,41 +51,41 @@ steps:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
-        name: has-events
+        label: has-events
       missing-optionsets:
         disabled: false
         condition: "!state.errors && state.missingOptsets.length > 0"
-        name: missing-opts
+        label: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: c53d5795-f47c-41cf-8f97-5c5ef162b34e
+    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./get-encounters.js
     next:
       get-parent-and-child-teis:
         disabled: false
         condition: |
           !state.errors && state.encounters.length > 0
-        name: has-encounters
+        label: has-encounters
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-parent-and-child-teis.js
     next:
       create-child-teis:
         disabled: false
         condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
-        name: has-child-teis-to-create
+        label: has-child-teis-to-create
       event-mappings:
         disabled: false
         condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
           && state?.existingTeis"
-        name: has-existing-teis
+        label: has-existing-teis
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: c53d5795-f47c-41cf-8f97-5c5ef162b34e
+    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./get-patients.js
     next:
       mappings:
@@ -93,23 +94,23 @@ steps:
   - id: mappings
     name: Mappings
     adaptor: "@openfn/language-common@3.2.2"
-    configuration: 1296d9ea-9c40-494a-99cb-8e7f8a65f88c
+    configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./mappings.js
     next:
       get-encounters:
         disabled: false
         condition: |
           !state.errors && state.patients.length === 0
-        name: has-no-patients
+        label: has-no-patients
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
-        name: has-patients
+        label: has-patients
   - id: missing-optionsets
     name: Missing OptionSets
     adaptor: "@openfn/language-googlesheets@4.0.7"
-    configuration: dd690541-71e5-4baa-a755-3610abc79c00
+    configuration: mtuchi@openfn.org|mtuchi-gsheet
     expression: ./missing-optionsets.js
   - id: populate-outcomes-in-test-suite
     name: Populate Outcomes in Test Suite
@@ -123,29 +124,30 @@ steps:
       get-patients:
         disabled: true
         condition: "!state.errors & state.test_scenario === null"
-        name: Not Test Mode
+        label: Not Test Mode
       event-mappings:
         disabled: false
         condition: always
-        name: "Test: Create Events"
+        label: "Test: Create Events"
   - id: update-teis
     name: Update TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./update-teis.js
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 78fb8d78-df1f-4cbe-a413-091c7ff4e125
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./upsert-teis.js
     next:
       get-encounters:
         disabled: false
         condition: |
           state.patientUuids.length > 0 && !state.errors
-        name: has-patient-uuids
+        label: has-patient-uuids
   - id: webhook
     type: webhook
+    enabled: true
     next:
       prepare-tests:
         disabled: false

@@ -22,7 +22,7 @@ steps:
   - id: read-test-cases-from-google-sheet
     name: Read test cases from Google Sheet
     adaptor: "@openfn/language-googlesheets@latest"
-    configuration: 65da56fb-c063-41bd-b975-03c8a4ff2c6f
+    configuration: justin@openfn.org|Justin-GSheets-Sandbox
     expression: ./read-test-cases-from-google-sheet.js
     next:
       get-inputs-from-github:
@@ -31,7 +31,7 @@ steps:
   - id: trigger-workflow
     name: Trigger Workflow
     adaptor: "@openfn/language-http@7.2.7"
-    configuration: 1296d9ea-9c40-494a-99cb-8e7f8a65f88c
+    configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./trigger-workflow.js
     next:
       capture-actual-output:
@@ -39,6 +39,7 @@ steps:
         condition: on_job_success
   - id: webhook
     type: webhook
+    enabled: false
     next:
       read-test-cases-from-google-sheet:
         disabled: false
