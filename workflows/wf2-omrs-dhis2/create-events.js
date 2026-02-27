@@ -96,10 +96,11 @@ fn((state) => {
 
   const genderUpdated = latestGenderUpdate
     .map((answer) => {
-      const chilProgram = formMaps[answer.formUuid].programId;
-      const childOrgUnit = formMaps[answer.formUuid].orgUnit;
-      const personUuid = answer.person.uuid;
+      const chilProgram = formMaps[answer.formUuid]?.programId;
+      const childOrgUnit = formMaps[answer.formUuid]?.orgUnit;
+      const personUuid = answer?.person?.uuid;
       const parentTei = parentTeis[personUuid]?.trackedEntity;
+      console.log(`key: ${childOrgUnit}-${chilProgram}-${personUuid}`);
       const childTei =
         childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`].trackedEntity;
 
@@ -149,8 +150,8 @@ fn((state) => {
   // console.log({ latestEducationUpdate })
   const educationUpdated = latestEducationUpdate
     .map((answer) => {
-      const chilProgram = formMaps[answer.formUuid].programId;
-      const childOrgUnit = formMaps[answer.formUuid].orgUnit;
+      const chilProgram = formMaps[answer.formUuid]?.programId;
+      const childOrgUnit = formMaps[answer.formUuid]?.orgUnit;
       const personUuid = answer.person.uuid;
       const parentTei = parentTeis[personUuid]?.trackedEntity;
       const childTei =
