@@ -2220,10 +2220,21 @@ const dataValueByConcept = (encounter, de, state) => {
     return matchingOption;
   }
 };
+
+const toTrueOrFalse = (value) => {
+  if (["true", "yes"].includes(value.toLowerCase())) {
+    return "true";
+  }
+  if (["false", "no"].includes(value.toLowerCase())) {
+    return "false";
+  }
+  return value;
+};
+
 const findDataValue = (encounter, dataElement, state) => {
   const form = state.formMaps[encounter.form.uuid];
-  const [conceptUuid, questionId] =
-    form.dataValueMap[dataElement]?.split("-rfe-") || [];
+  const [conceptUuid, type, questionId] =
+    form.dataValueMap[dataElement]?.split("::") || [];
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
@@ -2234,8 +2245,11 @@ const findDataValue = (encounter, dataElement, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
     const optionKey = questionId
-      ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
 
     const matchingOptionSet = state.optionSetKey[optionKey];

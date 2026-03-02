@@ -100,7 +100,7 @@ fn((state) => {
       const childOrgUnit = formMaps[answer.formUuid]?.orgUnit;
       const personUuid = answer?.person?.uuid;
       const parentTei = parentTeis[personUuid]?.trackedEntity;
-      console.log(`key: ${childOrgUnit}-${chilProgram}-${personUuid}`);
+
       const childTei =
         existingTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
           ?.trackedEntity;
