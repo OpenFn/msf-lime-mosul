@@ -1,9 +1,8 @@
 // Only run if there are missing option sets to report
 fn((state) => {
-  const CHUNK_SIZE = 10000; // Adjust based on your needs (max ~10,000 for Google Sheets)
+  const CHUNK_SIZE = 10000;
   const missingOptsets = state.missingOptsets;
 
-  // Prepare header row
   const headers = [
     "Timestamp",
     "OpenMRS Question",
@@ -18,8 +17,7 @@ fn((state) => {
     "Source File",
   ];
 
-  // Transform data into rows
-  const rows = missingOptsets.map((opt) => [
+  const allRows = missingOptsets.map((opt) => [
     opt.timestamp,
     opt.openMrsQuestion,
     opt.conceptExternalId,
@@ -33,37 +31,68 @@ fn((state) => {
     opt.sourceFile,
   ]);
 
-  // Create chunks
-  const chunks = [];
-  for (let i = 0; i < rows.length; i += CHUNK_SIZE) {
-    chunks.push(rows.slice(i, i + CHUNK_SIZE));
-  }
-
-  // Store in state for processing
-  state.chunks = chunks;
+  state.allRows = allRows;
   state.headers = headers;
 
   return state;
 });
 
-// Write headers first
-batchUpdateValues({
-  spreadsheetId: "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
-  range: "Missing OptionSets Mappings!A1",
-  values: (state) => [state.headers],
+// Get existing data to check for duplicates
+getValues(
+  "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
+  "Missing OptionSets Mappings"
+);
+
+// Filter duplicates and prepare chunks
+const CHUNK_SIZE = 10000;
+fn((state) => {
+  const allRows = state.allRows;
+
+  // Get existing data (skip header row)
+  const existingData = state.data?.values?.slice(1) || [];
+
+  // Create a Set of unique keys from existing data
+  // Key format: conceptExternalId|answerUuid|dhis2DeUid|encounterUuid
+  const existingKeys = new Set(
+    existingData.map(row => `${row[2]}|${row[4]}|${row[5]}|${row[8]}`)
+  );
+
+  // Filter out duplicates
+  const newRows = allRows.filter(row => {
+    const key = `${row[2]}|${row[4]}|${row[5]}|${row[8]}`;
+    return !existingKeys.has(key);
+  });
+
+  console.log(`Total errors found: ${allRows.length}`);
+  console.log(`New unique errors to add: ${newRows.length}`);
+  console.log(`Duplicates filtered out: ${allRows.length - newRows.length}`);
+
+  const chunks = [];
+  for (let i = 0; i < newRows.length; i += CHUNK_SIZE) {
+    chunks.push(newRows.slice(i, i + CHUNK_SIZE));
+  }
+
+  const nextRow = existingData.length + 2; // +2 for header and 1-indexing
+
+  state.chunks = chunks;
+  state.nextRow = nextRow;
+  state.newRowCount = newRows.length;
+
+  return state;
 });
-// Process each chunk
+
+// Append data chunks (will add after existing rows)
 each(
   (state) => state.chunks,
   batchUpdateValues({
     spreadsheetId: "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
     range: (state) => {
-      const currentChunkIndex = state.chunks.indexOf(state.data);
-      const startRow = 2 + currentChunkIndex * state.chunks[0].length;
+      const currentChunkIndex = state.index;
+      const startRow = state.nextRow + (currentChunkIndex * CHUNK_SIZE);
       return `Missing OptionSets Mappings!A${startRow}`;
     },
     values: (state) => state.data,
-  }),
+  })
 );
 
 // Log summary statistics
