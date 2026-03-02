@@ -219,7 +219,7 @@ const multiSelectAns = (encounter, multiSelectQns) => {
           const ans = encounter.obs.find(
             (obs) => obs.value.uuid === qn.multiAns
           );
-          let value;
+          let value = undefined;
           if (qn.type === "TRUE_ONLY") {
             value = ans ? "true" : undefined;
           }
@@ -449,7 +449,7 @@ function f61(encounter, events, state) {
 
   const multiSelectDataValues = multiSelectAns(
     encounter,
-    state.formMaps[encounter.form].multiSelectQns
+    state.formMaps[encounter.form.uuid].multiSelectQns
   );
   return [
     {
@@ -465,96 +465,6 @@ function f61(encounter, events, state) {
             ? "TRUE"
             : "FALSE",
         },
-        // {
-        //   dataElement: "M7aqCkQSnIP",
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
-        //     "95ac8931-7222-4d14-9d94-2e55074e6261"
-        //   ),
-        // },
-        // {
-        //   dataElement: "H6mrPZ2PvGa",
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
-        //     "a257d08e-b90d-4505-91c3-e23ea040f61c"
-        //   ),
-        // },
-        // {
-        //   dataElement: "aHEgOilU4Sg",
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
-        //     "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
-        //   ),
-        // },
-        // {
-        //   dataElement: "I64ENhlDzP6",
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
-        //     "a6fe73a2-0352-4104-82a7-4456f1866c1e"
-        //   ),
-        // },
-        // {
-        //   dataElement: "i69GqSWXwRZ",
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f",
-        //     "9f50dc11-9ed4-4e25-a059-9cb770651c35"
-        //   ),
-        // },
-        // Difficulties faced - TRUE_ONLY fields
-        // NOTE: Value UUIDs should be verified against actual OMRS data
-        // {
-        //   dataElement: "KGwTrsJjYR5", // Violence
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a",
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a"
-        //   ),
-        // },
-        // {
-        //   dataElement: "G10cJ5RJ2uE", // Hunger
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a",
-        //     "04684645-508f-4ec4-91a9-406e5567a934"
-        //   ),
-        // },
-        // {
-        //   dataElement: "Yp6qfnhSbTx", // Authorities
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a",
-        //     "e81a13a6-d469-465d-9c6b-9930c7bb7d39"
-        //   ),
-        // },
-        // {
-        //   dataElement: "LgoaYXv2mkO", // Environment conditions
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a",
-        //     "05aa3b94-7e7e-47f1-80b9-1304889c293c"
-        //   ),
-        // },
-        // {
-        //   dataElement: "ScHhUDsY1JM", // Restricted movements
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a",
-        //     "b10b22e3-a46d-4682-aba5-fdeac3591d29"
-        //   ),
-        // },
-        // {
-        //   dataElement: "vKTI1wQhhy7", // Sickness or death
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "ebb50467-1a62-41f0-a849-2ec0ed49607a",
-        //     "67322e0a-0def-4543-97cd-89cdd03e2950"
-        //   ),
-        // },
         {
           dataElement: "wiOCvUUHUEr",
           value: dataValueByConcept(
@@ -567,80 +477,6 @@ function f61(encounter, events, state) {
             state
           ),
         },
-        // // Continuity of care needed - TRUE_ONLY fields
-        // {
-        //   dataElement: "gJoiya16c1E", // NCD
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "d30db8b8-f8fb-450c-9562-629195212a45",
-        //     "a6fe73a2-0352-4104-82a7-4456f1866c1e"
-        //   ),
-        // },
-        // {
-        //   dataElement: "aHEgOilU4Sg", // SRH
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "d30db8b8-f8fb-450c-9562-629195212a45",
-        //     "02e8a7bc-d18c-4650-bf47-c8e52f493f3b"
-        //   ),
-        // },
-        // {
-        //   dataElement: "ahGVTDSbSaq", // MH
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "d30db8b8-f8fb-450c-9562-629195212a45",
-        //     "a257d08e-b90d-4505-91c3-e23ea040f61c"
-        //   ),
-        // },
-        // {
-        //   dataElement: "i69GqSWXwRZ", // Other
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "d30db8b8-f8fb-450c-9562-629195212a45",
-        //     "9f50dc11-9ed4-4e25-a059-9cb770651c35"
-        //   ),
-        // },
-        // // Care packages given - TRUE_ONLY fields
-        // {
-        //   dataElement: "Sp0VsyyvDCI", // First aid kit
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "96d32363-694a-4d6a-9710-6ceadd0e2894",
-        //     "4a946686-7d67-40d5-b1f1-a0aad133193c"
-        //   ),
-        // },
-        // {
-        //   dataElement: "JNNfaYcPPuS", // Hygiene kit
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "96d32363-694a-4d6a-9710-6ceadd0e2894",
-        //     "9de0f8c5-df5c-4fc2-a586-48acd7219e04"
-        //   ),
-        // },
-        // {
-        //   dataElement: "awIYcHfNEnI", // Baby kit
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "96d32363-694a-4d6a-9710-6ceadd0e2894",
-        //     "0254978b-c858-4b9d-ba66-074ced37a6d5"
-        //   ),
-        // },
-        // {
-        //   dataElement: "xjG5N6RD9vm", // Mental Health kit
-        //   value: conceptAndValueTrueOnly(
-        //     encounter,
-        //     "96d32363-694a-4d6a-9710-6ceadd0e2894",
-        //     "e48a7343-bbc1-4e83-85ab-87e267f15cec"
-        //   ),
-        // },
-        // {
-        //   dataElement: "Lj15WiOE5Jj", // Drugs provided - BOOLEAN
-        //   value: conceptAndValue(
-        //     encounter,
-        //     "96d32363-694a-4d6a-9710-6ceadd0e2894",
-        //     "2b616aa9-e573-40a1-8e01-dfdde229553b"
-        //   ),
-        // },
       ].filter((d) => d.value),
     },
   ];
@@ -698,37 +534,11 @@ function f65(encounter, form) {
   return mappings;
 }
 
-function f66(encounter) {
+function f66(encounter, form) {
   const mappings = [];
 
-  // Risk factors concept
-  const RISK_FACTORS_CONCEPT = "b5598ad3-b010-4b78-a47f-944062c8d46c";
-  const riskFactors = [
-    {
-      dataElement: "q3Ofs4sb4sB", // Snakebites - Diabetes
-    },
-    {
-      dataElement: "fBJUOZut8pW", // Snakebites - Immune deficiency
-      valueId: "116030AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "OKMBuzHnIOF", // Snakebites - Other risk factor
-      valueId: "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "Ue3P1jYqPZv", // Snakebites - Pregnant
-      valueId: "1434AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ];
-
-  riskFactors.forEach((rf) => {
-    mappings.push({
-      dataElement: rf.dataElement,
-      value: findByConceptAndValue(encounter, RISK_FACTORS_CONCEPT, rf.valueId)
-        ? true
-        : false,
-    });
-  });
+  const mutiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
+  mappings.push(...mutiSelectDvs);
 
   // Signs and symptoms concept
   const SIGNS_SYMPTOMS_CONCEPT = "5f683542-233e-47c2-b06e-69d2a639a78b";
@@ -1163,8 +973,10 @@ const buildDataValues = (encounter, tei, state) => {
   }
   if ([f23Uuid, f24Uuid].includes(encounter.form.uuid)) {
     // F23 Form Encounter Mapping
-    const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
-    formMapping.push(...f23Mapping);
+    if (encounter.form.uuid === f23Uuid) {
+      const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
+      formMapping.push(...f23Mapping);
+    }
 
     // F24 Form Encounter Mapping
     // Maps TEI attributes to DHIS2 data elements
@@ -1316,14 +1128,20 @@ const buildDataValues = (encounter, tei, state) => {
     const f64Mapping = f64(encounter);
     formMapping.push(...f64Mapping);
 
-    const f65Form = state.formMaps[f65Uuid];
-    // F65 Form Encounter Mapping - Custom mappings
-    const f65Mapping = f65(encounter, f65Form);
-    formMapping.push(...f65Mapping);
+    if (encounter.form.uuid === f65Uuid) {
+      const f65Form = state.formMaps[f65Uuid];
+      // F65 Form Encounter Mapping - Custom mappings
+      const f65Mapping = f65(encounter, f65Form);
+      formMapping.push(...f65Mapping);
+    }
 
     // F64/F65 Form - TEI Attributes (shared between admission and discharge)
     const birthdate = tei?.attributes?.find(
       (attr) => attr.attribute === dhis2Map.attr.birthdate
+    )?.value;
+
+    const sex = tei?.attributes?.find(
+      (attr) => attr.attribute === dhis2Map.attr.sex
     )?.value;
 
     // Calculate patient age in months from birthdate
@@ -1339,12 +1157,19 @@ const buildDataValues = (encounter, tei, state) => {
     // Base attribute mappings
     const attributeMap = {
       j855dPp9p18: dhis2Map.attr.patientNumber, // ICU - Patient number
-      icmcR6av0Ob: dhis2Map.attr.sex, // ICU - Sex
+      // icmcR6av0Ob: dhis2Map.attr.sex, // ICU - Sex
       OI2H3dEQLdQ: dhis2Map.attr.placeOfLivingAttr, // ICU - Place of living
       QiVXQ2eAtpN: dhis2Map.attr.nationalityAttr, // ICU - Nationality
     };
     const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
 
+    if (sex) {
+      const value = sex === "unknown" ? "others" : sex;
+      f64AttributeMapping.push({
+        dataElement: "icmcR6av0Ob",
+        value: value,
+      });
+    }
     // Conditional age mapping based on patient age
     if (ageInMonths !== null) {
       if (ageInMonths > 23) {
@@ -1388,7 +1213,8 @@ const buildDataValues = (encounter, tei, state) => {
 
   if ([f66Uuid].includes(encounter.form.uuid)) {
     // F66 Form Encounter Mapping - Custom mappings
-    const f66Mapping = f66(encounter);
+    const form = state.formMaps[f66Uuid];
+    const f66Mapping = f66(encounter, form);
     formMapping.push(...f66Mapping);
 
     // F67 Form - Patient attributes for snakebites
