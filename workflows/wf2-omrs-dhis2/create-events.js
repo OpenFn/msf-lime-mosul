@@ -66,7 +66,7 @@ const findlatestAnswer = (encounters, conceptUuid) => {
 fn((state) => {
   const {
     encounters,
-    childTeis,
+    existingTeis,
     parentTeis,
     program,
     orgUnit,
@@ -102,7 +102,8 @@ fn((state) => {
       const parentTei = parentTeis[personUuid]?.trackedEntity;
       console.log(`key: ${childOrgUnit}-${chilProgram}-${personUuid}`);
       const childTei =
-        childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`].trackedEntity;
+        existingTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
+          ?.trackedEntity;
 
       const mappings = [];
       const sharedMapping = {
@@ -155,7 +156,7 @@ fn((state) => {
       const personUuid = answer.person.uuid;
       const parentTei = parentTeis[personUuid]?.trackedEntity;
       const childTei =
-        childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
+        existingTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
           ?.trackedEntity;
       console.log({ parentTei, childTei });
       const mappings = [];
