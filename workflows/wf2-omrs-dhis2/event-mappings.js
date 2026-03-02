@@ -2162,8 +2162,18 @@ function mapF63(encounter, events) {
   return [defaultEvent, hospitalisationEvent, exitEvent];
 }
 
+const toTrueOrFalse = (value) => {
+  if (["true", "yes"].includes(value.toLowerCase())) {
+    return "true";
+  }
+  if (["false", "no"].includes(value.toLowerCase())) {
+    return "false";
+  }
+  return value;
+};
+
 const dataValueByConcept = (encounter, de, state) => {
-  const { dataElement, conceptUuid, questionId } = de;
+  const { dataElement, conceptUuid, questionId, type } = de || {};
 
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
@@ -2175,6 +2185,9 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
     const optionKey = questionId
       ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
@@ -2219,16 +2232,6 @@ const dataValueByConcept = (encounter, de, state) => {
 
     return matchingOption;
   }
-};
-
-const toTrueOrFalse = (value) => {
-  if (["true", "yes"].includes(value.toLowerCase())) {
-    return "true";
-  }
-  if (["false", "no"].includes(value.toLowerCase())) {
-    return "false";
-  }
-  return value;
 };
 
 const findDataValue = (encounter, dataElement, state) => {
