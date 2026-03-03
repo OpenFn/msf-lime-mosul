@@ -21,31 +21,31 @@ workflows:
     jobs:
       Fetch-Metadata:
         name: Fetch Metadata
-        adaptor: '@openfn/language-http@6.5.1'
+        adaptor: "@openfn/language-http@6.5.1"
         credential: null
         body:
-          path: workflows/wf1/1-fetch-metadata.js
+          path: workflows/wf1-dhis2-omrs-migration/fetch-metadata.js
 
       Get-Teis-and-Locations:
         name: Get Teis and Locations
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: "@openfn/language-dhis2@latest"
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf1/2-get-teis-and-locations.js
+          path: workflows/wf1-dhis2-omrs-migration/get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
-        adaptor: '@openfn/language-openmrs@latest'
+        adaptor: "@openfn/language-openmrs@latest"
         credential: null
         body:
-          path: workflows/wf1/3-create-patients.js
+          path: workflows/wf1-dhis2-omrs-migration/create-patients.js
 
       Update-Teis:
         name: Update Teis
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: "@openfn/language-dhis2@latest"
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf1/4-update-teis.js
+          path: workflows/wf1-dhis2-omrs-migration/update-teis.js
 
     triggers:
       webhook:
@@ -80,55 +80,55 @@ workflows:
     jobs:
       Get-Patients:
         name: Get Patients
-        adaptor: '@openfn/language-openmrs@4.3.0'
+        adaptor: "@openfn/language-openmrs@4.3.0"
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
-          path: workflows/wf2/1-get-patients.js
+          path: workflows/wf2-omrs-dhis2/get-patients.js
 
       Mappings:
         name: Mappings
-        adaptor: '@openfn/language-http@6.5.1'
+        adaptor: "@openfn/language-http@6.5.1"
         credential: null
         body:
-          path: workflows/wf2/2-mappings.js
+          path: workflows/wf2-omrs-dhis2/mappings.js
 
       Upsert-TEIs:
         name: Upsert TEIs
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: "@openfn/language-dhis2@latest"
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2/7-update-teis.js
+          path: workflows/wf2-omrs-dhis2/upsert-teis.js
       Get-Encounters:
         name: Get Encounters
-        adaptor: '@openfn/language-openmrs@latest'
+        adaptor: "@openfn/language-openmrs@latest"
         credential: null
         body:
-          path: workflows/wf2/3-get-encounters.js
+          path: workflows/wf2-omrs-dhis2/get-encounters.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: "@openfn/language-dhis2@latest"
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2/5-get-teis.js
+          path: workflows/wf2-omrs-dhis2/get-teis-and-map-answers.js
 
       Create-Events:
         name: Create Events
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: "@openfn/language-dhis2@latest"
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2/6-create-events.js
+          path: workflows/wf2-omrs-dhis2/create-events.js
       Update-TEIs:
         name: Update TEIs
-        adaptor: '@openfn/language-dhis2@latest'
+        adaptor: "@openfn/language-dhis2@latest"
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body:
-          path: workflows/wf2/7-update-teis.js
+          path: workflows/wf2-omrs-dhis2/update-teis.js
 
     triggers:
       cron:
         type: cron
-        cron_expression: '0 0 * * *'
+        cron_expression: "0 0 * * *"
         enabled: false
     edges:
       cron->Get-Patients:

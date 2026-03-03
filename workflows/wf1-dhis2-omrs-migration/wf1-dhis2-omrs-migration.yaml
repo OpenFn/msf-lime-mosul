@@ -1,0 +1,54 @@
+id: wf1-dhis2-omrs-migration
+name: wf1-dhis2-omrs-migration
+start: cron
+options: {}
+steps:
+  - id: alert-admin-of-duplicate-teis
+    name: Alert Admin of Duplicate TEIs
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./alert-admin-of-duplicate-teis.js
+  - id: create-patients
+    name: Create Patients
+    adaptor: "@openfn/language-openmrs@4.2.0"
+    configuration: michael.bontyes@geneva.msf.org|openmrs
+    expression: ./create-patients.js
+    next:
+      update-teis:
+        disabled: false
+        condition: on_job_success
+  - id: cron
+    type: cron
+    enabled: false
+    next:
+      fetch-metadata:
+        disabled: false
+        condition: always
+  - id: fetch-metadata
+    name: Fetch Metadata
+    adaptor: "@openfn/language-http@6.5.1"
+    expression: ./fetch-metadata.js
+    next:
+      get-teis-and-locations:
+        disabled: false
+        condition: on_job_success
+  - id: get-teis-and-locations
+    name: Get Teis and Locations
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: michael.bontyes@geneva.msf.org|dhis2
+    expression: ./get-teis-and-locations.js
+    next:
+      alert-admin-of-duplicate-teis:
+        disabled: false
+        condition: |
+          state.duplicatePatients.length > 0 && !state.errors
+        label: has-duplicate-patients
+      create-patients:
+        disabled: false
+        condition: |
+          state.uniqueTeis.length > 0 && !state.errors
+        label: has-teis
+  - id: update-teis
+    name: Update Teis
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: michael.bontyes@geneva.msf.org|dhis2
+    expression: ./update-teis.js

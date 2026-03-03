@@ -10,16 +10,22 @@ const remapToObjects = (columnsAndRows) => {
   });
 };
 
-const processAnswer = (
-  answer,
-  conceptUuid,
-  dataElement,
-  optsMap,
-  optionSetKey,
-  formUuid,
-  questionId
-) => {
+const toTrueOrFalse = (value) => {
+  if (["true", "yes"].includes(value.toLowerCase())) {
+    return "true";
+  }
+  if (["false", "no"].includes(value.toLowerCase())) {
+    return "false";
+  }
+};
+
+const processAnswer = (answer, question, metadata) => {
+  const { conceptUuid, dataElement, type, questionId, formUuid } = question;
+  const { optsMap, optionSetKey } = metadata;
   if (typeof answer.value === "object") {
+    if (type.toLowerCase() === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
     const isDiagnosisByPsychologist =
       conceptUuid === "722dd83a-c1cf-48ad-ac99-45ac131ccc96" &&
       dataElement === "pN4iQH4AEzk";
@@ -49,11 +55,10 @@ const processAnswer = (
     );
     // const matchingOption =
     //  opt?.["DHIS2 Option Code"] ??
-    //   opt?.["DHIS2 Option name"] ?? 
+    //   opt?.["DHIS2 Option name"] ??
     //   answer?.value?.display;
-// Removing this line and replacing with code that sets the matchingOption with the option code and logs and skips setting if it doens't find it
-    const matchingOption = opt?.["DHIS2 Option Code"] 
-
+    // Removing this line and replacing with code that sets the matchingOption with the option code and logs and skips setting if it doens't find it
+    const matchingOption = opt?.["DHIS2 Option Code"];
 
     // console.log(`matchingOption value: "${matchingOption}" for`);
     // console.log({
@@ -72,8 +77,14 @@ const processAnswer = (
       return "true";
     }
 
-    if (matchingOption == null || matchingOption == undefined || matchingOption == "") {
-      console.log(`Unable to match OpenMRS Option with uuid ${answer.value.uuid} and value ${answer?.value?.display} with a DHIS2 Option Code`)
+    if (
+      matchingOption == null ||
+      matchingOption == undefined ||
+      matchingOption == ""
+    ) {
+      console.log(
+        `Unable to match OpenMRS Option with uuid "${answer.value.uuid}" and value "${answer?.value?.display}" with a DHIS2 Option Code`
+      );
     }
 
     return matchingOption ?? "";
@@ -168,23 +179,25 @@ fn((state) => {
       }
       let formDataValues = Object.keys(form.dataValueMap)
         .map((dataElement) => {
-          const [conceptUuid, questionId] =
-            form.dataValueMap[dataElement]?.split("-rfe-");
+          const [conceptUuid, type, questionId] =
+            form.dataValueMap[dataElement]?.split("::");
           const obsAnswer = encounter.obs.find(
             (o) =>
               o.concept.uuid === conceptUuid &&
-              (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+              (questionId ? o.formFieldPath === questionId : true)
           );
           const answer = obsAnswer;
           const value = answer
             ? processAnswer(
                 answer,
-                conceptUuid,
-                dataElement,
-                optsMap,
-                state.optionSetKey,
-                encounter.form.uuid,
-                questionId
+                {
+                  conceptUuid,
+                  dataElement,
+                  type,
+                  questionId,
+                  formUuid: encounter.form.uuid,
+                },
+                { optsMap, optionSetKey: state.optionSetKey }
               )
             : processNoAnswer(encounter, conceptUuid, dataElement);
 
@@ -469,8 +482,8 @@ fn((state) => {
         programStage: form.programStage,
         dataValues: [...formDataValues, ...customMapping],
       };
-      })
-      .filter(Boolean);
-    
+    })
+    .filter(Boolean);
+
   return state;
 });
