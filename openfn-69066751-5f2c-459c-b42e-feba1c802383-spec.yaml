@@ -174,7 +174,7 @@ workflows:
         adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
-          path: workflows/wf2-omrs-dhis2/events-mapping.js
+          path: workflows/wf2-omrs-dhis2/event-mapping.js
 
     triggers:
       cron:
