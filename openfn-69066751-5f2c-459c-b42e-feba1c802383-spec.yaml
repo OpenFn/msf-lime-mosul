@@ -10,7 +10,7 @@ credentials:
     name: MSF OMRS Demo Nov 2024
     owner: aissatou@openfn.org
   "aissatou@openfn.org-MSF-OMRS-Demo-Nov-2024-(raw)":
-    name: "MSF OMRS Demo Nov 2024 (raw)"
+    name: 'MSF OMRS Demo Nov 2024 (raw)'
     owner: aissatou@openfn.org
   aleksa@openfn.org-AK-Sharepoint:
     name: AK Sharepoint
@@ -45,35 +45,35 @@ workflows:
     jobs:
       Fetch-Metadata:
         name: Fetch Metadata
-        adaptor: "@openfn/language-http@6.5.1"
+        adaptor: '@openfn/language-http@6.5.1'
         credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/fetch-metadata.js
 
       Get-Teis-and-Locations:
         name: Get Teis and Locations
-        adaptor: "@openfn/language-dhis2@5.0.1"
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf1-dhis2-omrs-migration/get-teis-and-locations.js
 
       Create-Patients:
         name: Create Patients
-        adaptor: "@openfn/language-openmrs@4.2.0"
+        adaptor: '@openfn/language-openmrs@4.2.0'
         credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf1-dhis2-omrs-migration/create-patients.js
 
       Update-Teis:
         name: Update Teis
-        adaptor: "@openfn/language-dhis2@5.0.1"
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf1-dhis2-omrs-migration/update-teis.js
 
       Alert-Admin-of-Duplicate-TEIs:
         name: Alert Admin of Duplicate TEIs
-        adaptor: "@openfn/language-common@2.1.1"
+        adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
           path: workflows/wf1-dhis2-omrs-migration/alert-admin-of-duplicate-teis.js
@@ -81,7 +81,7 @@ workflows:
     triggers:
       cron:
         type: cron
-        cron_expression: "0 0 * * *"
+        cron_expression: '0 0 * * *'
         enabled: false
     edges:
       cron->Fetch-Metadata:
@@ -122,56 +122,56 @@ workflows:
     jobs:
       Get-Patients:
         name: Get Patients
-        adaptor: "@openfn/language-openmrs@4.3.0"
+        adaptor: '@openfn/language-openmrs@4.3.0'
         credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf2-omrs-dhis2/get-patients.js
 
       Upsert-TEIs:
         name: Upsert TEIs
-        adaptor: "@openfn/language-dhis2@5.0.1"
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf2-omrs-dhis2/upsert-teis.js
 
       Get-Encounters:
         name: Get Encounters
-        adaptor: "@openfn/language-openmrs@4.3.0"
+        adaptor: '@openfn/language-openmrs@4.3.0'
         credential: michael.bontyes@geneva.msf.org-openmrs
         body:
           path: workflows/wf2-omrs-dhis2/get-encounters.js
 
       Get-TEIs-and-Map-Answers:
         name: Get TEIs and Map Answers
-        adaptor: "@openfn/language-dhis2@5.0.1"
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf2-omrs-dhis2/get-teis-and-map-answers.js
 
       Create-Events:
         name: Create Events
-        adaptor: "@openfn/language-dhis2@5.0.1"
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf2-omrs-dhis2/create-events.js
 
       Mappings:
         name: Mappings
-        adaptor: "@openfn/language-http@6.5.1"
+        adaptor: '@openfn/language-http@6.5.1'
         credential: null
         body:
           path: workflows/wf2-omrs-dhis2/mappings.js
 
       Update-TEIs:
         name: Update TEIs
-        adaptor: "@openfn/language-dhis2@5.0.1"
+        adaptor: '@openfn/language-dhis2@5.0.1'
         credential: michael.bontyes@geneva.msf.org-dhis2
         body:
           path: workflows/wf2-omrs-dhis2/update-teis.js
 
       Event-Mappings:
         name: Event Mappings
-        adaptor: "@openfn/language-common@2.1.1"
+        adaptor: '@openfn/language-common@2.1.1'
         credential: null
         body:
           path: workflows/wf2-omrs-dhis2/events-mapping.js
@@ -179,7 +179,7 @@ workflows:
     triggers:
       cron:
         type: cron
-        cron_expression: "0 0 * * *"
+        cron_expression: '0 0 * * *'
         enabled: false
     edges:
       Get-Patients->Mappings:
