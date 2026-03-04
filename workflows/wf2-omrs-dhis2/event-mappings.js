@@ -54,6 +54,32 @@ const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   return answer ? "TRUE" : undefined;
 };
 
+const multiSelectAns = (encounter, multiSelectQns) => {
+  const dataValues = multiSelectQns
+    .map((q) =>
+      q.qns
+        .map((qn) => {
+          const dataElement = qn.clde;
+          const ans = encounter.obs.find(
+            (obs) => obs.value.uuid === qn.multiAns
+          );
+          let value = undefined;
+          if (qn.type === "TRUE_ONLY") {
+            value = ans ? "true" : undefined;
+          }
+          if (qn.type === "BOOLEAN") {
+            value = ans ? "true" : "false";
+          }
+          return { dataElement, value };
+        })
+        .filter(Boolean)
+    )
+    .flat()
+    .filter(Boolean);
+
+  return dataValues;
+};
+
 function mapF11(encounter, optsMap) {
   if (encounter.form.name.includes("F11-Family Planning Assessment")) {
     const answers = encounter.obs.filter(
@@ -723,50 +749,6 @@ const F49_CONFIG = {
     },
   ],
 
-  // ✅ IMPROVED: Multi-select with type indicator
-  multiSelect: {
-    observedComplications: {
-      concept: "ec9ffc6e-22c9-4489-ab88-c517460e7838",
-      qid: "rfe-forms-observedComplication",
-      dataElements: [
-        "Ff5TAZQB2Gx",
-        "jy6y43zcjIF",
-        "nroQVwfad5s",
-        "zzlWrNP7L9F",
-      ],
-      type: "coded", // ✅ Needs dataValueByConcept
-    },
-    medications: {
-      concept: "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef",
-      qid: "rfe-forms-medication",
-      dataElements: [
-        "pfOVAvGLYVi",
-        "iY9Y8G4uOod",
-        "q3QvzsuauGq",
-        "ekSky9wr0MO",
-        "zgSRhgLfTn4",
-        "nimcdwULYjp",
-        "NfDhplV9xJA",
-        "LBWHFdwKzKO",
-        "VIXCChJKawm",
-        "wrVSDgmMj4j",
-      ],
-      type: "coded", // ✅ Needs dataValueByConcept
-    },
-    specialistTypes: {
-      concept: "8fb3bb7d-c935-4b57-8444-1b953470e109",
-      qid: "rfe-forms-referralSpecialistType",
-      dataElements: ["Atg3aAfVv2V", "a35jmcOCCwc", "eurWUL2l6Gw"],
-      type: "coded", // ✅ Needs dataValueByConcept
-    },
-    ifOtherSpecialistTypes: {
-      concept: "790b41ce-e1e7-11e8-b02f-0242ac130002",
-      qid: "rfe-forms-specialistIfOtherPleaseSpecify",
-      dataElements: ["iXRsVYYypkU", "xnpdL9cgpDH", "NYEmxR8LW75"],
-      type: "text", // ✅ Plain text values (no option set mapping needed)
-    },
-  },
-
   pregnancyStage: {
     programStage: "RVgciZl54Aj",
     mappings: [
@@ -909,47 +891,6 @@ function mapDiagnosisF49(encounter, mapping, state) {
   return diagnosisAtAdmission ? "unknown" : "no";
 }
 
-function mapMultiSelect(encounter, config, state) {
-  const { concept, qid, dataElements, type } = config;
-  // Get all observations for this multi-select field
-  const observations = filterObsByConcept(encounter, `${concept}-${qid}`);
-
-  // Map each observation to its data element
-  return observations
-    .slice(0, dataElements.length)
-    .map((obs, index) => {
-      const de = dataElements[index];
-
-      let value;
-
-      if (type === "coded") {
-        // ✅ Use dataValueByConcept for coded values (proper option set mapping)
-        // Create a temporary encounter with just this observation to get the value
-        value = dataValueByConcept(
-          { ...encounter, obs: [obs] }, // Pass single obs
-          {
-            dataElement: de,
-            conceptUuid: concept,
-            questionId: qid,
-          },
-          state
-        );
-      } else if (type === "text") {
-        // ✅ For text values, use the value directly
-        value = obs.value;
-      } else {
-        console.warn(`Unknown multi-select type: ${type}`);
-        value = obs.value?.display || obs.value;
-      }
-
-      return {
-        dataElement: de,
-        value: value,
-      };
-    })
-    .filter((dv) => dv && dv.value); // Filter out null/undefined values
-}
-
 function mapF49(encounter, events, state) {
   const { dhis2Map } = state;
   const programStage = state.formMaps[encounter.form.uuid]?.programStage;
@@ -1004,35 +945,6 @@ function mapF49(encounter, events, state) {
       });
     }
   });
-
-  // 4-7. Multi-select fields
-  // Observed Complications
-  defaultDataValues.push(
-    ...mapMultiSelect(
-      encounter,
-      F49_CONFIG.multiSelect.observedComplications,
-      state
-    )
-  );
-
-  // Medications
-  defaultDataValues.push(
-    ...mapMultiSelect(encounter, F49_CONFIG.multiSelect.medications, state)
-  );
-
-  // Specialist Types
-  defaultDataValues.push(
-    ...mapMultiSelect(encounter, F49_CONFIG.multiSelect.specialistTypes, state)
-  );
-
-  // If Other Specialist Types (text values)
-  defaultDataValues.push(
-    ...mapMultiSelect(
-      encounter,
-      F49_CONFIG.multiSelect.ifOtherSpecialistTypes,
-      state
-    )
-  );
 
   // PREGNANCY STAGE
   const pregnancyDataValues = [];
@@ -1239,49 +1151,6 @@ const F50_CONFIG = {
     },
   ],
 
-  multiSelect: {
-    observedComplications: {
-      concept: "ec9ffc6e-22c9-4489-ab88-c517460e7838",
-      qid: "rfe-forms-observedComplication",
-      dataElements: [
-        "as6ICto55cO",
-        "y8TsEYlp5ai",
-        "U4N9k9q8iM8",
-        "M3rXGXDLVjx",
-      ],
-      type: "coded",
-    },
-    medications: {
-      concept: "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef",
-      qid: "rfe-forms-medicationPrescribedInCurrentConsultation",
-      dataElements: [
-        "gipSPNNghXK",
-        "sZastBLPgJY",
-        "SHEM1CY8873",
-        "HIfDsB1IsSk",
-        "X5Owq7U5Y4E",
-        "cRm0JmltkJX",
-        "TzL2jbQo6nH",
-        "E1dUkfQ2v47",
-        "H8E7EJgibdt",
-        "ScOa7FiWJTm",
-      ],
-      type: "coded",
-    },
-    specialistTypes: {
-      concept: "8fb3bb7d-c935-4b57-8444-1b953470e109",
-      qid: "rfe-forms-referralSpecialistType",
-      dataElements: ["TsG88CXqaii", "GeqxZYGIjPC", "QThCIIp4FRC"],
-      type: "coded",
-    },
-    ifOtherSpecialistTypes: {
-      concept: "790b41ce-e1e7-11e8-b02f-0242ac130002",
-      qid: "rfe-forms-specialistIfOtherPleaseSpecify",
-      dataElements: ["u68lzJcSaBa", "PO19ZbOBOO1", "OdrZUtuEaUU"],
-      type: "text",
-    },
-  },
-
   pregnancyStage: {
     programStage: "RVgciZl54Aj",
     mappings: [
@@ -1455,35 +1324,6 @@ function mapF50(encounter, events, state) {
       });
     }
   });
-
-  // 3. Multi-select fields
-  // Observed Complications
-  defaultDataValues.push(
-    ...mapMultiSelect(
-      encounter,
-      F50_CONFIG.multiSelect.observedComplications,
-      state
-    )
-  );
-
-  // Medications
-  defaultDataValues.push(
-    ...mapMultiSelect(encounter, F50_CONFIG.multiSelect.medications, state)
-  );
-
-  // Specialist Types
-  defaultDataValues.push(
-    ...mapMultiSelect(encounter, F50_CONFIG.multiSelect.specialistTypes, state)
-  );
-
-  // If Other Specialist Types (text values)
-  defaultDataValues.push(
-    ...mapMultiSelect(
-      encounter,
-      F50_CONFIG.multiSelect.ifOtherSpecialistTypes,
-      state
-    )
-  );
 
   // PREGNANCY STAGE
   const pregnancyEvent = events?.find(
@@ -1889,15 +1729,6 @@ const F62_CONFIG = {
   // Default stage - Other Support section
   defaultStage: {
     concept: "6b3cf530-e574-419a-9dd4-2c8d3ad69562",
-    // Boolean data elements from multi-select concept
-    booleanMappings: [
-      { de: "dNJ9ZJ4zaJw", answer: "895813df-fbec-4164-9375-eed588ff0387" }, // Physiotherapy
-      { de: "KlAcesRNOlU", answer: "bfcf416f-8aa1-4b9d-a0f7-77c142c1df67" }, // Psychosocial counseling
-      { de: "pP8Bb7H0arh", answer: "10156771-379a-4eb1-af43-39b418adba4a" }, // Spiritual support
-      { de: "fKmCFuaV2wo", answer: "14e79fdc-4250-428f-949e-dabb2cef4315" }, // Mental health support
-      { de: "oOa893M9qnL", answer: "a39e540e-b988-40e8-a8b2-26b831c179ef" }, // Catheterization
-      { de: "rDJiUSUtmrg", answer: "c884bf19-6791-4c38-af6b-1ad910191a89" }, // N/g tube feeding
-    ],
     // Special nursing care mapping (TEXT type, stays in default stage)
     nursingCare: {
       de: "PG9mocTexDK",
@@ -1934,21 +1765,6 @@ function mapF62(encounter, events) {
 
   // DEFAULT STAGE - Other Support
   const defaultDataValues = [];
-
-  // Map multi-select boolean values
-  F62_CONFIG.defaultStage.booleanMappings.forEach((mapping) => {
-    const value = conceptAndValueTrueOnly(
-      encounter,
-      F62_CONFIG.defaultStage.concept,
-      mapping.answer
-    );
-    if (value) {
-      defaultDataValues.push({
-        dataElement: mapping.de,
-        value,
-      });
-    }
-  });
 
   // Add nursing care special logic (stays in default stage)
   const dressingValue = conceptAndValueTrueOnly(
@@ -2028,15 +1844,6 @@ const F63_CONFIG = {
   // Default stage - Other Support section
   defaultStage: {
     concept: "6b3cf530-e574-419a-9dd4-2c8d3ad69562", // Same concept as F62
-    // Boolean data elements from multi-select concept (DIFFERENT UIDs from F62)
-    booleanMappings: [
-      { de: "xYKYFOhYU8H", answer: "895813df-fbec-4164-9375-eed588ff0387" }, // Physiotherapy
-      { de: "ZiUJxGceREv", answer: "bfcf416f-8aa1-4b9d-a0f7-77c142c1df67" }, // Psychosocial counseling
-      { de: "cx6nwmLSmR7", answer: "10156771-379a-4eb1-af43-39b418adba4a" }, // Spiritual support
-      { de: "eyg7Rh69ScO", answer: "14e79fdc-4250-428f-949e-dabb2cef4315" }, // Mental health support
-      { de: "zPtuGGASJZ0", answer: "a39e540e-b988-40e8-a8b2-26b831c179ef" }, // Catheterization
-      { de: "PzwXcfb3s6h", answer: "c884bf19-6791-4c38-af6b-1ad910191a89" }, // N/g tube feeding
-    ],
     // Special nursing care mapping (TEXT type, stays in default stage, DIFFERENT UID from F62)
     nursingCare: {
       de: "LIlfhZdkMpB",
@@ -2073,21 +1880,6 @@ function mapF63(encounter, events) {
 
   // DEFAULT STAGE - Other Support
   const defaultDataValues = [];
-
-  // Map multi-select boolean values
-  F63_CONFIG.defaultStage.booleanMappings.forEach((mapping) => {
-    const value = conceptAndValueTrueOnly(
-      encounter,
-      F63_CONFIG.defaultStage.concept,
-      mapping.answer
-    );
-    if (value) {
-      defaultDataValues.push({
-        dataElement: mapping.de,
-        value,
-      });
-    }
-  });
 
   // Add nursing care special logic (stays in default stage)
   const dressingValue = conceptAndValueTrueOnly(
@@ -2465,6 +2257,7 @@ fn((state) => {
           );
         });
 
+      const multiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
       const customMapping = [
         mapF11(encounter, state.optsMap),
         mapF13(encounter, state.optsMap),
@@ -2502,9 +2295,11 @@ fn((state) => {
         enrollment,
         occurredAt: encounter.encounterDatetime.replace("+0000", ""),
         programStage: form.programStage,
-        dataValues: [...formDataValues, ...customMapping].filter(
-          (d) => d?.value
-        ),
+        dataValues: [
+          ...formDataValues,
+          ...customMapping,
+          ...multiSelectDvs,
+        ].filter((d) => d?.value),
       };
 
       const exitFormEvents = buildExitEvent(
