@@ -528,6 +528,27 @@ function f65(encounter) {
 function f66(encounter) {
   const mappings = [];
 
+  const F66Config = {
+    concept: "5f683542-233e-47c2-b06e-69d2a639a78b",
+    qid: "rfe-forms-signsAndSymptoms",
+    dataElement: "bRpRhiyU9om",
+    answerMap: {
+      "Dry bite": "dry_bite",
+      "Mild cytotoxic": "mild_cytotoxic",
+      "Severe cytotoxic": "severe_cytotoxic",
+    },
+  };
+
+  const cytotoxicAns = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === F66Config.concept && o.formFieldPath === F66Config.qid
+  );
+
+  const value = F66Config.answerMap[cytotoxicAns?.value?.display];
+  if (value) {
+    mappings.push({ dataElement: F66Config.dataElement, value });
+  }
+
   return mappings;
 }
 
@@ -567,8 +588,11 @@ const buildDataValues = (encounter, tei, state) => {
   let formMapping = [];
   const visitUuid = encounter.visit.uuid;
 
-  const multiSelectDvs = multiSelectAns(encounter, state.formMaps[encounter.form.uuid]?.multiSelectQns)
-  formMapping.push(...multiSelectDvs)
+  const multiSelectDvs = multiSelectAns(
+    encounter,
+    state.formMaps[encounter.form.uuid]?.multiSelectQns
+  );
+  formMapping.push(...multiSelectDvs);
   if ([f08Uuid, f09Uuid].includes(encounter.form.uuid)) {
     // F08 Form Encounter Mapping
     const f8Mapping = f8(encounter);
