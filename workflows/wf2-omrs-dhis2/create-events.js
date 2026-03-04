@@ -214,6 +214,6 @@ fn((state) => {
 });
 
 fnIf(
-  (state) => state.teisToUpdate.length === 0,
+  (state) => state?.teisToUpdate?.length === 0,
   ({ lastRunDateTime }) => ({ lastRunDateTime })
 );
