@@ -259,9 +259,9 @@ function f8(encounter) {
 }
 
 function f23(encounter, form) {
-  const dataValues = multiSelectAns(encounter, form.multiSelectQns);
+  // const dataValues = multiSelectAns(encounter, form.multiSelectQns);
 
-  return dataValues;
+  return [];
 }
 
 // F24 Configuration - Neonatal Discharge
@@ -447,16 +447,11 @@ function f43(encounter, tei, dhis2Attr) {
 function f61(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "y8MvLYtuKE3")?.event;
 
-  const multiSelectDataValues = multiSelectAns(
-    encounter,
-    state.formMaps[encounter.form.uuid].multiSelectQns
-  );
   return [
     {
       event,
       programStage: "y8MvLYtuKE3",
       dataValues: [
-        ...multiSelectDataValues,
         {
           dataElement: "wqSAGFM1Oz8",
           value: encounter.obs.some(
@@ -503,9 +498,8 @@ function f64(encounter) {
   return mappings;
 }
 
-function f65(encounter, form) {
+function f65(encounter) {
   const mappings = [];
-
   // Discharge date and time (Question #1)
   // Concept: d92dd800-b048-4724-86fa-91d006f9caa8
   const dischargeDateTime = findObsByConcept(
@@ -528,386 +522,11 @@ function f65(encounter, form) {
     );
   }
 
-  const multiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
-  mappings.push(...multiSelectDvs);
-
   return mappings;
 }
 
-function f66(encounter, form) {
+function f66(encounter) {
   const mappings = [];
-
-  const mutiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
-  mappings.push(...mutiSelectDvs);
-
-  // Signs and symptoms concept
-  const SIGNS_SYMPTOMS_CONCEPT = "5f683542-233e-47c2-b06e-69d2a639a78b";
-  const WBCT_CONCEPT = "09fdc8a7-91a7-409d-81f1-7bcb8650c5a6";
-
-  // Cytotoxic signs mapping
-  const dryBite = findByConceptAndValue(
-    encounter,
-    SIGNS_SYMPTOMS_CONCEPT,
-    "1107AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // Dry bite UUID
-  );
-  const mildCytotoxic = findByConceptAndValue(
-    encounter,
-    SIGNS_SYMPTOMS_CONCEPT,
-    "164085AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // Mild cytotoxic UUID
-  );
-  const severeCytotoxic = findByConceptAndValue(
-    encounter,
-    SIGNS_SYMPTOMS_CONCEPT,
-    "164086AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // Severe cytotoxic UUID
-  );
-
-  // Map Cytotoxic signs
-  if (dryBite) {
-    mappings.push({
-      dataElement: "bRpRhiyU9om",
-      value: "oARwiGgobcd", // Dry bite option code
-    });
-  } else if (mildCytotoxic) {
-    mappings.push({
-      dataElement: "bRpRhiyU9om",
-      value: "h1twBaWpKPF", // Mild cytotoxic option code
-    });
-  } else if (severeCytotoxic) {
-    mappings.push({
-      dataElement: "bRpRhiyU9om",
-      value: "Tz3eOWkiFPW", // Severe cytotoxic option code
-    });
-  }
-
-  // Hematotoxic signs - complex logic
-  const bleeding = findByConceptAndValue(
-    encounter,
-    SIGNS_SYMPTOMS_CONCEPT,
-    "147241AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // Bleeding UUID
-  );
-  const notClotting = findByConceptAndValue(
-    encounter,
-    WBCT_CONCEPT,
-    "164089AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // Not clotting UUID
-  );
-  const clotting = findByConceptAndValue(
-    encounter,
-    WBCT_CONCEPT,
-    "162830AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" // Clotting UUID
-  );
-
-  if (bleeding && !notClotting) {
-    mappings.push({
-      dataElement: "etjys3ZhdrZ",
-      value: "TL1JkvBhwZj", // Bleeding code
-    });
-  } else if (!bleeding && notClotting) {
-    mappings.push({
-      dataElement: "etjys3ZhdrZ",
-      value: "C9YeFTRG7hR", // Not clotting code
-    });
-  } else if (bleeding && notClotting) {
-    mappings.push({
-      dataElement: "etjys3ZhdrZ",
-      value: "C08j0szZSKz", // Both code
-    });
-  } else if (!bleeding && clotting) {
-    mappings.push({
-      dataElement: "etjys3ZhdrZ",
-      value: "aNsED3NFbns", // No code
-    });
-  }
-
-  // Other signs and symptoms (TRUE/FALSE mappings)
-  const otherSymptoms = [
-    {
-      dataElement: "XySb2gCahXO", // Ptosis
-      valueId: "127652AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "RrkIQOnbDIc", // Diplopia
-      valueId: "118872AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "btIVSyaMjxo", // Respiratory paralysis
-      valueId: "206AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "s6QE9wvp7du", // Hypotension
-      valueId: "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "RemTrHYTqH5", // Shock
-      valueId: "120AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "FhPg5pjDE0x", // Arrhythmia
-      valueId: "120148AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "f6APbHzeij1", // Vomiting
-      valueId: "122983AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "unqnutWNMZY", // Diarrhoea
-      valueId: "142412AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "HpBtLYscppW", // Tachycardia
-      valueId: "141830AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "H3Bh7PfpIfC", // Fever
-      valueId: "140238AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "BWMEAA6HeOp", // Hypoperfusion
-      valueId: "127639AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "CI9jbvFDiQq", // Hypoxia
-      valueId: "141497AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "zvnvyevgjMw", // Altered consciousness
-      valueId: "120345AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ];
-
-  otherSymptoms.forEach((symptom) => {
-    mappings.push({
-      dataElement: symptom.dataElement,
-      value: findByConceptAndValue(
-        encounter,
-        SIGNS_SYMPTOMS_CONCEPT,
-        symptom.valueId
-      )
-        ? true
-        : false,
-    });
-  });
-
-  // Signs and symptoms evolution (6h exit)
-  // Uses the same concept as admission signs/symptoms: 5f683542-233e-47c2-b06e-69d2a639a78b
-  // These map to different data elements to track symptom evolution from admission to 6h exit
-
-  // Cytotoxic evolution - mirrors admission cytotoxic signs
-  if (dryBite) {
-    mappings.push({
-      dataElement: "uZOKOcCGHqE", // Snakebites - 6h - exit: Cytotoxic
-      value: "oARwiGgobcd", // Dry bite
-    });
-  } else if (mildCytotoxic) {
-    mappings.push({
-      dataElement: "uZOKOcCGHqE",
-      value: "h1twBaWpKPF", // Mild cytotoxic
-    });
-  } else if (severeCytotoxic) {
-    mappings.push({
-      dataElement: "uZOKOcCGHqE",
-      value: "Tz3eOWkiFPW", // Severe cytotoxic
-    });
-  }
-
-  // Hematotoxic evolution - mirrors admission hematotoxic signs
-  if (bleeding && !notClotting) {
-    mappings.push({
-      dataElement: "kFjWm5ZYkS2", // Snakebites - 6h - exit: Hematotoxic
-      value: "TL1JkvBhwZj", // Bleeding
-    });
-  } else if (!bleeding && notClotting) {
-    mappings.push({
-      dataElement: "kFjWm5ZYkS2",
-      value: "C9YeFTRG7hR", // Not clotting
-    });
-  } else if (bleeding && notClotting) {
-    mappings.push({
-      dataElement: "kFjWm5ZYkS2",
-      value: "C08j0szZSKz", // Both
-    });
-  } else if (!bleeding && clotting) {
-    mappings.push({
-      dataElement: "kFjWm5ZYkS2",
-      value: "aNsED3NFbns", // No
-    });
-  }
-
-  // Other evolution symptoms - mirrors admission symptoms
-  const evolutionSymptoms = [
-    {
-      dataElement: "RE55naGtgeR", // Ptosis
-      valueId: "127652AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "A2FtERcITXf", // Diplopia
-      valueId: "118872AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "E9t4MkYI7y6", // Respiratory paralysis
-      valueId: "206AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "CY6nPuLtUuc", // Hypotension
-      valueId: "2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "kAKH96OxZnd", // Shock
-      valueId: "120AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "G3RL6izz9sF", // Arrhythmia
-      valueId: "120148AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "gU9j2VsDgHR", // Vomiting
-      valueId: "122983AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "A0tGqfX9mND", // Diarrhoea
-      valueId: "142412AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "yB1GPiDglMU", // Tachycardia
-      valueId: "141830AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "YbHZEW4crvo", // Fever
-      valueId: "140238AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "sKIL8nyk2N9", // Hypoperfusion
-      valueId: "127639AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "WPAIWO2vewI", // Hypoxia
-      valueId: "141497AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "SYJSMoZluue", // Altered consciousness
-      valueId: "120345AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ];
-
-  evolutionSymptoms.forEach((symptom) => {
-    mappings.push({
-      dataElement: symptom.dataElement,
-      value: findByConceptAndValue(
-        encounter,
-        SIGNS_SYMPTOMS_CONCEPT,
-        symptom.valueId
-      )
-        ? true
-        : false,
-    });
-  });
-
-  // Treatment received
-  const TREATMENT_CONCEPT = "d6081b93-291a-4349-a1c7-8a11e7326de1";
-  const treatments = [
-    {
-      dataElement: "ZNsI6T2XszG", // IV Ringer infusion
-      valueId: "351AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "H524DgPrx4z", // Adrenalin
-      valueId: "71AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "ldZrNC0BRBH", // Antihistaminic
-      valueId: "73AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "v7W0sMo5QQq", // Oxygen
-      valueId: "165727AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "L8C2QUwxTOE", // TT vaccination
-      valueId: "84AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "UNVy4BegAeE", // Debridement / fasciotomy
-      valueId: "163589AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "xRDQ7ThkOZ1", // Amputation
-      valueId: "165138AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ];
-
-  treatments.forEach((treatment) => {
-    mappings.push({
-      dataElement: treatment.dataElement,
-      value: findByConceptAndValue(
-        encounter,
-        TREATMENT_CONCEPT,
-        treatment.valueId
-      )
-        ? true
-        : false,
-    });
-  });
-
-  // Adverse events
-  const ADVERSE_EVENTS_CONCEPT = "8b8140b1-e9da-4df8-b299-c36c9a639d1a";
-  const adverseEvents = [
-    {
-      dataElement: "o8nuGMe80AG", // Skin
-      valueId: "148888AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "SKRQf0vb5jF", // Gastrointestinal
-      valueId: "139581AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "Lbf16HisQkb", // Respiratory
-      valueId: "5960AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "b0Pdzwpv7xh", // Circulatory
-      valueId: "130AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "yozce7B8SyI", // High temp >38°
-      valueId: "140238AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "cbQ1F9AeB3w", // Serum sickness
-      valueId: "148035AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "gjUuh9rBfSZ", // PTSD
-      valueId: "143666AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "d2U12mItsDC", // Wound needing chronic care
-      valueId: "165757AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "eFGydcHLkIQ", // Severe necrosis + disability
-      valueId: "118771AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "eK5K7hGzVIU", // Cardiac
-      valueId: "119270AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-    {
-      dataElement: "qWq8p9M0OFn", // Other
-      valueId: "5622AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    },
-  ];
-
-  adverseEvents.forEach((ae) => {
-    mappings.push({
-      dataElement: ae.dataElement,
-      value: findByConceptAndValue(
-        encounter,
-        ADVERSE_EVENTS_CONCEPT,
-        ae.valueId
-      )
-        ? true
-        : false,
-    });
-  });
 
   return mappings;
 }
@@ -942,12 +561,14 @@ const buildDataValues = (encounter, tei, state) => {
   const f43Uuid = formIdByName("F43-ER Exit", state.formMaps);
   const f64Uuid = formIdByName("F64-ICU Admission", state.formMaps);
   const f65Uuid = formIdByName("F65-ICU Discharge", state.formMaps);
-  const f66Uuid = formIdByName("F66-Snakebite Admission", state.formMaps);
+  const f66Uuid = formIdByName("F66-Snakebites", state.formMaps);
   const f61Uuid = formIdByName("F61-Travel medicine", state.formMaps);
 
   let formMapping = [];
   const visitUuid = encounter.visit.uuid;
 
+  const multiSelectDvs = multiSelectAns(encounter, state.formMaps[encounter.form.uuid]?.multiSelectQns)
+  formMapping.push(...multiSelectDvs)
   if ([f08Uuid, f09Uuid].includes(encounter.form.uuid)) {
     // F08 Form Encounter Mapping
     const f8Mapping = f8(encounter);
@@ -973,10 +594,8 @@ const buildDataValues = (encounter, tei, state) => {
   }
   if ([f23Uuid, f24Uuid].includes(encounter.form.uuid)) {
     // F23 Form Encounter Mapping
-    if (encounter.form.uuid === f23Uuid) {
-      const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
-      formMapping.push(...f23Mapping);
-    }
+    const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
+    formMapping.push(...f23Mapping);
 
     // F24 Form Encounter Mapping
     // Maps TEI attributes to DHIS2 data elements
@@ -1128,12 +747,10 @@ const buildDataValues = (encounter, tei, state) => {
     const f64Mapping = f64(encounter);
     formMapping.push(...f64Mapping);
 
-    if (encounter.form.uuid === f65Uuid) {
-      const f65Form = state.formMaps[f65Uuid];
-      // F65 Form Encounter Mapping - Custom mappings
-      const f65Mapping = f65(encounter, f65Form);
-      formMapping.push(...f65Mapping);
-    }
+    const f65Form = state.formMaps[f65Uuid];
+    // F65 Form Encounter Mapping - Custom mappings
+    const f65Mapping = f65(encounter, f65Form);
+    formMapping.push(...f65Mapping);
 
     // F64/F65 Form - TEI Attributes (shared between admission and discharge)
     const birthdate = tei?.attributes?.find(
@@ -1217,7 +834,6 @@ const buildDataValues = (encounter, tei, state) => {
     const f66Mapping = f66(encounter, form);
     formMapping.push(...f66Mapping);
 
-    // F67 Form - Patient attributes for snakebites
     const birthdate = tei?.attributes?.find(
       (attr) => attr.attribute === dhis2Map.attr.birthdate
     )?.value;
@@ -1311,9 +927,6 @@ fn((state) => {
         patientKey.split(":");
 
       const tei = state.TEIs[patientUuid];
-      if (!tei) {
-        console.log({ patientUuid });
-      }
 
       const dataValues = patientEncounters
         .map((encounter) => {
