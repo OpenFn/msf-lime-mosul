@@ -69,14 +69,12 @@
       "owner": "aleksa@openfn.org"
     }
   },
-  "allow_support_access": true,
   "collections": {
     "mosul-metadata-mappings": {
       "id": "bc68a202-efdd-47bc-8d3e-9a73336cf814",
       "name": "mosul-metadata-mappings"
     }
   },
-  "requires_mfa": false,
   "workflows": {
     "wf1-dhis2-omrs-migration": {
       "id": "73fda9b2-2555-4764-b0f9-388a99583532",
@@ -322,5 +320,7 @@
         }
       }
     }
-  }
+  },
+  "allow_support_access": true,
+  "requires_mfa": false
 }
