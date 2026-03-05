@@ -525,28 +525,100 @@ function f65(encounter) {
   return mappings;
 }
 
-function f66(encounter) {
+function f66(encounter, state) {
   const mappings = [];
 
-  const F66Config = {
-    concept: "5f683542-233e-47c2-b06e-69d2a639a78b",
-    qid: "rfe-forms-signsAndSymptoms",
-    dataElement: "bRpRhiyU9om",
-    answerMap: {
-      "Dry bite": "dry_bite",
-      "Mild cytotoxic": "mild_cytotoxic",
-      "Severe cytotoxic": "severe_cytotoxic",
+  const hasObsByQid = (qid, valueUuid) =>
+    encounter.obs.some(
+      (o) => o.formFieldPath === qid && o.value?.uuid === valueUuid
+    );
+
+  // Shared cytotoxic answer → DHIS2 option UID map (used by two data elements)
+  const cytotoxicMap = [
+    {
+      answerUuid: "c211de3b-94b8-4a5f-8a4b-7af8b0ff3691", // Bite site swelling, redness ('dry bite') - Cytotoxic
+      optionUid: "oARwiGgobcd",
     },
+    {
+      answerUuid: "0860f31c-ef22-4559-9ee2-bcc645790d4e", // Bite site burning pain, swelling, discoloration - Cytotoxic (mild)
+      optionUid: "h1twBaWpKPF",
+    },
+    {
+      answerUuid: "11ffda1d-cd58-4ac2-a642-be686895813b", // Bite site blistering, necrosis, enlarged lymph nodes - Cytotoxic (severe)
+      optionUid: "Tz3eOWkiFPW",
+    },
+  ];
+
+  const resolveOptionCode = (optionUid) =>
+    state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
+      "DHIS2 Option Code"
+    ];
+
+  // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
+  const cytotoxicMatch = cytotoxicMap.find(({ answerUuid }) =>
+    hasObsByQid("rfe-forms-signsAndSymptoms", answerUuid)
+  );
+  if (cytotoxicMatch) {
+    const optionCode = resolveOptionCode(cytotoxicMatch.optionUid);
+    if (optionCode)
+      mappings.push({ dataElement: "bRpRhiyU9om", value: optionCode });
+  }
+
+  // Snakebites - 6h exit: Cytotoxic (uZOKOcCGHqE) — sourced from 'Signs and symptoms evolution' (rfe-forms-signsAndSymptomsEvolution)
+  const evolutionMatch = cytotoxicMap.find(({ answerUuid }) =>
+    hasObsByQid("rfe-forms-signsAndSymptomsEvolution", answerUuid)
+  );
+  if (evolutionMatch) {
+    const optionCode = resolveOptionCode(evolutionMatch.optionUid);
+    if (optionCode)
+      mappings.push({ dataElement: "uZOKOcCGHqE", value: optionCode });
+  }
+
+  // Hematotoxic logic helper: evaluates conditions for a given question ID scope
+  const resolveHematotoxic = (qid) => {
+    const isBleeding = hasObsByQid(qid, "d14d3774-1595-479d-829a-6c81f98a32d0"); // Bleeding - Hematotoxic
+    const isNotClotting = hasObsByQid(
+      qid,
+      "5b714e83-fdc6-4893-9d8e-7a2353d93878"
+    ); // Not clotting - Hematotoxic
+    const isClotting = hasObsByQid(qid, "fc49b380-fbf8-42a7-abbf-a3ca32b03b67"); // Clotting
+
+    const hematotoxicMap = [
+      { condition: isBleeding && !isNotClotting, optionUid: "TL1JkvBhwZj" }, // bleeding
+      { condition: !isBleeding && isNotClotting, optionUid: "C9YeFTRG7hR" }, // not_clotting
+      { condition: isBleeding && isNotClotting, optionUid: "C08j0szZSKz" }, // both
+      { condition: !isBleeding && isClotting, optionUid: "aNsED3NFbns" }, // no
+    ];
+
+    return hematotoxicMap.find(({ condition }) => condition);
   };
 
-  const cytotoxicAns = encounter.obs.find(
-    (o) =>
-      o.concept.uuid === F66Config.concept && o.formFieldPath === F66Config.qid
-  );
+  // Snakebites - Hematotoxic (etjys3ZhdrZ) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
+  const hematotoxicMatch = resolveHematotoxic("rfe-forms-signsAndSymptoms");
+  if (hematotoxicMatch) {
+    const optionCode = resolveOptionCode(hematotoxicMatch.optionUid);
+    if (optionCode)
+      mappings.push({ dataElement: "etjys3ZhdrZ", value: optionCode });
+  }
 
-  const value = F66Config.answerMap[cytotoxicAns?.value?.display];
-  if (value) {
-    mappings.push({ dataElement: F66Config.dataElement, value });
+  // Snakebites - 6h exit: Hematotoxic (kFjWm5ZYkS2) — sourced from 'Signs and symptoms evolution' (rfe-forms-signsAndSymptomsEvolution)
+  const hematotoxicEvolutionMatch = resolveHematotoxic(
+    "rfe-forms-signsAndSymptomsEvolution"
+  );
+  if (hematotoxicEvolutionMatch) {
+    const optionCode = resolveOptionCode(hematotoxicEvolutionMatch.optionUid);
+    if (optionCode)
+      mappings.push({ dataElement: "kFjWm5ZYkS2", value: optionCode });
+  }
+
+  // Snakebites - Adverse events from treatment (qWq8p9M0OFn)
+  if (
+    hasObsByQid(
+      "rfe-forms-adverseEventsFromTreatment",
+      "790b41ce-e1e7-11e8-b02f-0242ac130002"
+    )
+  ) {
+    mappings.push({ dataElement: "qWq8p9M0OFn", value: "true" });
   }
 
   return mappings;
@@ -854,8 +926,7 @@ const buildDataValues = (encounter, tei, state) => {
 
   if ([f66Uuid].includes(encounter.form.uuid)) {
     // F66 Form Encounter Mapping - Custom mappings
-    const form = state.formMaps[f66Uuid];
-    const f66Mapping = f66(encounter, form);
+    const f66Mapping = f66(encounter, state);
     formMapping.push(...f66Mapping);
 
     const birthdate = tei?.attributes?.find(
