@@ -88,8 +88,10 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
 
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
-    const attrTypeUuid = patientMap[d].split("::")[0],
-    const attrValue = findAttrValue(attrTypeUuid, omrsPatient.person.attributes
+    const attrTypeUuid = patientMap[d].split("::")[0];
+    const attrValue = findAttrValue(
+      attrTypeUuid,
+      omrsPatient.person.attributes
     );
     return {
       attribute: d,
