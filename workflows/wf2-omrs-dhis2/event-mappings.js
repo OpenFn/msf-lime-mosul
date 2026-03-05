@@ -45,7 +45,7 @@ const processAnswer = (answer, question, metadata) => {
         : "";
     }
     const optionKey = questionId
-      ? `${formUuid}-${answer.concept.uuid}-rfe-${questionId}`
+      ? `${formUuid}-${answer.concept.uuid}-${questionId}`
       : `${formUuid}-${answer.concept.uuid}`;
     const matchingOptionSet = optionSetKey[optionKey];
     const opt = optsMap.find(
@@ -53,6 +53,7 @@ const processAnswer = (answer, question, metadata) => {
         o["value.uuid - External ID"] === `${answer.value.uuid}` &&
         o["DHIS2 Option Set UID"] === matchingOptionSet
     );
+
     // const matchingOption =
     //  opt?.["DHIS2 Option Code"] ??
     //   opt?.["DHIS2 Option name"] ??
