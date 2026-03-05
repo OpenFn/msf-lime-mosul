@@ -62,7 +62,7 @@ steps:
       get-parent-and-child-teis:
         disabled: false
         condition: |
-          !state.errors && state.encounters.length > 0
+          !state.errors && state.encounters?.length > 0
         label: has-encounters
   - id: get-parent-and-child-teis
     name: Get Parent and Child TEIs

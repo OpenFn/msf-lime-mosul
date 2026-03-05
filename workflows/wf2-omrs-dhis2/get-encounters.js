@@ -80,7 +80,7 @@ each(
     state.encounters.push(...encounters);
 
     console.log(
-      encounters.length,
+      encounters?.length,
       `# of filtered encounters found in OMRS for ${patientUuid}`
     );
 
@@ -131,7 +131,7 @@ fn((state) => {
         encounterDatetime,
       };
     });
-    console.log(next.encounters.length, "# of new encounters to sync to dhis2");
+    console.log(next.encounters?.length, "# of new encounters to sync to dhis2");
   } else {
     console.log("No encounters found for cursor: ", next.cursor);
   }
