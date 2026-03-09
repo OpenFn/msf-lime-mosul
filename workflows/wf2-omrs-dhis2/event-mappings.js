@@ -339,7 +339,7 @@ function mapF29(encounter, optsMap) {
 }
 
 function mapF30F29(encounter, allEncounters) {
-  if (encounter.form.name.includes("F30-MHPSS Follow-up v2")) {
+  if (encounter.form.name.includes("F30-MHPSS Follow-up")) {
     const missedSession = (encounter) => {
       if (
         encounter.obs.find(
@@ -350,7 +350,7 @@ function mapF30F29(encounter, allEncounters) {
       }
       const lastFollowupEncounter = allEncounters.find(
         (e) =>
-          e.form.description.includes("F30-MHPSS Follow-up v2") &&
+          e.form.description.includes("F30-MHPSS Follow-up") &&
           e.patient.uuid === encounter.patient.uuid &&
           e.uuid !== encounter.uuid &&
           e.obs.find(
@@ -364,7 +364,7 @@ function mapF30F29(encounter, allEncounters) {
 
       const f29Encounter = allEncounters.find(
         (e) =>
-          e.form.description.includes("F29-MHPSS Baseline v2") &&
+          e.form.description.includes("F29-MHPSS Baseline") &&
           e.patient.uuid === encounter.patient.uuid
       );
       if (f29Encounter) {
@@ -383,7 +383,7 @@ function mapF30F29(encounter, allEncounters) {
 }
 
 function mapF32F31(encounter, allEncounters) {
-  if (encounter.form.name.includes("F32-mhGAP Follow-up v2")) {
+  if (encounter.form.name.includes("F32-mhGAP Follow-up")) {
     const missedSession = (encounter) => {
       if (
         encounter.obs.find(
@@ -394,7 +394,7 @@ function mapF32F31(encounter, allEncounters) {
       }
       const lastFollowupEncounter = allEncounters.find(
         (e) =>
-          e.form.description.includes("F32-mhGAP Follow-up v2") &&
+          e.form.description.includes("F32-mhGAP Follow-up") &&
           e.patient.uuid === encounter.patient.uuid &&
           e.uuid !== encounter.uuid &&
           e.obs.find(
@@ -408,7 +408,7 @@ function mapF32F31(encounter, allEncounters) {
 
       const f31Encounter = allEncounters.find(
         (e) =>
-          e.form.description.includes("F31-mhGAP Baseline v2") &&
+          e.form.description.includes("F31-mhGAP Baseline") &&
           e.patient.uuid === encounter.patient.uuid
       );
 
@@ -422,7 +422,7 @@ function mapF32F31(encounter, allEncounters) {
         .find(
           (e) =>
             e.patient.uuid === patientUuid &&
-            e.form.description.includes("F32-mhGAP Follow-up v2") &&
+            e.form.description.includes("F32-mhGAP Follow-up") &&
             encounter.uuid !== e.uuid
         )
         ?.obs.find(
@@ -458,8 +458,8 @@ function mapF32F31(encounter, allEncounters) {
 
 function mapF33F34(encounter, allEncounters) {
   if (
-    encounter.form.name.includes("F33-MHPSS Closure v2") ||
-    encounter.form.name.includes("F34-mhGAP Closure v2")
+    encounter.form.name.includes("F33-MHPSS Closure") ||
+    encounter.form.name.includes("F34-mhGAP Closure")
   ) {
     const lastScore = encounter.obs.find(
       (o) => o.concept.uuid === "90b3d09c-d296-44d2-8292-8e04377fe027"
@@ -2042,7 +2042,7 @@ const findDataValue = (encounter, dataElement, state) => {
     );
 
   // These are data elements for encounter date in DHIS2
-  // F29 MHPSS Baseline v2, F31-mhGAP Baseline v2, F30-MHPSS Follow-up v2, F32-mhGAp Follow-up v2
+  // F29 MHPSS Baseline, F31-mhGAP Baseline, F30-MHPSS Follow-up, F32-mhGAp Follow-up
   if (isEncounterDate) {
     return encounter.encounterDatetime.replace("+0000", "");
   }
