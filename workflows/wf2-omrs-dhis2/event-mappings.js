@@ -556,40 +556,12 @@ function mapF37(encounter) {
 
 function mapF38(encounter) {
   if (encounter.form.name.includes("F38-Maternity Delivery")) {
-    const anaesthesiaAnswers = filterObsByConcept(
-      encounter,
-      "84cc236e-90fa-4eec-acf5-d0cd6b713dc4"
-    ).map((o) => o.value.display);
-
     let f38Mapping = [
       {
         dataElement: "MfzUDNqvZdy",
         value: encounter.encounterDatetime.split("T")[0],
       },
     ];
-
-    if (anaesthesiaAnswers.length > 0) {
-      const anaesthesiaConfig = [
-        { dataElement: "kjg89ETfuSW", has: "General" },
-        { dataElement: "bgauK1cE1HM", has: "Local" },
-        { dataElement: "dBAXsq3kl3p", has: "Spinal" },
-      ];
-      const anaesthesiaMapping = anaesthesiaConfig
-        .map((config) => {
-          if (anaesthesiaAnswers.some((a) => a.includes(config.has))) {
-            return {
-              dataElement: config.dataElement,
-              value: true,
-            };
-          }
-        })
-        .filter(Boolean);
-      f38Mapping.push(...anaesthesiaMapping);
-    }
-
-    if (f38Mapping.length === 0) {
-      return;
-    }
 
     return f38Mapping;
   }
