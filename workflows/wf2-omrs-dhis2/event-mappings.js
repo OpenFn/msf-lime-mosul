@@ -223,7 +223,7 @@ function mapF22(encounter) {
   }
 }
 
-function mapF29(encounter, optsMap) {
+function mapF29(encounter) {
   const CONCEPTS = {
     OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
     OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
@@ -281,21 +281,10 @@ function mapF29(encounter, optsMap) {
       encounter,
       "d5e3d927-f7ce-4fdd-ac4e-6ad0b510b608"
     );
-    const otherValue = encounter.obs.find((o) =>
-      o.display.includes("Past / Precipitating Events - Other")
-    );
-
-    if (
-      precipitatingEvent1 &&
-      precipitatingEvent1?.value?.uuid === otherValue?.value?.uuid
-    ) {
-      const opt = optsMap.find(
-        (o) => o["value.uuid - External ID"] === otherValue?.value?.uuid
-      );
-
+    if (precipitatingEvent1?.value?.uuid === CONCEPTS.OTHER) {
       mappings.push({
         dataElement: "m8qis4iUOTo",
-        value: opt?.["DHIS2 Option Code"],
+        value: findObsByConcept(encounter, CONCEPTS.OTHER)?.value,
       });
     }
 
@@ -304,16 +293,10 @@ function mapF29(encounter, optsMap) {
       "54a9b20e-bce5-4d4a-8c9c-e0248a182586"
     );
 
-    if (
-      precipitatingEvent2 &&
-      precipitatingEvent2?.value?.uuid === otherValue?.value?.uuid
-    ) {
-      const opt = optsMap.find(
-        (o) => o["value.uuid - External ID"] === otherValue?.value?.uuid
-      );
+    if (precipitatingEvent2?.value?.uuid === CONCEPTS.OTHER) {
       mappings.push({
         dataElement: "mNK6CITsdWD",
-        value: opt?.["DHIS2 Option Code"],
+        value: findObsByConcept(encounter, CONCEPTS.OTHER)?.value,
       });
     }
 
@@ -322,16 +305,10 @@ function mapF29(encounter, optsMap) {
       "e0d4e006-85b5-41cb-8a21-e013b1978b8b"
     );
 
-    if (
-      precipitatingEvent3 &&
-      precipitatingEvent3?.value?.uuid === otherValue?.uuid
-    ) {
-      const opt = optsMap.find(
-        (o) => o["value.uuid - External ID"] === otherValue?.value?.uuid
-      );
+    if (precipitatingEvent3?.value?.uuid === CONCEPTS.OTHER) {
       mappings.push({
         dataElement: "jocqmYW394G",
-        value: opt?.["DHIS2 Option Code"],
+        value: findObsByConcept(encounter, CONCEPTS.OTHER)?.value,
       });
     }
   }
@@ -340,23 +317,33 @@ function mapF29(encounter, optsMap) {
 
 function mapF30F29(encounter, allEncounters) {
   if (encounter.form.name.includes("F30-MHPSS Follow-up")) {
+    const OTHER = "790b41ce-e1e7-11e8-b02f-0242ac130002";
+    const MISSED_SESSION_CONCEPT = "54e8c1b6-6397-4822-89a4-cf81fbc68ce9";
+    const YES_UUID = "681cf0bc-5213-492a-8470-0a0b3cc324dd";
+
+    const didNotMissSession = (e) => {
+      const obs = e.obs.find((o) => o.concept.uuid === MISSED_SESSION_CONCEPT);
+      return obs && obs.value?.uuid !== YES_UUID;
+    };
+
     const missedSession = (encounter) => {
-      if (
-        encounter.obs.find(
-          (o) => o.concept.uuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9"
-        )?.value?.display === "No"
-      ) {
+      if (didNotMissSession(encounter)) {
         return encounter.encounterDatetime.replace("+0000", "");
       }
-      const lastFollowupEncounter = allEncounters.find(
-        (e) =>
-          e.form.description.includes("F30-MHPSS Follow-up") &&
-          e.patient.uuid === encounter.patient.uuid &&
-          e.uuid !== encounter.uuid &&
-          e.obs.find(
-            (o) => o.concept.uuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9"
-          )?.value?.display === "No"
-      );
+
+      const lastFollowupEncounter = allEncounters
+        .filter(
+          (e) =>
+            e.form.description.includes("F30-MHPSS Follow-up") &&
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
+            didNotMissSession(e)
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
+        )
+        .at(0);
 
       if (lastFollowupEncounter) {
         return lastFollowupEncounter.encounterDatetime.replace("+0000", "");
@@ -367,40 +354,90 @@ function mapF30F29(encounter, allEncounters) {
           e.form.description.includes("F29-MHPSS Baseline") &&
           e.patient.uuid === encounter.patient.uuid
       );
-      if (f29Encounter) {
-        return f29Encounter.encounterDatetime.replace("+0000", "");
-      }
-      return undefined;
+      return f29Encounter?.encounterDatetime.replace("+0000", "");
     };
+    const precipitatingEvent1 = findObsByConcept(
+      encounter,
+      "d5e3d927-f7ce-4fdd-ac4e-6ad0b510b608"
+    );
+    const precipitatingEvent2 = findObsByConcept(
+      encounter,
+      "54a9b20e-bce5-4d4a-8c9c-e0248a182586"
+    );
+    const precipitatingEvent3 = findObsByConcept(
+      encounter,
+      "e0d4e006-85b5-41cb-8a21-e013b1978b8b"
+    );
+
     const mapping = [
+      {
+        dataElement: "yUT7HyjWurN",
+        value: encounter.encounterDatetime.split("T")[0],
+      },
       {
         dataElement: "jtKIoKducvE",
         value: missedSession(encounter),
       },
     ];
+
+    if (precipitatingEvent1?.value?.uuid === OTHER) {
+      mapping.push({
+        dataElement: "XjPbncUyYOH",
+        value: findObsByConcept(encounter, OTHER)?.value,
+      });
+    }
+    if (precipitatingEvent2?.value?.uuid === OTHER) {
+      mapping.push({
+        dataElement: "XPdWXVDiOyv",
+        value: findObsByConcept(encounter, OTHER)?.value,
+      });
+    }
+    if (precipitatingEvent3?.value?.uuid === OTHER) {
+      mapping.push({
+        dataElement: "o4tgbZ1a6iq",
+        value: findObsByConcept(encounter, OTHER)?.value,
+      });
+    }
+
     return mapping;
   }
 }
 
 function mapF32F31(encounter, allEncounters) {
+  let mapping = [];
+  if (encounter.form.name.includes("F31-mhGAP Baseline")) {
+    mapping.push({
+      dataElement: "I7phgLmRWQq",
+      value: encounter.encounterDatetime.split("T")[0],
+    });
+  }
   if (encounter.form.name.includes("F32-mhGAP Follow-up")) {
+    mapping.push({
+      dataElement: "EOFi7nk2vNM",
+      value: encounter.encounterDatetime.split("T")[0],
+    });
     const missedSession = (encounter) => {
-      if (
-        encounter.obs.find(
-          (o) => o.concept.uuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9"
-        )?.value?.display === "No"
-      ) {
+      const YES_UUID = "681cf0bc-5213-492a-8470-0a0b3cc324dd";
+      const missedSessionObs = encounter.obs.find(
+        (o) => o.concept.uuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9"
+      );
+      if (missedSessionObs?.value?.uuid !== YES_UUID) {
         return encounter.encounterDatetime.replace("+0000", "");
       }
-      const lastFollowupEncounter = allEncounters.find(
-        (e) =>
-          e.form.description.includes("F32-mhGAP Follow-up") &&
-          e.patient.uuid === encounter.patient.uuid &&
-          e.uuid !== encounter.uuid &&
-          e.obs.find(
-            (o) => o.concept.uuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9"
-          )?.value?.display === "No"
-      );
+      const lastFollowupEncounter = allEncounters
+        .filter(
+          (e) =>
+            e.form.description.includes("F32-mhGAP Follow-up") &&
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
+            e.obs.find(
+              (o) => o.concept.uuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9"
+            )?.value?.uuid !== YES_UUID
+        )
+        .sort(
+          (a, b) =>
+            new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
+        )[0];
 
       if (lastFollowupEncounter) {
         return lastFollowupEncounter.encounterDatetime.replace("+0000", "");
@@ -417,32 +454,50 @@ function mapF32F31(encounter, allEncounters) {
       }
     };
     const changeInDiagnosis = (encounter) => {
-      const patientUuid = encounter.patient.uuid;
-      const previousChangeInDiagnosis = allEncounters
-        .find(
+      const DIAGNOSIS_CONCEPT = "22809b19-54ca-4d88-8d26-9577637c184e";
+
+      const currentDiagnosisObs = encounter.obs.find(
+        (o) =>
+          o.concept.uuid === DIAGNOSIS_CONCEPT &&
+          o.formFieldPath === "rfe-forms-changeInDiagnosis"
+      );
+      if (!currentDiagnosisObs?.value) return false;
+
+      const currentDiagnosisUuid = currentDiagnosisObs.value.uuid;
+
+      const lastConsultation = allEncounters
+        .filter(
           (e) =>
-            e.patient.uuid === patientUuid &&
-            e.form.description.includes("F32-mhGAP Follow-up") &&
-            encounter.uuid !== e.uuid
+            e.patient.uuid === encounter.patient.uuid &&
+            e.uuid !== encounter.uuid &&
+            (e.form.description.includes("F31-mhGAP Baseline") ||
+              e.form.description.includes("F32-mhGAP Follow-up"))
         )
-        ?.obs.find(
-          (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
-        )?.value?.display;
+        .sort(
+          (a, b) =>
+            new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
+        )[0];
 
-      const currentChangeInDiagnosis = encounter.obs.find(
-        (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
-      )?.value?.display;
+      if (!lastConsultation) return false;
 
-      if (
-        previousChangeInDiagnosis &&
-        previousChangeInDiagnosis !== currentChangeInDiagnosis
-      ) {
-        return true;
-      }
+      const prevFieldPath = lastConsultation.form.description.includes(
+        "F31-mhGAP Baseline"
+      )
+        ? "rfe-forms-mainDiagnosis"
+        : "rfe-forms-changeInDiagnosis";
 
-      return false;
+      const previousDiagnosisUuid = lastConsultation.obs.find(
+        (o) =>
+          o.concept.uuid === DIAGNOSIS_CONCEPT &&
+          o.formFieldPath === prevFieldPath
+      )?.value?.uuid;
+
+      return (
+        !!previousDiagnosisUuid &&
+        previousDiagnosisUuid !== currentDiagnosisUuid
+      );
     };
-    const mapping = [
+    mapping.push(
       {
         dataElement: "fMqEZpiRVZV",
         value: missedSession(encounter),
@@ -450,10 +505,10 @@ function mapF32F31(encounter, allEncounters) {
       {
         dataElement: "XBVRRpgkEvE",
         value: changeInDiagnosis(encounter),
-      },
-    ];
-    return mapping;
+      }
+    );
   }
+  return mapping;
 }
 
 function mapF33F34(encounter, allEncounters) {
@@ -2195,7 +2250,7 @@ fn((state) => {
         mapF18(encounter, state.encounters),
         mapF16(encounter),
         mapF17(encounter),
-        mapF29(encounter, state.optsMap),
+        mapF29(encounter),
         mapF22(encounter),
         mapF37(encounter),
         mapF38(encounter),
