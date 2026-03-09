@@ -213,33 +213,14 @@ function mapF18(encounter, encounters) {
 }
 
 function mapF22(encounter) {
-  const answers = filterObsByConcept(
-    encounter,
-    "38d5dcf5-b8bf-420e-bb14-a270e1f518b3"
-  ).map((o) => o.value.display);
-
-  if (answers.length === 0) {
-    return;
+  if (encounter.form.name.includes("F22-Neonatal Delivery")) {
+    return [
+      {
+        dataElement: "BCW1HFeUa4C",
+        value: encounter.encounterDatetime.split("T")[0],
+      },
+    ];
   }
-  // Define mapping configurations
-  const mappingConfig = [
-    { dataElement: "y5EEruMtgG1", has: "None" },
-    { dataElement: "SqCZBLTRSt7", has: "Ventilation" },
-    { dataElement: "hW2US5pqO9c", has: "Cardiac massage" },
-    { dataElement: "ZgzXA4TjsDg", has: "Adrenaline" },
-    { dataElement: "BYxj9JiIETF", has: "Other" },
-  ];
-
-  return mappingConfig
-    .map((config) => {
-      if (answers.some((a) => a.includes(config.has))) {
-        return {
-          dataElement: config.dataElement,
-          value: true,
-        };
-      }
-    })
-    .filter(Boolean);
 }
 
 function mapF29(encounter, optsMap) {
@@ -504,123 +485,69 @@ function mapF33F34(encounter, allEncounters) {
 }
 
 function mapF37(encounter) {
-  const answers = filterObsByConcept(
-    encounter,
-    "d30db8b8-f8fb-450c-9562-629195212a45"
-  ).map((o) => o.value.display);
-
-  if (answers.length === 0) {
-    return;
+  if (encounter.form.name.includes("F37-Maternity Admission")) {
+    return [
+      {
+        dataElement: "O7HyhSTFrA0",
+        value: encounter.encounterDatetime.split("T")[0],
+      },
+    ];
   }
-  const mappingConfig = [
-    { dataElement: "MATDmdd9lRR", has: "Medical induction" },
-    { dataElement: "DNQWSGBOBQB", has: "Unassisted induction" },
-    { dataElement: "ts3xCk7k7x0", has: "Artificial rupture of membrane" },
-    { dataElement: "p59TQ8PvXVH", has: "Dilatation and curettage" },
-    { dataElement: "Uby3bOB4hFn", has: "Prepare for C-section" },
-    { dataElement: "G2XoPI8Onh6", has: "Prepare for emergency C-section" },
-    { dataElement: "cLo2RytNPE9", has: "Deferred admission" },
-    { dataElement: "xB4S4ZVgAbm", has: "External referral" },
-    { dataElement: "HgexHDb2auE", has: "Other" },
-  ];
-
-  const f37Mapping = mappingConfig
-    .map((config) => {
-      if (answers.some((a) => a.includes(config.has))) {
-        return {
-          dataElement: config.dataElement,
-          value: true,
-        };
-      }
-    })
-    .filter(Boolean);
-
-  return [
-    ...f37Mapping,
-    {
-      dataElement: "O7HyhSTFrA0",
-      value: encounter.encounterDatetime.split("T")[0],
-    },
-  ];
 }
 
 function mapF38(encounter) {
-  const procedureAnswers = filterObsByConcept(
-    encounter,
-    "482af9e6-795d-42d9-be5b-64f4df54a63e"
-  ).map((o) => o.value.display);
+  if (encounter.form.name.includes("F38-Maternity Delivery")) {
+    const anaesthesiaAnswers = filterObsByConcept(
+      encounter,
+      "84cc236e-90fa-4eec-acf5-d0cd6b713dc4"
+    ).map((o) => o.value.display);
 
-  const anaesthesiaAnswers = filterObsByConcept(
-    encounter,
-    "84cc236e-90fa-4eec-acf5-d0cd6b713dc4"
-  ).map((o) => o.value.display);
-
-  let f38Mapping = [];
-  if (procedureAnswers.length > 1) {
-    const procedureConfig = [
+    let f38Mapping = [
       {
-        dataElement: "JshMCeD8bNx",
-        has: "FGM / female circumcision management",
+        dataElement: "MfzUDNqvZdy",
+        value: encounter.encounterDatetime.split("T")[0],
       },
-      { dataElement: "oxXdt4qFPUT", has: "Episiotomy" },
-      { dataElement: "puJfC1hX0CN", has: "Induction of labor" },
-      {
-        dataElement: "ncgztSFld2L",
-        has: "Oxytocin for augmentation of labour",
-      },
-      {
-        dataElement: "cQsT8zdLu6s",
-        has: "VBAC (Vaginal birth after Caesearan)",
-      },
-      { dataElement: "BvfOhTNVitn", has: "Vaginal breech delivery" },
-      { dataElement: "RHSujdOFWre", has: "Twins / triplets vaginal delivery" },
-      { dataElement: "z1Bej1f1gCu", has: "Maneuver" },
-      { dataElement: "JHZVr6SECp3", has: "Manual exploration of uterus" },
-      { dataElement: "RiSel8y1SuF", has: "Curettage" },
-      {
-        dataElement: "DxnQSPcbxdF",
-        has: "Laceration (perineal tear) repaired",
-      },
-      { dataElement: "IIoljELzj95", has: "Cervical tear repair" },
-      { dataElement: "Lvk3ipAxiAH", has: "Tubal ligation (sterilization)" },
     ];
-    const procedureMapping = procedureConfig
-      .map((config) => {
-        if (procedureAnswers.some((a) => a.includes(config.has))) {
-          return {
-            dataElement: config.dataElement,
-            value: true,
-          };
-        }
-      })
-      .filter(Boolean);
-    f38Mapping.push(...procedureMapping);
-  }
 
-  if (anaesthesiaAnswers.length > 0) {
-    const anaesthesiaConfig = [
-      { dataElement: "kjg89ETfuSW", has: "General" },
-      { dataElement: "bgauK1cE1HM", has: "Local" },
-      { dataElement: "dBAXsq3kl3p", has: "Spinal" },
+    if (anaesthesiaAnswers.length > 0) {
+      const anaesthesiaConfig = [
+        { dataElement: "kjg89ETfuSW", has: "General" },
+        { dataElement: "bgauK1cE1HM", has: "Local" },
+        { dataElement: "dBAXsq3kl3p", has: "Spinal" },
+      ];
+      const anaesthesiaMapping = anaesthesiaConfig
+        .map((config) => {
+          if (anaesthesiaAnswers.some((a) => a.includes(config.has))) {
+            return {
+              dataElement: config.dataElement,
+              value: true,
+            };
+          }
+        })
+        .filter(Boolean);
+      f38Mapping.push(...anaesthesiaMapping);
+    }
+
+    if (f38Mapping.length === 0) {
+      return;
+    }
+
+    return f38Mapping;
+  }
+}
+function mapF40(encounter) {
+  if (encounter.form.name.includes("F40-Referral & Discharge")) {
+    return [
+      {
+        dataElement: "T4TwDpbKGdZ",
+        value: "",
+      },
+      {
+        dataElement: "X1DYPGS8g3g",
+        value: "",
+      },
     ];
-    const anaesthesiaMapping = anaesthesiaConfig
-      .map((config) => {
-        if (anaesthesiaAnswers.some((a) => a.includes(config.has))) {
-          return {
-            dataElement: config.dataElement,
-            value: true,
-          };
-        }
-      })
-      .filter(Boolean);
-    f38Mapping.push(...anaesthesiaMapping);
   }
-
-  if (f38Mapping.length === 0) {
-    return;
-  }
-
-  return f38Mapping;
 }
 
 const F49_CONFIG = {
@@ -2271,6 +2198,7 @@ fn((state) => {
         mapF30F29(encounter, state.allEncounters),
         mapF32F31(encounter, state.allEncounters),
         mapF33F34(encounter, state.allEncounters),
+        mapF40(encounter),
       ]
         .filter(Boolean) // Only include non-empty mappings
         .flat(); // flattening the array

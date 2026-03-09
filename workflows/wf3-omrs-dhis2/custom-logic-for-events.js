@@ -743,7 +743,7 @@ const buildDataValues = (encounter, tei, state) => {
     const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
     // Custom mapping for sex and legalStatus (f26 only)
-    if (encounter.form.uuid === f26Form) {
+    if (encounter.form.uuid === f26Uuid) {
       // Sex: leave blank if value is "unknown" or "other"
       const sexValue = tei?.attributes?.find(
         (attr) => attr.attribute === dhis2Map.attr.sex
