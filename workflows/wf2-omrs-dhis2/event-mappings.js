@@ -226,7 +226,7 @@ function mapF22(encounter) {
 function mapF29(encounter, optsMap) {
   const CONCEPTS = {
     OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
-    OTHER: CONCEPTS.OTHER,
+    OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
   };
   const mappings = [];
   if (encounter.form.name.includes("F29-MHPSS Baseline")) {
