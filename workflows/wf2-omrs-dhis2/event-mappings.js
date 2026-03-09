@@ -226,10 +226,14 @@ function mapF22(encounter) {
 function mapF29(encounter, optsMap) {
   const CONCEPTS = {
     OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
-    PRECIPITATING_EVENT_OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002", // Todo: no used anywhere
+    OTHER: CONCEPTS.OTHER,
   };
   const mappings = [];
-  if (encounter.form.name.includes("F29-MHPSS Baseline v2")) {
+  if (encounter.form.name.includes("F29-MHPSS Baseline")) {
+    mappings.push({
+      dataElement: "CXS4qAJH2qD",
+      value: encounter.encounterDatetime.split("T")[0],
+    });
     mappings.push({
       dataElement: "pN4iQH4AEzk",
       value: findAnswerByConcept(
@@ -244,7 +248,7 @@ function mapF29(encounter, optsMap) {
       encounter,
       "45b39cbf-0fb2-4682-8544-8aaf3e07a744"
     );
-    if (priority1 && priority1?.value?.display === "Other") {
+    if (priority1 && priority1?.value?.uuid === CONCEPTS.OTHER) {
       mappings.push({
         dataElement: "pj5hIE6iyAR",
         value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
@@ -255,7 +259,7 @@ function mapF29(encounter, optsMap) {
       encounter,
       "ee1b7973-e931-494e-a9cb-22b814b4d8ed"
     );
-    if (priority2 && priority2?.value?.display === "Other") {
+    if (priority2 && priority2?.value?.uuid === CONCEPTS.OTHER) {
       mappings.push({
         dataElement: "Em5zvpdd5ha",
         value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
@@ -266,7 +270,7 @@ function mapF29(encounter, optsMap) {
       encounter,
       "92a92f62-3ff6-4944-9ea9-a7af23949bad"
     );
-    if (priority3 && priority3?.value?.display === "Other") {
+    if (priority3 && priority3?.value?.uuid === CONCEPTS.OTHER) {
       mappings.push({
         dataElement: "aWsxYkJR8Ua",
         value: findObsByConcept(encounter, CONCEPTS.OTHER_SPECIFY)?.value,
@@ -1563,7 +1567,7 @@ function mapF59(encounter, events, state) {
     encounter,
     {
       dataElement: "k64e6bcyPtH",
-      conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+      conceptUuid: CONCEPTS.OTHER,
       questionId: "rfe-forms-typeOfExitIfOtherSpecify",
     },
     state
@@ -1615,7 +1619,7 @@ function mapF60(encounter, events, state) {
     encounter,
     {
       dataElement: "k64e6bcyPtH",
-      conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+      conceptUuid: CONCEPTS.OTHER,
       questionId: "rfe-forms-typeOfExitIfOtherSpecify",
     },
     state
