@@ -778,27 +778,31 @@ const buildDataValues = (encounter, tei, state) => {
 
   if ([f27Uuid, f28Uuid].includes(encounter.form.uuid)) {
     // F27 Form Encounter Mapping
-    const f27Mapping = f27(encounter);
-    formMapping.push(...f27Mapping);
+    if (encounter.form.uuid === f27Uuid) {
+      const f27Mapping = f27(encounter);
+      formMapping.push(...f27Mapping);
+    }
 
-    // F28 Form Encounter Mapping
-    const attributeMap = {
-      WP5vr8KB2lH: dhis2Map.attr.sex,
-      Y7qzoa4Qaiz: dhis2Map.attr.currentStatus,
-      XCUd9xOGXkn: dhis2Map.attr.legalStatus,
-      onKT21rxH6Z: dhis2Map.attr.placeOfLivingAttr,
-      sCKCNreiqEA: dhis2Map.attr.nationalityAttr,
-      ci9C72RjN8Z: dhis2Map.attr.patientNumber,
-    };
-    const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+    if (encounter.form.uuid === f28Uuid) {
+      // F28 Form Encounter Mapping
+      const attributeMap = {
+        WP5vr8KB2lH: dhis2Map.attr.sex,
+        Y7qzoa4Qaiz: dhis2Map.attr.currentStatus,
+        XCUd9xOGXkn: dhis2Map.attr.legalStatus,
+        onKT21rxH6Z: dhis2Map.attr.placeOfLivingAttr,
+        sCKCNreiqEA: dhis2Map.attr.nationalityAttr,
+        ci9C72RjN8Z: dhis2Map.attr.patientNumber,
+      };
+      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
-    const f28Mapping = [
-      {
-        dataElement: "NWOnMq8h4w1",
-        value: teiAge(tei, dhis2Map.attr),
-      },
-    ];
-    formMapping.push(...attributeMapping, ...f28Mapping);
+      const f28Mapping = [
+        {
+          dataElement: "NWOnMq8h4w1",
+          value: teiAge(tei, dhis2Map.attr),
+        },
+      ];
+      formMapping.push(...attributeMapping, ...f28Mapping);
+    }
   }
 
   if ([f41Uuid, f42Uuid, f43Uuid].includes(encounter.form.uuid)) {
