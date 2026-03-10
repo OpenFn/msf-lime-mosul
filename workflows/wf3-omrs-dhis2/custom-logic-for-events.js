@@ -126,6 +126,15 @@ const filterObsByConcept = (encounter, conceptUuid, questionId) => {
   return answers;
 };
 
+const toTrueOrFalse = (value) => {
+  if (["true", "yes"].includes(value.toLowerCase())) {
+    return "true";
+  }
+  if (["false", "no"].includes(value.toLowerCase())) {
+    return "false";
+  }
+  return value;
+};
 const findDataValue = (encounter, dataElement, state) => {
   if (dataElement === "H9noxo3e7ox") {
     return;
@@ -143,6 +152,9 @@ const findDataValue = (encounter, dataElement, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
     const optionKey = questionId
       ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
@@ -981,10 +993,12 @@ const buildDataValues = (encounter, tei, state) => {
     })
     .filter((d) => d.value);
 
-  dataValuesMapping.push({
-    dataElement: "rbFVBI2N6Ex",
-    value: visitUuid,
-  });
+  if (!dataValuesMapping.some((dv) => dv.dataElement === "rbFVBI2N6Ex")) {
+    dataValuesMapping.push({
+      dataElement: "rbFVBI2N6Ex",
+      value: visitUuid,
+    });
+  }
 
   //setting the visitUuid here as a data element
   const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
