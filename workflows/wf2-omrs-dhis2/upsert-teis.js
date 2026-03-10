@@ -141,7 +141,7 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
     },
     {
       attribute: dhis2Map.attr.placeOflivingMap,
-      value: placeOflivingMap[omrsPatient.person?.addresses[0]?.cityVillage],
+      value: placeOflivingMap[omrsPatient.person?.preferredAddress?.cityVillage],
     },
   ];
 
