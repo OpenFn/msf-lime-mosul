@@ -62,7 +62,9 @@ const multiSelectAns = (encounter, multiSelectQns) => {
           const dataElement = qn.clde;
           const ans = encounter.obs.find(
             (obs) =>
-              obs.value.uuid === qn.multiAns && obs.formFieldPath === qn.qid
+              obs.value.uuid === qn.multiAns &&
+              obs.formFieldPath === q.qid &&
+              obs.concept.uuid === q.extId
           );
           let value = undefined;
           if (qn.type === "TRUE_ONLY") {
