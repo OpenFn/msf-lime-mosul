@@ -107,35 +107,23 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 };
 
-const findObsByConcept = (encounter, conceptUuid) => {
-  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+const findObsByConcept = (encounter, conceptUuid, questionId) => {
   const answer = encounter.obs.find(
     (o) =>
-      o.concept.uuid === conceptId &&
-      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+      o.concept.uuid === conceptUuid &&
+      (questionId ? o.formFieldPath === questionId : true)
   );
 
   return answer;
 };
 
-const filterObsByConcept = (encounter, conceptUuid) => {
-  const [conceptId, questionId] = conceptUuid.split("-rfe-");
+const filterObsByConcept = (encounter, conceptUuid, questionId) => {
   const answers = encounter.obs.filter(
     (o) =>
-      o.concept.uuid === conceptId &&
-      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
+      o.concept.uuid === conceptUuid &&
+      (questionId ? o.formFieldPath === questionId : true)
   );
   return answers;
-};
-const findByConceptAndValue = (encounter, conceptUuid, value) => {
-  const [conceptId, questionId] = conceptUuid.split("-rfe-");
-  const answer = encounter.obs.find(
-    (o) =>
-      o.concept.uuid === conceptId &&
-      (questionId ? o.formFieldPath === `rfe-${questionId}` : true) &&
-      o.value.uuid === value
-  );
-  return answer;
 };
 
 const findDataValue = (encounter, dataElement, state) => {
@@ -143,8 +131,8 @@ const findDataValue = (encounter, dataElement, state) => {
     return;
   }
   const form = state.formMaps[encounter.form.uuid];
-  const [conceptUuid, questionId] =
-    form.dataValueMap[dataElement]?.split("-rfe-");
+  const [conceptUuid, type, questionId] =
+    form.dataValueMap[dataElement]?.split("::");
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
@@ -156,7 +144,7 @@ const findDataValue = (encounter, dataElement, state) => {
 
   if (isObjectAnswer) {
     const optionKey = questionId
-      ? `${encounter.form.uuid}-${answer.concept.uuid}-rfe-${questionId}`
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
 
     const matchingOptionSet = state.optionSetKey[optionKey];
@@ -282,7 +270,8 @@ function f26(encounter, state) {
   };
   const antimalariaType = filterObsByConcept(
     encounter,
-    `${config.concept}-${config.qid}`
+    config.concept,
+    config.qid
   );
 
   return antimalariaType.slice(0, 2).map((obs, index) => {
