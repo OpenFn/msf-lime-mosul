@@ -55,7 +55,8 @@ fn((state) => {
         removeNulls(p)
       );
       const { dateCreated } = auditInfo;
-      const { age, birthdate, gender, names, addresses, attributes } = person;
+      const { age, birthdate, gender, names, preferredAddress, attributes } =
+        person;
 
       return {
         uuid,
@@ -64,7 +65,7 @@ fn((state) => {
           birthdate,
           gender,
           names,
-          addresses: [addresses.find((a) => a.cityVillage)],
+          preferredAddress,
           attributes,
         },
         identifiers,
