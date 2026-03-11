@@ -142,7 +142,11 @@ const findDataValue = (encounter, dataElement, state) => {
   const form = state.formMaps[encounter.form.uuid];
   const [conceptUuid, type, questionId] =
     form.dataValueMap[dataElement]?.split("::");
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptUuid &&
+      (o.formFieldPath === questionId || !questionId)
+  );
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
@@ -260,22 +264,6 @@ function f8(encounter) {
   }
   return [];
 }
-
-function f23(encounter, form) {
-  // const dataValues = multiSelectAns(encounter, form.multiSelectQns);
-
-  return [];
-}
-
-// F24 Configuration - Neonatal Discharge
-// Custom logic maps TEI attributes from Patient registration to DHIS2 data elements:
-//   - fnH6H3biOkE: Patient number (MSF ID)
-//   - Hww0CNYYt3E: Sex
-//   - Z7vMFdnQxpE: Age in days - calculated from birthdate and encounter date if DOB available
-//   - L97SmAK11DN: Age in months - from estimated age attribute if DOB not available
-//   - yE0dIWW0TXP: Place of living
-// Implemented in buildDataValues function alongside F23 form
-// NOTE: "Days since admission" field has DHIS2 DE UID = NA (not mapped)
 
 function f26(encounter, state) {
   const config = {
@@ -729,11 +717,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       const f61Mapping = f61(encounter, tei.events, state);
       formMapping.push(...f61Mapping);
     }
-    if (f23Uuid === encounter.form.uuid) {
-      // F23 Form Encounter Mapping
-      const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
-      formMapping.push(...f23Mapping);
-    }
+
     if (f24Uuid === encounter.form.uuid) {
       // F24 Form Encounter Mapping
       // Maps TEI attributes to DHIS2 data elements

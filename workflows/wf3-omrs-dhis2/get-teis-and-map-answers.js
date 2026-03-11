@@ -77,10 +77,11 @@ each(
     state.eventsByPatient ??= {};
     const grouped = state.data.instances?.reduce((acc, event) => {
       const patientNumber = event.dataValues.find(
-        (dv) => dv.dataElement === "Pi1zytYdq6l" ||
-                dv.dataElement === "fnH6H3biOkE" ||
-                dv.dataElement === "kcSuQKfU5Zo" ||
-                dv.dataElement === "ci9C72RjN8Z"
+        (dv) =>
+          dv.dataElement === "Pi1zytYdq6l" ||
+          dv.dataElement === "fnH6H3biOkE" ||
+          dv.dataElement === "kcSuQKfU5Zo" ||
+          dv.dataElement === "ci9C72RjN8Z"
       )?.value;
       if (!patientNumber || !patientNumbers.includes(patientNumber)) {
         return acc;
@@ -95,12 +96,18 @@ each(
       acc[patientNumber].push({
         event: event.event,
         occuredAt: event.occuredAt,
-        visitUuid
+        visitUuid,
       });
       return acc;
     }, {});
-    console.log(`Processing ${state.data.instances?.length || 0} events for ${orgUnit}-${program}`);
-    console.log("Grouped events by patient:", Object.keys(grouped).length, "patients");
+    console.log(
+      `Processing ${state.data.instances?.length || 0} events for ${orgUnit}-${program}`
+    );
+    console.log(
+      "Grouped events by patient:",
+      Object.keys(grouped).length,
+      "patients"
+    );
     state.eventsByPatient[`${orgUnit}-${program}`] = grouped;
     return state;
   })
