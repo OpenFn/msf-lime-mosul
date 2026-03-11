@@ -642,9 +642,9 @@ function mapAttribute(attributes, attributeMap) {
   return attrMapping;
 }
 
-const buildDataValues = (encounter, tei, state) => {
+const buildDataValues = (pairedEncounters, tei, state) => {
   const { dhis2Map } = state;
-  const form = state.formMaps[encounter.form.uuid];
+
   const f08Uuid = formIdByName("F08-ITFC Admission", state.formMaps);
   const f09Uuid = formIdByName("F09-ITFC Discharge", state.formMaps);
   const f23Uuid = formIdByName("F23-Neonatal Admission", state.formMaps);
@@ -662,92 +662,128 @@ const buildDataValues = (encounter, tei, state) => {
   const f61Uuid = formIdByName("F61-Travel medicine", state.formMaps);
 
   let formMapping = [];
-  const visitUuid = encounter.visit.uuid;
 
-  const multiSelectDvs = multiSelectAns(
-    encounter,
-    state.formMaps[encounter.form.uuid]?.multiSelectQns
+  const encounterOrder = (name) => {
+    if (name.includes("Admission")) return 0;
+    if (name.includes("Discharge")) return 2;
+    return 1;
+  };
+
+  // Sort: admission first, other forms middle, discharge last
+  // This ensures discharge values always override matching dataElements
+  const sortedEncounters = [...pairedEncounters].sort(
+    (a, b) => encounterOrder(a.form.name) - encounterOrder(b.form.name)
   );
-  formMapping.push(...multiSelectDvs);
-  if ([f08Uuid, f09Uuid].includes(encounter.form.uuid)) {
-    // F08 Form Encounter Mapping
-    const f8Mapping = f8(encounter);
-    formMapping.push(...f8Mapping);
 
-    // F09 Form Encounter Mapping
-    const attributeMap = {
-      Lg1LrNf9LQR: dhis2Map.attr.sex,
-      OVo3FxLURtH: dhis2Map.attr.ageInMonth,
-      f3n6kIB9IbI: dhis2Map.attr.ageInYears, // TODO:we see this in metadata "Rv8WM2mTuS5",
-      oc9zlhOoWmP: dhis2Map.attr.currentStatus,
-      DbyD9bbGIvE: dhis2Map.attr.legalStatus,
-      fiPFww1viBB: dhis2Map.attr.placeOfLivingAttr,
-      FsL5BjQocuo: dhis2Map.attr.nationalityAttr,
-      Pi1zytYdq6l: dhis2Map.attr.patientNumber,
-    };
-    const f09Mapping = mapAttribute(tei.attributes, attributeMap);
-    formMapping.push(...f09Mapping);
-  }
-  if (f61Uuid === encounter.form.uuid) {
-    const f61Mapping = f61(encounter, tei.events, state);
-    formMapping.push(...f61Mapping);
-  }
-  if ([f23Uuid, f24Uuid].includes(encounter.form.uuid)) {
-    // F23 Form Encounter Mapping
-    const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
-    formMapping.push(...f23Mapping);
+  sortedEncounters.forEach((encounter) => {
+    const form = state.formMaps[encounter.form.uuid];
+    if (!form?.dataValueMap) {
+      return null;
+    }
+    const dataValuesMapping = Object.keys(form.dataValueMap)
+      .map((dataElement) => {
+        const value = findDataValue(encounter, dataElement, state);
+        return { dataElement, value };
+      })
+      .filter((d) => d.value);
 
-    // F24 Form Encounter Mapping
-    // Maps TEI attributes to DHIS2 data elements
-    const attributeMap = {
-      Hww0CNYYt3E: dhis2Map.attr.sex, // Sex from Patient registration
-      yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr, // Place of living
-      fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
-    };
-    const attributeMapping = mapAttribute(tei.attributes, attributeMap);
-
-    // Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
-    const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.birthdate
-    )?.value;
-
-    if (dob) {
-      const ageInDaysValue = ageInDays(dob, encounter.encounterDatetime);
-      attributeMapping.push({
-        dataElement: "Z7vMFdnQxpE",
-        value: ageInDaysValue,
-      });
+    // Discharge form values override any previously mapped dataElements with the same uuid
+    if (encounter.form.name.includes("Discharge")) {
+      formMapping = Object.values(
+        [...formMapping, ...dataValuesMapping].reduce((acc, obj) => {
+          acc[obj.dataElement] = { ...acc[obj.dataElement], ...obj };
+          return acc;
+        }, {})
+      );
+    } else {
+      formMapping.push(...dataValuesMapping);
     }
 
-    // Age in months (L97SmAK11DN) - from estimated age if DOB not available
-    if (!dob) {
-      const ageInMonthsValue = tei?.attributes?.find(
-        (attr) => attr.attribute === dhis2Map.attr.ageInMonth
+    const multiSelectDvs = multiSelectAns(
+      encounter,
+      state.formMaps[encounter.form.uuid]?.multiSelectQns
+    );
+    formMapping.push(...multiSelectDvs);
+
+    if (f08Uuid === encounter.form.uuid) {
+      // F08 Form Encounter Mapping
+      const f8Mapping = f8(encounter);
+      formMapping.push(...f8Mapping);
+    }
+    if (f09Uuid === encounter.form.uuid) {
+      // F09 Form Encounter Mapping
+      const attributeMap = {
+        Lg1LrNf9LQR: dhis2Map.attr.sex,
+        OVo3FxLURtH: dhis2Map.attr.ageInMonth,
+        f3n6kIB9IbI: dhis2Map.attr.ageInYears, // TODO:we see this in metadata "Rv8WM2mTuS5",
+        oc9zlhOoWmP: dhis2Map.attr.currentStatus,
+        DbyD9bbGIvE: dhis2Map.attr.legalStatus,
+        fiPFww1viBB: dhis2Map.attr.placeOfLivingAttr,
+        FsL5BjQocuo: dhis2Map.attr.nationalityAttr,
+        Pi1zytYdq6l: dhis2Map.attr.patientNumber,
+      };
+      const f09Mapping = mapAttribute(tei.attributes, attributeMap);
+      formMapping.push(...f09Mapping);
+    }
+    if (f61Uuid === encounter.form.uuid) {
+      const f61Mapping = f61(encounter, tei.events, state);
+      formMapping.push(...f61Mapping);
+    }
+    if (f23Uuid === encounter.form.uuid) {
+      // F23 Form Encounter Mapping
+      const f23Mapping = f23(encounter, state.formMaps[f23Uuid]);
+      formMapping.push(...f23Mapping);
+    }
+    if (f24Uuid === encounter.form.uuid) {
+      // F24 Form Encounter Mapping
+      // Maps TEI attributes to DHIS2 data elements
+      const attributeMap = {
+        Hww0CNYYt3E: dhis2Map.attr.sex, // Sex from Patient registration
+        yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr, // Place of living
+        fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
+      };
+      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+
+      // Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
+      const dob = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.birthdate
       )?.value;
 
-      if (ageInMonthsValue) {
+      if (dob) {
+        const ageInDaysValue = ageInDays(dob, encounter.encounterDatetime);
         attributeMapping.push({
-          dataElement: "L97SmAK11DN",
-          value: ageInMonthsValue,
+          dataElement: "Z7vMFdnQxpE",
+          value: ageInDaysValue,
         });
       }
+
+      // Age in months (L97SmAK11DN) - from estimated age if DOB not available
+      if (!dob) {
+        const ageInMonthsValue = tei?.attributes?.find(
+          (attr) => attr.attribute === dhis2Map.attr.ageInMonth
+        )?.value;
+
+        if (ageInMonthsValue) {
+          attributeMapping.push({
+            dataElement: "L97SmAK11DN",
+            value: ageInMonthsValue,
+          });
+        }
+      }
+
+      formMapping.push(...attributeMapping);
     }
+    if (f26Uuid === encounter.form.uuid) {
+      const attributeMap = {
+        d7wOfzPBbQD: dhis2Map.attr.ageInYears,
+        y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
+        CDuiRuOcfzj: dhis2Map.attr.currentStatus,
+        Nd43pz1Oo62: dhis2Map.attr.placeOfLivingAttr,
+        kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
+      };
+      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
 
-    formMapping.push(...attributeMapping);
-  }
-
-  if ([f25Uuid, f26Uuid].includes(encounter.form.uuid)) {
-    const attributeMap = {
-      d7wOfzPBbQD: dhis2Map.attr.ageInYears,
-      y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
-      CDuiRuOcfzj: dhis2Map.attr.currentStatus,
-      Nd43pz1Oo62: dhis2Map.attr.placeOfLivingAttr,
-      kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
-    };
-    const attributeMapping = mapAttribute(tei.attributes, attributeMap);
-
-    // Custom mapping for sex and legalStatus (f26 only)
-    if (encounter.form.uuid === f26Uuid) {
+      // Custom mapping for sex and legalStatus (f26 only)
       // Sex: leave blank if value is "unknown" or "other"
       const sexValue = tei?.attributes?.find(
         (attr) => attr.attribute === dhis2Map.attr.sex
@@ -772,33 +808,31 @@ const buildDataValues = (encounter, tei, state) => {
       };
 
       attributeMapping.push(sexMapping, legalStatusMapping);
+
+      const dob = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.birthdate
+      )?.value;
+
+      const f26Mapping = f26(encounter, state);
+      attributeMapping.push(...f26Mapping);
+      if (dob) {
+        let ageInDays = calculateAge(dob) * 365;
+        attributeMapping.push({
+          dataElement: "b7z6xIpzkim",
+          value: ageInDays,
+        });
+      }
+
+      formMapping.push(...attributeMapping);
     }
 
-    const dob = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.birthdate
-    )?.value;
-
-    const f26Mapping = f26(encounter, state);
-    attributeMapping.push(...f26Mapping);
-    if (dob) {
-      let ageInDays = calculateAge(dob) * 365;
-      attributeMapping.push({
-        dataElement: "b7z6xIpzkim",
-        value: ageInDays,
-      });
-    }
-
-    formMapping.push(...attributeMapping);
-  }
-
-  if ([f27Uuid, f28Uuid].includes(encounter.form.uuid)) {
     // F27 Form Encounter Mapping
-    if (encounter.form.uuid === f27Uuid) {
+    if (f27Uuid === encounter.form.uuid) {
       const f27Mapping = f27(encounter);
       formMapping.push(...f27Mapping);
     }
 
-    if (encounter.form.uuid === f28Uuid) {
+    if (f28Uuid === encounter.form.uuid) {
       // F28 Form Encounter Mapping
       const attributeMap = {
         WP5vr8KB2lH: dhis2Map.attr.sex,
@@ -818,195 +852,182 @@ const buildDataValues = (encounter, tei, state) => {
       ];
       formMapping.push(...attributeMapping, ...f28Mapping);
     }
-  }
 
-  if ([f41Uuid, f42Uuid, f43Uuid].includes(encounter.form.uuid)) {
-    // F41 Form Encounter Mapping
-    const f41Mapping = f41(encounter);
-    formMapping.push(...f41Mapping);
-
-    // F42 Form Encounter Mapping
-    const f42Mapping = f42(encounter);
-    formMapping.push(...f42Mapping);
-
-    // F43 Form Encounter Mapping - TEI attributes and custom logic
-    const attributeMap = {
-      gHPt2FCZEE6: dhis2Map.attr.patientNumber, // Emergency Room - Patient number
-      eMXqL66pJSV: dhis2Map.attr.sex, // Emergency Room - Sex
-      xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr, // Emergency Room - Place of living
-      iGHeO9F8CKm: dhis2Map.attr.nationalityAttr, // Emergency Room - Nationality
-      KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
-      fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
-    };
-    const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
-    // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
-    formMapping.push(
-      ...f43AttributeMapping,
-      ...f43(encounter, tei, dhis2Map.attr)
-    );
-  }
-
-  if ([f64Uuid, f65Uuid].includes(encounter.form.uuid)) {
-    // F64 Form Encounter Mapping
-    const f64Mapping = f64(encounter);
-    formMapping.push(...f64Mapping);
-
-    const f65Form = state.formMaps[f65Uuid];
-    // F65 Form Encounter Mapping - Custom mappings
-    const f65Mapping = f65(encounter, f65Form);
-    formMapping.push(...f65Mapping);
-
-    // F64/F65 Form - TEI Attributes (shared between admission and discharge)
-    const birthdate = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.birthdate
-    )?.value;
-
-    const sex = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.sex
-    )?.value;
-
-    // Calculate patient age in months from birthdate
-    let ageInMonths = null;
-    if (birthdate) {
-      const birth = new Date(birthdate);
-      const now = new Date();
-      const diffTime = Math.abs(now - birth);
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      ageInMonths = Math.floor(diffDays / 30.44); // approximate months
+    if (f41Uuid === encounter.form.uuid) {
+      const f41Mapping = f41(encounter);
+      formMapping.push(...f41Mapping);
+    }
+    if (f42Uuid === encounter.form.uuid) {
+      // F42 Form Encounter Mapping
+      const f42Mapping = f42(encounter);
+      formMapping.push(...f42Mapping);
+    }
+    if (f43Uuid === encounter.form.uuid) {
+      // F43 Form Encounter Mapping - TEI attributes and custom logic
+      const attributeMap = {
+        gHPt2FCZEE6: dhis2Map.attr.patientNumber, // Emergency Room - Patient number
+        eMXqL66pJSV: dhis2Map.attr.sex, // Emergency Room - Sex
+        xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr, // Emergency Room - Place of living
+        iGHeO9F8CKm: dhis2Map.attr.nationalityAttr, // Emergency Room - Nationality
+        KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
+        fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
+      };
+      const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
+      formMapping.push(
+        ...f43AttributeMapping,
+        ...f43(encounter, tei, dhis2Map.attr)
+      );
     }
 
-    // Base attribute mappings
-    const attributeMap = {
-      j855dPp9p18: dhis2Map.attr.patientNumber, // ICU - Patient number
-      // icmcR6av0Ob: dhis2Map.attr.sex, // ICU - Sex
-      OI2H3dEQLdQ: dhis2Map.attr.placeOfLivingAttr, // ICU - Place of living
-      QiVXQ2eAtpN: dhis2Map.attr.nationalityAttr, // ICU - Nationality
-    };
-    const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+    if (f64Uuid === encounter.form.uuid) {
+      // F64 Form Encounter Mapping
+      const f64Mapping = f64(encounter);
+      formMapping.push(...f64Mapping);
 
-    if (sex) {
-      const value = sex === "unknown" ? "others" : sex;
-      f64AttributeMapping.push({
-        dataElement: "icmcR6av0Ob",
-        value: value,
-      });
-    }
-    // Conditional age mapping based on patient age
-    if (ageInMonths !== null) {
-      if (ageInMonths > 23) {
-        // Age > 23 months: use age in years
-        const ageInYears = tei?.attributes?.find(
-          (attr) => attr.attribute === dhis2Map.attr.ageInYears
-        )?.value;
+      // F64/F65 Form - TEI Attributes (shared between admission and discharge)
+      const birthdate = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.birthdate
+      )?.value;
 
-        if (ageInYears) {
-          f64AttributeMapping.push({
-            dataElement: "PLj9LCQy6Wb",
-            value: ageInYears,
-          });
-        }
-      } else if (ageInMonths >= 1 && ageInMonths <= 23) {
-        // Age >= 1 month and <= 23 months: use age in months
-        const ageInMonthsValue = tei?.attributes?.find(
-          (attr) => attr.attribute === f64AgeInMonthsAttr
-        )?.value;
-        if (ageInMonthsValue) {
-          f64AttributeMapping.push({
-            dataElement: "orwtudPV2yK",
-            value: ageInMonthsValue,
-          });
-        }
-      } else if (ageInMonths < 1) {
-        // Age < 1 month: use age in days
-        const ageInDaysValue = ageInDays(
-          birthdate,
-          encounter.encounterDatetime
-        );
+      const sex = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.sex
+      )?.value;
+
+      // Calculate patient age in months from birthdate
+      let ageInMonths = null;
+      if (birthdate) {
+        const birth = new Date(birthdate);
+        const now = new Date();
+        const diffTime = Math.abs(now - birth);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        ageInMonths = Math.floor(diffDays / 30.44); // approximate months
+      }
+
+      // Base attribute mappings
+      const attributeMap = {
+        j855dPp9p18: dhis2Map.attr.patientNumber, // ICU - Patient number
+        // icmcR6av0Ob: dhis2Map.attr.sex, // ICU - Sex
+        OI2H3dEQLdQ: dhis2Map.attr.placeOfLivingAttr, // ICU - Place of living
+        QiVXQ2eAtpN: dhis2Map.attr.nationalityAttr, // ICU - Nationality
+      };
+      const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+
+      if (sex) {
+        const value = sex === "unknown" ? "others" : sex;
         f64AttributeMapping.push({
-          dataElement: "JY56Vj7fYiu",
-          value: ageInDaysValue,
+          dataElement: "icmcR6av0Ob",
+          value: value,
         });
       }
-    }
+      // Conditional age mapping based on patient age
+      if (ageInMonths !== null) {
+        if (ageInMonths > 23) {
+          // Age > 23 months: use age in years
+          const ageInYears = tei?.attributes?.find(
+            (attr) => attr.attribute === dhis2Map.attr.ageInYears
+          )?.value;
 
-    formMapping.push(...f64AttributeMapping);
-  }
-
-  if ([f66Uuid].includes(encounter.form.uuid)) {
-    // F66 Form Encounter Mapping - Custom mappings
-    const f66Mapping = f66(encounter, state);
-    formMapping.push(...f66Mapping);
-
-    const birthdate = tei?.attributes?.find(
-      (attr) => attr.attribute === dhis2Map.attr.birthdate
-    )?.value;
-
-    // Calculate patient age in months from birthdate
-    let ageInMonths = null;
-    if (birthdate) {
-      const birth = new Date(birthdate);
-      const now = new Date();
-      const diffTime = Math.abs(now - birth);
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      ageInMonths = Math.floor(diffDays / 30.44); // approximate months
-    }
-
-    // Base attribute mappings
-    const attributeMap = {
-      ipRL5PApBZk: dhis2Map.attr.patientNumber, // Snakebites - Patient number
-      ZlONTbktjvX: dhis2Map.attr.sex, // Snakebites - Sex
-      XK6Wnp4aBvi: dhis2Map.attr.placeOfLivingAttr, // Snakebites - Place of living
-    };
-    const f66AttributeMapping = mapAttribute(tei.attributes, attributeMap);
-
-    // Conditional age mapping based on patient age
-    if (ageInMonths !== null) {
-      if (ageInMonths > 23) {
-        // Age > 23 months: use age in years
-        const ageInYears = tei?.attributes?.find(
-          (attr) => attr.attribute === dhis2Map.attr.ageInYears
-        )?.value;
-        if (ageInYears) {
-          f66AttributeMapping.push({
-            dataElement: "InDF3cCb32B",
-            value: ageInYears,
-          });
-        }
-      } else if (ageInMonths <= 23) {
-        // Age <= 23 months: use age in months
-        const ageInMonthsValue = tei?.attributes?.find(
-          (attr) => attr.attribute === f64AgeInMonthsAttr
-        )?.value;
-        if (ageInMonthsValue) {
-          f66AttributeMapping.push({
-            dataElement: "U5BMuwXeRbl",
-            value: ageInMonthsValue,
+          if (ageInYears) {
+            f64AttributeMapping.push({
+              dataElement: "PLj9LCQy6Wb",
+              value: ageInYears,
+            });
+          }
+        } else if (ageInMonths >= 1 && ageInMonths <= 23) {
+          // Age >= 1 month and <= 23 months: use age in months
+          const ageInMonthsValue = tei?.attributes?.find(
+            (attr) => attr.attribute === f64AgeInMonthsAttr
+          )?.value;
+          if (ageInMonthsValue) {
+            f64AttributeMapping.push({
+              dataElement: "orwtudPV2yK",
+              value: ageInMonthsValue,
+            });
+          }
+        } else if (ageInMonths < 1) {
+          // Age < 1 month: use age in days
+          const ageInDaysValue = ageInDays(
+            birthdate,
+            encounter.encounterDatetime
+          );
+          f64AttributeMapping.push({
+            dataElement: "JY56Vj7fYiu",
+            value: ageInDaysValue,
           });
         }
       }
+
+      formMapping.push(...f64AttributeMapping);
     }
 
-    formMapping.push(...f66AttributeMapping);
-  }
+    if (f65Uuid === encounter.form.uuid) {
+      const f65Form = state.formMaps[f65Uuid];
+      // F65 Form Encounter Mapping - Custom mappings
+      const f65Mapping = f65(encounter, f65Form);
+      formMapping.push(...f65Mapping);
+    }
 
-  const dataValuesMapping = Object.keys(form.dataValueMap)
-    .map((dataElement) => {
-      const value = findDataValue(encounter, dataElement, state);
-      return { dataElement, value };
-    })
-    .filter((d) => d.value);
+    if (f66Uuid === encounter.form.uuid) {
+      // F66 Form Encounter Mapping - Custom mappings
+      const f66Mapping = f66(encounter, state);
+      formMapping.push(...f66Mapping);
 
-  if (!dataValuesMapping.some((dv) => dv.dataElement === "rbFVBI2N6Ex")) {
-    dataValuesMapping.push({
-      dataElement: "rbFVBI2N6Ex",
-      value: visitUuid,
-    });
-  }
+      const birthdate = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.birthdate
+      )?.value;
+
+      // Calculate patient age in months from birthdate
+      let ageInMonths = null;
+      if (birthdate) {
+        const birth = new Date(birthdate);
+        const now = new Date();
+        const diffTime = Math.abs(now - birth);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        ageInMonths = Math.floor(diffDays / 30.44); // approximate months
+      }
+
+      // Base attribute mappings
+      const attributeMap = {
+        ipRL5PApBZk: dhis2Map.attr.patientNumber, // Snakebites - Patient number
+        ZlONTbktjvX: dhis2Map.attr.sex, // Snakebites - Sex
+        XK6Wnp4aBvi: dhis2Map.attr.placeOfLivingAttr, // Snakebites - Place of living
+      };
+      const f66AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+
+      // Conditional age mapping based on patient age
+      if (ageInMonths !== null) {
+        if (ageInMonths > 23) {
+          // Age > 23 months: use age in years
+          const ageInYears = tei?.attributes?.find(
+            (attr) => attr.attribute === dhis2Map.attr.ageInYears
+          )?.value;
+          if (ageInYears) {
+            f66AttributeMapping.push({
+              dataElement: "InDF3cCb32B",
+              value: ageInYears,
+            });
+          }
+        } else if (ageInMonths <= 23) {
+          // Age <= 23 months: use age in months
+          const ageInMonthsValue = tei?.attributes?.find(
+            (attr) => attr.attribute === f64AgeInMonthsAttr
+          )?.value;
+          if (ageInMonthsValue) {
+            f66AttributeMapping.push({
+              dataElement: "U5BMuwXeRbl",
+              value: ageInMonthsValue,
+            });
+          }
+        }
+      }
+
+      formMapping.push(...f66AttributeMapping);
+    }
+  });
 
   //setting the visitUuid here as a data element
-  const combinedMapping = [...dataValuesMapping, ...formMapping].filter(
-    Boolean
-  );
+  const combinedMapping = formMapping.filter(Boolean);
 
   return combinedMapping;
 };
@@ -1026,6 +1047,7 @@ fn((state) => {
     return acc;
   }, {});
 
+  state.pairedEncounters = pairedEncounters;
   state.eventsMapping = Object.entries(pairedEncounters).map(
     ([patientKey, patientEncounters]) => {
       const [orgUnit, program, programStage, patientUuid] =
@@ -1033,16 +1055,7 @@ fn((state) => {
 
       const tei = state.TEIs[patientUuid];
 
-      const dataValues = patientEncounters
-        .map((encounter) => {
-          const form = state.formMaps[encounter.form.uuid];
-          if (!form?.dataValueMap) {
-            return null;
-          }
-          return buildDataValues(encounter, tei, state);
-        })
-        .flat()
-        .filter((d) => d.value);
+      const dataValues = buildDataValues(patientEncounters, tei, state);
 
       const latestEncounter = patientEncounters.sort(
         (a, b) => new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
@@ -1060,6 +1073,12 @@ fn((state) => {
       ]?.find((e) => e.visitUuid === visitUuid)?.event;
       if (event) {
         console.log("Event found:", event);
+      }
+      if (!dataValues.some((dv) => dv.dataElement === "rbFVBI2N6Ex")) {
+        dataValues.push({
+          dataElement: "rbFVBI2N6Ex",
+          value: visitUuid,
+        });
       }
       return {
         event,
