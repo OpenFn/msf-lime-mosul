@@ -1918,10 +1918,26 @@ const F62_CONFIG = {
     programStage: "YivvTlIw5Ep",
     timeDataElement: "d3BwrZYHAbK",
     simpleValues: [
-      { de: "RSQqK2yZGz6", concept: "c149755e-dd32-43b0-b643-ab14aa483207" }, // Admission to ward
-      { de: "NHBJjpIXPBI", concept: "b996944c-b136-4e8e-9068-562476a0595a" }, // Reason of hospitalisation
-      { de: "LPIyv58pWVg", concept: "13cea1c8-e426-411f-95b4-33651fc4325d" }, // Date of discharge
-      { de: "nrqutHXxAUk", concept: "09a06404-afc5-457a-91b9-54152e45a854" }, // Type of discharge
+      {
+        de: "RSQqK2yZGz6",
+        concept: "c149755e-dd32-43b0-b643-ab14aa483207",
+        qid: "rfe-forms-admissionToWard",
+      }, // Admission to ward
+      {
+        de: "NHBJjpIXPBI",
+        concept: "b996944c-b136-4e8e-9068-562476a0595a",
+        qid: "rfe-forms-reasonOfHospitalisation",
+      }, // Reason of hospitalisation
+      {
+        de: "LPIyv58pWVg",
+        concept: "13cea1c8-e426-411f-95b4-33651fc4325d",
+        qid: "rfe-forms-dateOfDischargeFromHospital",
+      }, // Date of discharge
+      {
+        de: "nrqutHXxAUk",
+        concept: "09a06404-afc5-457a-91b9-54152e45a854",
+        qid: "rfe-forms-typeOfDischarge",
+      }, // Type of discharge
     ],
   },
 
@@ -1929,10 +1945,26 @@ const F62_CONFIG = {
   exitStage: {
     programStage: "Otoff7Cj8JQ",
     simpleValues: [
-      { de: "iGsz0Q3b0HC", concept: "1f473371-613f-4ef3-b297-49eb779ccd27" }, // Date of Exit
-      { de: "mpiPBwCu6Xa", concept: "9e861ef1-e07c-4955-9650-2ebac3138fc3" }, // Outcome
-      { de: "d8eoys0WPgR", concept: "a844ff25-b3fb-4873-9681-f2f35f5159ec" }, // Reason for discharge
-      { de: "p1t7OpwVBcl", concept: "778b70b5-c6de-4459-a101-6bf02f77d5c7" }, // Death cause
+      {
+        de: "iGsz0Q3b0HC",
+        concept: "1f473371-613f-4ef3-b297-49eb779ccd27",
+        qid: "rfe-forms-dateOfExit",
+      }, // Date of Exit
+      {
+        de: "mpiPBwCu6Xa",
+        concept: "9e861ef1-e07c-4955-9650-2ebac3138fc3",
+        qid: "rfe-forms-outcome",
+      }, // Outcome
+      {
+        de: "d8eoys0WPgR",
+        concept: "a844ff25-b3fb-4873-9681-f2f35f5159ec",
+        qid: "rfe-forms-reasonForDischarge",
+      }, // Reason for discharge
+      {
+        de: "p1t7OpwVBcl",
+        concept: "778b70b5-c6de-4459-a101-6bf02f77d5c7",
+        qid: "rfe-forms-deathCause",
+      }, // Death cause
     ],
   },
 };
@@ -1975,7 +2007,7 @@ function mapF62(encounter, events) {
 
   // Add simple values
   F62_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
-    const value = findAnswerByConcept(encounter, mapping.concept);
+    const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
       hospitalisationDataValues.push({
         dataElement: mapping.de,
