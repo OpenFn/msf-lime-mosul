@@ -83,33 +83,6 @@ const multiSelectAns = (encounter, multiSelectQns) => {
   return dataValues;
 };
 
-function mapF11(encounter, optsMap) {
-  if (encounter.form.name.includes("F11-Family Planning Assessment")) {
-    const answers = encounter.obs.filter(
-      (o) => o.concept.uuid === "30b2d692-6a05-401f-8ede-13e027b8a436"
-    );
-
-    const mappingConfig = [
-      { dataElement: "DYTLOoEKRas", index: 0 },
-      { dataElement: "ddTrzQtQUGz", index: 1 },
-      { dataElement: "fuNs3Uzspsm", index: 2 },
-    ];
-
-    return mappingConfig.map((config) => {
-      if (answers[config.index]) {
-        return {
-          dataElement: config.dataElement,
-          value: optsMap.find(
-            (o) =>
-              o["value.display - Answers"] ===
-              answers[config.index]?.value?.display
-          )?.["DHIS2 Option Code"],
-        };
-      }
-    });
-  }
-}
-
 function mapF13(encounter, optsMap) {
   if (encounter.form.name.includes("F13-PNC")) {
     const answers = encounter.obs.filter(
@@ -2220,7 +2193,6 @@ fn((state) => {
 
       const multiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
       const customMapping = [
-        mapF11(encounter, state.optsMap),
         mapF13(encounter, state.optsMap),
         mapF18(encounter, state.encounters),
         mapF16(encounter),
@@ -2321,8 +2293,9 @@ const mergeEvents = (events) => {
 
 // Combinining events and exit events
 fn((state) => {
-  state.eventsMapping = mergeEvents(state.eventsMapping);
-  return state;
+  const { data, references, response, ...rest } = state;
+  rest.eventsMapping = mergeEvents(rest.eventsMapping);
+  return rest;
 });
 
 fnIf(

@@ -203,7 +203,7 @@ fn((state) => {
   };
 });
 
-fnIf(
-  (state) => state.teisToUpdate.length === 0,
-  ({ lastRunDateTime }) => ({ lastRunDateTime })
-);
+// fnIf(
+//   (state) => state.teisToUpdate.length === 0,
+//   ({ lastRunDateTime }) => ({ lastRunDateTime })
+// );
