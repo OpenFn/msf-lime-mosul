@@ -1,7 +1,20 @@
-const findAnswerByConcept = (encounter, conceptUuid) => {
+const extractAnswerValue = (answer) => {
+  if (!answer) return undefined;
+  if (typeof answer.value === "string") return answer.value;
+  if (typeof answer.value === "object") return answer.value.display;
+};
+
+const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
+  if (questionId) {
+    const answer = encounter.obs.find(
+      (o) => o.concept.uuid === conceptUuid && o.formFieldPath === questionId
+    );
+
+    const value = extractAnswerValue(answer);
+    return value;
+  }
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-  //Mtuchi: Todo need to filter from optsMaps
-  return answer?.value?.display;
+  return extractAnswerValue(answer);
 };
 
 // Helper functions for finding observations
@@ -13,16 +26,6 @@ const findObsByConcept = (encounter, conceptUuid) => {
       (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
   );
   return answer;
-};
-
-const filterObsByConcept = (encounter, conceptUuid) => {
-  const [conceptId, questionId] = conceptUuid.split("-rfe-");
-  const answers = encounter.obs.filter(
-    (o) =>
-      o.concept.uuid === conceptId &&
-      (questionId ? o.formFieldPath === `rfe-${questionId}` : true)
-  );
-  return answers;
 };
 
 const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
@@ -81,6 +84,246 @@ const multiSelectAns = (encounter, multiSelectQns) => {
     .filter(Boolean);
 
   return dataValues;
+};
+const toTrueOrFalse = (value) => {
+  if (["true", "yes"].includes(value.toLowerCase())) {
+    return "true";
+  }
+  if (["false", "no"].includes(value.toLowerCase())) {
+    return "false";
+  }
+  return value;
+};
+
+const dataValueByConcept = (encounter, de, state) => {
+  const { dataElement, conceptUuid, questionId, type } = de || {};
+
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const isObjectAnswer = answer && typeof answer.value === "object";
+  const isStringAnswer = answer && typeof answer.value === "string";
+  const isNumberAnswer = answer && typeof answer.value === "number";
+
+  if (isStringAnswer || isNumberAnswer) {
+    return answer.value;
+  }
+
+  if (isObjectAnswer) {
+    if (type === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
+
+    const matchingOptionSet = state.optionSetKey[optionKey];
+
+    const opt = state.optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === answer.value.uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet
+    );
+
+    if (!opt && matchingOptionSet) {
+      console.log(
+        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
+      );
+    }
+
+    const matchingOption = opt?.["DHIS2 Option Code"];
+
+    if (!matchingOption) {
+      const optSet = {
+        timestamp: new Date().toISOString(),
+        openMrsQuestion: answer.concept.display || "N/A",
+        conceptExternalId: answer.concept.uuid,
+        answerDisplay: answer.value.display,
+        answerValueUuid: answer.value.uuid,
+        dhis2DataElementUid: dataElement,
+        dhis2OptionSetUid: matchingOptionSet || "N/A",
+        metadataFormName: encounter.form.name || encounter.form.uuid,
+        encounterUuid: encounter.uuid,
+        patientUuid: encounter.patient.uuid,
+        sourceFile: state.sourceFile,
+        optionKey,
+      };
+      // Capture missing DHIS2 Option Codes for tracking
+      state.missingOptsets.push(optSet);
+    }
+
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+
+    return matchingOption;
+  }
+};
+
+const findDataValue = (encounter, dataElement, state) => {
+  const form = state.formMaps[encounter.form.uuid];
+  const [conceptUuid, type, questionId] =
+    form.dataValueMap[dataElement]?.split("::") || [];
+  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const isObjectAnswer = answer && typeof answer.value === "object";
+  const isStringAnswer = answer && typeof answer.value === "string";
+  const isNumberAnswer = answer && typeof answer.value === "number";
+
+  if (isStringAnswer || isNumberAnswer) {
+    return answer.value;
+  }
+
+  if (isObjectAnswer) {
+    if (type === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
+    const optionKey = questionId
+      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
+      : `${encounter.form.uuid}-${answer.concept.uuid}`;
+
+    const matchingOptionSet = state.optionSetKey[optionKey];
+
+    const opt = state.optsMap.find(
+      (o) =>
+        o["value.uuid - External ID"] === answer.value.uuid &&
+        o["DHIS2 Option Set UID"] === matchingOptionSet
+    );
+
+    // Removed fallback logic to DHIS2 Option name and answer.value.display
+    // Now only using DHIS2 Option Code to ensure proper validation
+    const matchingOption = opt?.["DHIS2 Option Code"];
+
+    // Capture missing DHIS2 Option Codes for tracking
+    if (!matchingOption) {
+      state.missingOptsets.push({
+        timestamp: new Date().toISOString(),
+        openMrsQuestion: answer.concept.display || "N/A",
+        conceptExternalId: answer.concept.uuid,
+        answerDisplay: answer.value.display,
+        answerValueUuid: answer.value.uuid,
+        dhis2DataElementUid: dataElement,
+        dhis2OptionSetUid: matchingOptionSet || "N/A",
+        metadataFormName: encounter.form.name || encounter.form.uuid,
+        encounterUuid: encounter.uuid,
+        patientUuid: encounter.patient.uuid,
+        sourceFile: state.sourceFile,
+        optionKey,
+      });
+    }
+
+    if (["FALSE", "No"].includes(matchingOption)) return "false";
+    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+
+    return matchingOption;
+  }
+
+  if (
+    isObjectAnswer &&
+    conceptUuid === "722dd83a-c1cf-48ad-ac99-45ac131ccc96" &&
+    dataElement === "pN4iQH4AEzk"
+  ) {
+    console.log("Yes done by psychologist..");
+
+    return "" + answer.value.uuid === "278401ee-3d6f-4c65-9455-f1c16d0a7a98";
+  }
+
+  if (
+    isObjectAnswer &&
+    conceptUuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9" &&
+    dataElement === "G0hLyxqgcO7"
+  ) {
+    console.log("True only question detected..", dataElement);
+    return answer.value.uuid === "681cf0bc-5213-492a-8470-0a0b3cc324dd"
+      ? "true"
+      : undefined;
+  }
+
+  const isEncounterDate =
+    conceptUuid === "encounter-date" &&
+    ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
+      dataElement
+    );
+
+  // These are data elements for encounter date in DHIS2
+  // F29 MHPSS Baseline, F31-mhGAP Baseline, F30-MHPSS Follow-up, F32-mhGAp Follow-up
+  if (isEncounterDate) {
+    return encounter.encounterDatetime.replace("+0000", "");
+  }
+
+  return "";
+};
+
+const formEncounters = (formDescription, encounters) => {
+  return encounters.filter((e) => e.form.description.includes(formDescription));
+};
+
+const buildExitEvent = (encounter, tei, state) => {
+  const { program, orgUnit, trackedEntity, enrollment, events } = tei;
+  // const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
+
+  let exitEvents = [];
+  const sharedEventMap = {
+    program,
+    orgUnit,
+    trackedEntity,
+    enrollment,
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+  };
+
+  if (encounter.form.name.includes("F49-NCDs Baseline")) {
+    const eventsMap = mapF49(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F50-NCDs Follow-up")) {
+    const eventsMap = mapF50(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F55-HBV Baseline")) {
+    const eventsMap = mapF55(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F56-HBV Follow-up")) {
+    const eventsMap = mapF56(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F58-HCV Follow-up")) {
+    const eventsMap = mapF58(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F59-Social Work Baseline")) {
+    const eventsMap = mapF59(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F60-Social Work Follow-up")) {
+    const eventsMap = mapF60(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+
+  if (encounter.form.name.includes("F62-Palliative care Baseline")) {
+    const eventsMap = mapF62(encounter, events);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+  if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
+    const eventsMap = mapF63(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+
+  return exitEvents;
 };
 
 function mapF13(encounter, optsMap) {
@@ -1790,10 +2033,26 @@ const F63_CONFIG = {
     programStage: "YivvTlIw5Ep",
     timeDataElement: "d3BwrZYHAbK",
     simpleValues: [
-      { de: "RSQqK2yZGz6", concept: "c149755e-dd32-43b0-b643-ab14aa483207" }, // Admission to ward
-      { de: "NHBJjpIXPBI", concept: "b996944c-b136-4e8e-9068-562476a0595a" }, // Reason of hospitalisation
-      { de: "LPIyv58pWVg", concept: "13cea1c8-e426-411f-95b4-33651fc4325d" }, // Date of discharge
-      { de: "nrqutHXxAUk", concept: "09a06404-afc5-457a-91b9-54152e45a854" }, // Type of discharge
+      {
+        de: "RSQqK2yZGz6",
+        concept: "c149755e-dd32-43b0-b643-ab14aa483207",
+        qid: "rfe-forms-admissionToWard",
+      }, // Admission to ward
+      {
+        de: "NHBJjpIXPBI",
+        concept: "b996944c-b136-4e8e-9068-562476a0595a",
+        qid: "rfe-forms-reasonOfHospitalisation",
+      }, // Reason of hospitalisation
+      {
+        de: "LPIyv58pWVg",
+        concept: "13cea1c8-e426-411f-95b4-33651fc4325d",
+        qid: "rfe-forms-dateOfDischargeFromHospital",
+      }, // Date of discharge
+      {
+        de: "nrqutHXxAUk",
+        concept: "09a06404-afc5-457a-91b9-54152e45a854",
+        qid: "rfe-forms-typeOfDischarge",
+      }, // Type of discharge
     ],
   },
 
@@ -1801,15 +2060,31 @@ const F63_CONFIG = {
   exitStage: {
     programStage: "Otoff7Cj8JQ",
     simpleValues: [
-      { de: "iGsz0Q3b0HC", concept: "1f473371-613f-4ef3-b297-49eb779ccd27" }, // Date of Exit
-      { de: "mpiPBwCu6Xa", concept: "9e861ef1-e07c-4955-9650-2ebac3138fc3" }, // Outcome
-      { de: "d8eoys0WPgR", concept: "a844ff25-b3fb-4873-9681-f2f35f5159ec" }, // Reason for discharge
-      { de: "p1t7OpwVBcl", concept: "778b70b5-c6de-4459-a101-6bf02f77d5c7" }, // Death cause
+      {
+        de: "iGsz0Q3b0HC",
+        concept: "1f473371-613f-4ef3-b297-49eb779ccd27",
+        qid: "rfe-forms-dateOfExit",
+      }, // Date of Exit
+      {
+        de: "mpiPBwCu6Xa",
+        concept: "9e861ef1-e07c-4955-9650-2ebac3138fc3",
+        qid: "rfe-forms-outcome",
+      }, // Outcome
+      {
+        de: "d8eoys0WPgR",
+        concept: "a844ff25-b3fb-4873-9681-f2f35f5159ec",
+        qid: "rfe-forms-reasonForDischarge",
+      }, // Reason for discharge
+      {
+        de: "p1t7OpwVBcl",
+        concept: "778b70b5-c6de-4459-a101-6bf02f77d5c7",
+        qid: "rfe-forms-deathCause",
+      }, // Death cause
     ],
   },
 };
 
-function mapF63(encounter, events) {
+function mapF63(encounter, events, state) {
   const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
 
   // DEFAULT STAGE - Other Support
@@ -1847,7 +2122,7 @@ function mapF63(encounter, events) {
 
   // Add simple values
   F63_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
-    const value = findAnswerByConcept(encounter, mapping.concept);
+    const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
       hospitalisationDataValues.push({
         dataElement: mapping.de,
@@ -1868,7 +2143,7 @@ function mapF63(encounter, events) {
   const exitDataValues = [];
 
   F63_CONFIG.exitStage.simpleValues.forEach((mapping) => {
-    const value = findAnswerByConcept(encounter, mapping.concept);
+    const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
       exitDataValues.push({
         dataElement: mapping.de,
@@ -1887,247 +2162,6 @@ function mapF63(encounter, events) {
 
   return [defaultEvent, hospitalisationEvent, exitEvent];
 }
-
-const toTrueOrFalse = (value) => {
-  if (["true", "yes"].includes(value.toLowerCase())) {
-    return "true";
-  }
-  if (["false", "no"].includes(value.toLowerCase())) {
-    return "false";
-  }
-  return value;
-};
-
-const dataValueByConcept = (encounter, de, state) => {
-  const { dataElement, conceptUuid, questionId, type } = de || {};
-
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-  const isObjectAnswer = answer && typeof answer.value === "object";
-  const isStringAnswer = answer && typeof answer.value === "string";
-  const isNumberAnswer = answer && typeof answer.value === "number";
-
-  if (isStringAnswer || isNumberAnswer) {
-    return answer.value;
-  }
-
-  if (isObjectAnswer) {
-    if (type === "boolean") {
-      return toTrueOrFalse(answer.value.display);
-    }
-    const optionKey = questionId
-      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
-      : `${encounter.form.uuid}-${answer.concept.uuid}`;
-
-    const matchingOptionSet = state.optionSetKey[optionKey];
-
-    const opt = state.optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === answer.value.uuid &&
-        o["DHIS2 Option Set UID"] === matchingOptionSet
-    );
-
-    if (!opt && matchingOptionSet) {
-      console.log(
-        `No opt found for External id ${answer.value.uuid} and DHIS2 OptionSet ${matchingOptionSet}`
-      );
-    }
-
-    const matchingOption = opt?.["DHIS2 Option Code"];
-
-    if (!matchingOption) {
-      const optSet = {
-        timestamp: new Date().toISOString(),
-        openMrsQuestion: answer.concept.display || "N/A",
-        conceptExternalId: answer.concept.uuid,
-        answerDisplay: answer.value.display,
-        answerValueUuid: answer.value.uuid,
-        dhis2DataElementUid: dataElement,
-        dhis2OptionSetUid: matchingOptionSet || "N/A",
-        metadataFormName: encounter.form.name || encounter.form.uuid,
-        encounterUuid: encounter.uuid,
-        patientUuid: encounter.patient.uuid,
-        sourceFile: state.sourceFile,
-        optionKey,
-      };
-      // Capture missing DHIS2 Option Codes for tracking
-      state.missingOptsets.push(optSet);
-    }
-
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
-
-    return matchingOption;
-  }
-};
-
-const findDataValue = (encounter, dataElement, state) => {
-  const form = state.formMaps[encounter.form.uuid];
-  const [conceptUuid, type, questionId] =
-    form.dataValueMap[dataElement]?.split("::") || [];
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
-  const isObjectAnswer = answer && typeof answer.value === "object";
-  const isStringAnswer = answer && typeof answer.value === "string";
-  const isNumberAnswer = answer && typeof answer.value === "number";
-
-  if (isStringAnswer || isNumberAnswer) {
-    return answer.value;
-  }
-
-  if (isObjectAnswer) {
-    if (type === "boolean") {
-      return toTrueOrFalse(answer.value.display);
-    }
-    const optionKey = questionId
-      ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
-      : `${encounter.form.uuid}-${answer.concept.uuid}`;
-
-    const matchingOptionSet = state.optionSetKey[optionKey];
-
-    const opt = state.optsMap.find(
-      (o) =>
-        o["value.uuid - External ID"] === answer.value.uuid &&
-        o["DHIS2 Option Set UID"] === matchingOptionSet
-    );
-
-    // Removed fallback logic to DHIS2 Option name and answer.value.display
-    // Now only using DHIS2 Option Code to ensure proper validation
-    const matchingOption = opt?.["DHIS2 Option Code"];
-
-    // Capture missing DHIS2 Option Codes for tracking
-    if (!matchingOption) {
-      state.missingOptsets.push({
-        timestamp: new Date().toISOString(),
-        openMrsQuestion: answer.concept.display || "N/A",
-        conceptExternalId: answer.concept.uuid,
-        answerDisplay: answer.value.display,
-        answerValueUuid: answer.value.uuid,
-        dhis2DataElementUid: dataElement,
-        dhis2OptionSetUid: matchingOptionSet || "N/A",
-        metadataFormName: encounter.form.name || encounter.form.uuid,
-        encounterUuid: encounter.uuid,
-        patientUuid: encounter.patient.uuid,
-        sourceFile: state.sourceFile,
-        optionKey,
-      });
-    }
-
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
-
-    return matchingOption;
-  }
-
-  if (
-    isObjectAnswer &&
-    conceptUuid === "722dd83a-c1cf-48ad-ac99-45ac131ccc96" &&
-    dataElement === "pN4iQH4AEzk"
-  ) {
-    console.log("Yes done by psychologist..");
-
-    return "" + answer.value.uuid === "278401ee-3d6f-4c65-9455-f1c16d0a7a98";
-  }
-
-  if (
-    isObjectAnswer &&
-    conceptUuid === "54e8c1b6-6397-4822-89a4-cf81fbc68ce9" &&
-    dataElement === "G0hLyxqgcO7"
-  ) {
-    console.log("True only question detected..", dataElement);
-    return answer.value.uuid === "681cf0bc-5213-492a-8470-0a0b3cc324dd"
-      ? "true"
-      : undefined;
-  }
-
-  const isEncounterDate =
-    conceptUuid === "encounter-date" &&
-    ["CXS4qAJH2qD", "I7phgLmRWQq", "yUT7HyjWurN", "EOFi7nk2vNM"].includes(
-      dataElement
-    );
-
-  // These are data elements for encounter date in DHIS2
-  // F29 MHPSS Baseline, F31-mhGAP Baseline, F30-MHPSS Follow-up, F32-mhGAp Follow-up
-  if (isEncounterDate) {
-    return encounter.encounterDatetime.replace("+0000", "");
-  }
-
-  return "";
-};
-
-const formEncounters = (formDescription, encounters) => {
-  return encounters.filter((e) => e.form.description.includes(formDescription));
-};
-
-const buildExitEvent = (encounter, tei, state) => {
-  const { program, orgUnit, trackedEntity, enrollment, events } = tei;
-  // const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
-
-  let exitEvents = [];
-  const sharedEventMap = {
-    program,
-    orgUnit,
-    trackedEntity,
-    enrollment,
-    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-  };
-
-  if (encounter.form.name.includes("F49-NCDs Baseline")) {
-    const eventsMap = mapF49(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F50-NCDs Follow-up")) {
-    const eventsMap = mapF50(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F55-HBV Baseline")) {
-    const eventsMap = mapF55(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F56-HBV Follow-up")) {
-    const eventsMap = mapF56(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F58-HCV Follow-up")) {
-    const eventsMap = mapF58(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F59-Social Work Baseline")) {
-    const eventsMap = mapF59(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F60-Social Work Follow-up")) {
-    const eventsMap = mapF60(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-
-  if (encounter.form.name.includes("F62-Palliative care Baseline")) {
-    const eventsMap = mapF62(encounter, events);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-  if (encounter.form.name.includes("F63-Palliative care Follow-up")) {
-    const eventsMap = mapF63(encounter, events, state);
-    for (const event of eventsMap) {
-      exitEvents.push({ ...sharedEventMap, ...event });
-    }
-  }
-
-  return exitEvents;
-};
 
 fn((state) => {
   // Initialize array to track missing DHIS2 Option Codes
