@@ -243,26 +243,14 @@ const multiSelectAns = (encounter, multiSelectQns) => {
   return dataValues;
 };
 function f8(encounter) {
-  const obsDatetime = findObsByConcept(
-    encounter,
-    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  )?.value;
-
-  if (obsDatetime) {
-    const datePart = obsDatetime.substring(0, 10);
-    const timePart = obsDatetime.substring(11, 16);
-    return [
-      {
-        dataElement: "iQio7NYSA3m",
-        value: timePart,
-      },
-      // {
-      //   dataElement: "yprMS34o8s3",
-      //   value: datePart,
-      // }, //This mapping might have been removed, to be confirmed.
-    ];
-  }
-  return [];
+  const timePart = encounter.encounterDatetime.substring(11, 16);
+  return [
+    {
+      dataElement: "iQio7NYSA3m",
+      value: timePart,
+    },
+    { eventDate: encounter.encounterDatetime.replace("+0000", "") },
+  ];
 }
 
 function f26(encounter, state) {
@@ -1047,15 +1035,14 @@ fn((state) => {
 
       let eventDate = latestEncounter?.encounterDatetime.replace("+0000", "");
 
-      const eventDateObj = dataValues.find(obj => obj.eventDate);
+      const eventDateObj = dataValues.find((obj) => obj.eventDate);
       if (eventDateObj) {
         eventDate = eventDateObj.eventDate;
-        const eventDateIndex = dataValues.findIndex(obj => obj.eventDate);
+        const eventDateIndex = dataValues.findIndex((obj) => obj.eventDate);
         if (eventDateIndex !== -1) {
           eventDate = dataValues[eventDateIndex].eventDate;
           dataValues.splice(eventDateIndex, 1);
-        }   
-   
+        }
       }
 
       const patientNumber = tei?.attributes?.find(
