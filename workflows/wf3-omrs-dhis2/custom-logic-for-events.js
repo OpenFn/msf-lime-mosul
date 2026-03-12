@@ -1045,7 +1045,18 @@ fn((state) => {
         (a, b) => new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
       )[0];
 
-      const eventDate = latestEncounter?.encounterDatetime.replace("+0000", "");
+      let eventDate = latestEncounter?.encounterDatetime.replace("+0000", "");
+
+      const eventDateObj = dataValues.find(obj => obj.eventDate);
+      if (eventDateObj) {
+        eventDate = eventDateObj.eventDate;
+        const eventDateIndex = dataValues.findIndex(obj => obj.eventDate);
+        if (eventDateIndex !== -1) {
+          eventDate = dataValues[eventDateIndex].eventDate;
+          dataValues.splice(eventDateIndex, 1);
+        }   
+   
+      }
 
       const patientNumber = tei?.attributes?.find(
         (a) => a.code === "patient_number"
