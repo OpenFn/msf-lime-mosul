@@ -49,13 +49,16 @@ const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
 };
 
 const dataValueByConcept = (encounter, de, state) => {
-  const { dataElement, conceptUuid, questionId } = de;
+  const { dataElement, conceptUuid, questionId, type } = de;
 
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
 
+  if (isStringAnswer && type === "time") {
+    return answer.value.substring(11, 16);
+  }
   if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
@@ -312,11 +315,7 @@ function f41(encounter) {
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
   )?.value;
   if (!obsDatetime) return [];
-  // what is obsdatetime?
-  //TODO: extract time componenet and assign
-  //TODO: set date component to eventDate attribute
-  //TODO: use that when setting OccuredAt
-  //TODO: Apply the same changes for f27
+
   const timePart = obsDatetime.substring(11, 16);
   const datePart = obsDatetime.replace("+0000", "");
 
@@ -347,6 +346,9 @@ function f42(encounter) {
       dataElement: "xr2Dqw14DGX",
       value: obsDatetime,
     },
+    {
+      eventDate: obsDatetime.replace("+0000", ""),
+    },
   ];
 }
 
@@ -371,6 +373,9 @@ function f43(encounter, tei, dhis2Attr) {
       {
         dataElement: "P8bmDESxYqn", // Emergency Room - Time of discharge (HH:MM)
         value: timePart,
+      },
+      {
+        eventDate: datePart,
       }
     );
   }

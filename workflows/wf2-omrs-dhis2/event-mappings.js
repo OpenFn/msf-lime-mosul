@@ -263,7 +263,6 @@ const formEncounters = (formDescription, encounters) => {
 
 const buildExitEvent = (encounter, tei, state) => {
   const { program, orgUnit, trackedEntity, enrollment, events } = tei;
-  // const { formMaps, dhis2Map, optionSetKey, optsMap } = metadataMap;
 
   let exitEvents = [];
   const sharedEventMap = {
