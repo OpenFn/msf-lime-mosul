@@ -1076,18 +1076,27 @@ function mapDiagnosisF49(encounter, mapping, state) {
 
 function mapF49(encounter, events, state) {
   const { dhis2Map } = state;
-  const programStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const form = state.formMaps[encounter.form.uuid];
+  const programStage = form?.programStage;
+  const syncType = form?.syncType;
   const dataEl = dhis2Map.de;
 
-  const defaultEvent = events?.find(
-    (e) => e.programStage === programStage
-  )?.event;
-  const pregnancyEvent = events?.find(
-    (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
-  )?.event;
-  const investigationEvent = events?.find(
-    (e) => e.programStage === F49_CONFIG.investigationStage.programStage
-  )?.event;
+  const defaultEvent =
+    syncType === "latest"
+      ? events?.find((e) => e.programStage === programStage)?.event
+      : undefined;
+  const pregnancyEvent =
+    syncType === "latest"
+      ? events?.find(
+          (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+        )?.event
+      : undefined;
+  const investigationEvent =
+    syncType === "latest"
+      ? events?.find(
+          (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+        )?.event
+      : undefined;
 
   // DEFAULT STAGE
   const defaultDataValues = [];
@@ -1475,12 +1484,15 @@ function mapDiagnosisF50(encounter, mapping) {
 
 function mapF50(encounter, events, state) {
   const { dhis2Map } = state;
-  const programStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const form = state.formMaps[encounter.form.uuid];
+  const programStage = form?.programStage;
+  const syncType = form?.syncType;
   const dataEl = dhis2Map.de;
 
-  const defaultEvent = events?.find(
-    (e) => e.programStage === programStage
-  )?.event;
+  const defaultEvent =
+    syncType === "latest"
+      ? events?.find((e) => e.programStage === programStage)?.event
+      : undefined;
 
   // DEFAULT STAGE
   const defaultDataValues = [];
@@ -1509,9 +1521,12 @@ function mapF50(encounter, events, state) {
   });
 
   // PREGNANCY STAGE
-  const pregnancyEvent = events?.find(
-    (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
-  )?.event;
+  const pregnancyEvent =
+    syncType === "latest"
+      ? events?.find(
+          (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+        )?.event
+      : undefined;
   const pregnancyDataValues = [];
 
   F50_CONFIG.pregnancyStage.mappings.forEach((mapping) => {
@@ -1534,9 +1549,12 @@ function mapF50(encounter, events, state) {
   });
 
   // INVESTIGATION RESULTS STAGE
-  const investigationEvent = events?.find(
-    (e) => e.programStage === F50_CONFIG.investigationStage.programStage
-  )?.event;
+  const investigationEvent =
+    syncType === "latest"
+      ? events?.find(
+          (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+        )?.event
+      : undefined;
   const investigationDataValues = [];
 
   // Simple values (numeric)
@@ -1595,7 +1613,10 @@ function mapF50(encounter, events, state) {
       dataValues: defaultDataValues.filter((d) => d.value),
     },
     {
-      event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+      event:
+        syncType === "latest"
+          ? events?.find((e) => e.programStage === "ecvF615g1jZ")?.event
+          : undefined,
       programStage: "ecvF615g1jZ",
       dataValues: [
         {
@@ -1742,7 +1763,9 @@ function mapF58(encounter, events, state) {
 }
 
 function mapF59(encounter, events, state) {
-  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const form = state.formMaps[encounter.form.uuid];
+  const defaultProgramStage = form?.programStage;
+  const syncType = form?.syncType;
 
   // Get raw values using dataValueByConcept with concept + questionId pattern
   const typeOfIncomeRaw = dataValueByConcept(
@@ -1782,7 +1805,10 @@ function mapF59(encounter, events, state) {
     : null;
 
   const defaultEvent = {
-    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    event:
+      syncType === "latest"
+        ? events?.find((e) => e.programStage === defaultProgramStage)?.event
+        : undefined,
     programStage: defaultProgramStage,
     dataValues: [
       {
@@ -1797,7 +1823,10 @@ function mapF59(encounter, events, state) {
   };
 
   // Discharge event mappings
-  const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
+  const event =
+    syncType === "latest"
+      ? events?.find((e) => e.programStage === "sBepdVG2c9O")?.event
+      : undefined;
 
   const dischargeDate = encounter.obs.find(
     (o) =>
@@ -1848,8 +1877,13 @@ function mapF59(encounter, events, state) {
 }
 
 function mapF60(encounter, events, state) {
-  const event = events?.find((e) => e.programStage === "sBepdVG2c9O")?.event;
-  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const form = state.formMaps[encounter.form.uuid];
+  const syncType = form?.syncType;
+  const event =
+    syncType === "latest"
+      ? events?.find((e) => e.programStage === "sBepdVG2c9O")?.event
+      : undefined;
+  const defaultProgramStage = form?.programStage;
 
   const dischargeDate = encounter.obs.find(
     (o) =>
@@ -1878,7 +1912,10 @@ function mapF60(encounter, events, state) {
   );
 
   const defaultEvent = {
-    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    event:
+      syncType === "latest"
+        ? events?.find((e) => e.programStage === defaultProgramStage)?.event
+        : undefined,
     programStage: defaultProgramStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
     dataValues: [],
@@ -1925,11 +1962,6 @@ const F62_CONFIG = {
     timeDataElement: "d3BwrZYHAbK",
     simpleValues: [
       {
-        de: "RSQqK2yZGz6",
-        concept: "c149755e-dd32-43b0-b643-ab14aa483207",
-        qid: "rfe-forms-admissionToWard",
-      }, // Admission to ward
-      {
         de: "NHBJjpIXPBI",
         concept: "b996944c-b136-4e8e-9068-562476a0595a",
         qid: "rfe-forms-reasonOfHospitalisation",
@@ -1944,6 +1976,14 @@ const F62_CONFIG = {
         concept: "09a06404-afc5-457a-91b9-54152e45a854",
         qid: "rfe-forms-typeOfDischarge",
       }, // Type of discharge
+    ],
+    customValues: [
+      {
+        de: "RSQqK2yZGz6",
+        concept: "c149755e-dd32-43b0-b643-ab14aa483207",
+        qid: "rfe-forms-admissionToWard",
+        type: "text",
+      }, // Admission to ward
     ],
   },
 
@@ -1976,7 +2016,9 @@ const F62_CONFIG = {
 };
 
 function mapF62(encounter, events) {
-  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const form = state.formMaps[encounter.form.uuid];
+  const syncType = form?.syncType;
+  const defaultProgramStage = form?.programStage;
 
   // DEFAULT STAGE - Other Support
   const defaultDataValues = [];
@@ -1995,7 +2037,10 @@ function mapF62(encounter, events) {
   }
 
   const defaultEvent = {
-    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    event:
+      syncType === "latest"
+        ? events?.find((e) => e.programStage === defaultProgramStage)?.event
+        : undefined,
     programStage: defaultProgramStage,
     dataValues: defaultDataValues,
   };
@@ -2021,11 +2066,33 @@ function mapF62(encounter, events) {
       });
     }
   });
+  F62_CONFIG.hospitalisationStage.customValues.forEach((mapping) => {
+    const value = dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
+        type: mapping.type,
+      },
+      state
+    );
+    if (value) {
+      hospitalisationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
 
   const hospitalisationEvent = {
-    event: events?.find(
-      (e) => e.programStage === F62_CONFIG.hospitalisationStage.programStage
-    )?.event,
+    event:
+      syncType === "latest"
+        ? events?.find(
+            (e) =>
+              e.programStage === F62_CONFIG.hospitalisationStage.programStage
+          )?.event
+        : undefined,
     programStage: F62_CONFIG.hospitalisationStage.programStage,
     dataValues: hospitalisationDataValues,
   };
@@ -2044,9 +2111,12 @@ function mapF62(encounter, events) {
   });
 
   const exitEvent = {
-    event: events?.find(
-      (e) => e.programStage === F62_CONFIG.exitStage.programStage
-    )?.event,
+    event:
+      syncType === "latest"
+        ? events?.find(
+            (e) => e.programStage === F62_CONFIG.exitStage.programStage
+          )?.event
+        : undefined,
     programStage: F62_CONFIG.exitStage.programStage,
     dataValues: exitDataValues,
   };
@@ -2072,11 +2142,6 @@ const F63_CONFIG = {
     timeDataElement: "d3BwrZYHAbK",
     simpleValues: [
       {
-        de: "RSQqK2yZGz6",
-        concept: "c149755e-dd32-43b0-b643-ab14aa483207",
-        qid: "rfe-forms-admissionToWard",
-      }, // Admission to ward
-      {
         de: "NHBJjpIXPBI",
         concept: "b996944c-b136-4e8e-9068-562476a0595a",
         qid: "rfe-forms-reasonOfHospitalisation",
@@ -2091,6 +2156,14 @@ const F63_CONFIG = {
         concept: "09a06404-afc5-457a-91b9-54152e45a854",
         qid: "rfe-forms-typeOfDischarge",
       }, // Type of discharge
+    ],
+    customValues: [
+      {
+        de: "RSQqK2yZGz6",
+        concept: "c149755e-dd32-43b0-b643-ab14aa483207",
+        qid: "rfe-forms-admissionToWard",
+        type: "text",
+      }, // Admission to ward
     ],
   },
 
@@ -2123,7 +2196,9 @@ const F63_CONFIG = {
 };
 
 function mapF63(encounter, events, state) {
-  const defaultProgramStage = state.formMaps[encounter.form.uuid]?.programStage;
+  const form = state.formMaps[encounter.form.uuid];
+  const syncType = form?.syncType;
+  const defaultProgramStage = form?.programStage;
 
   // DEFAULT STAGE - Other Support
   const defaultDataValues = [];
@@ -2142,7 +2217,10 @@ function mapF63(encounter, events, state) {
   }
 
   const defaultEvent = {
-    event: events?.find((e) => e.programStage === defaultProgramStage)?.event,
+    event:
+      syncType === "latest"
+        ? events?.find((e) => e.programStage === defaultProgramStage)?.event
+        : undefined,
     programStage: defaultProgramStage,
     dataValues: defaultDataValues,
   };
@@ -2169,10 +2247,33 @@ function mapF63(encounter, events, state) {
     }
   });
 
+  F63_CONFIG.hospitalisationStage.customValues.forEach((mapping) => {
+    const value = dataValueByConcept(
+      encounter,
+      {
+        dataElement: mapping.de,
+        conceptUuid: mapping.concept,
+        questionId: mapping.qid,
+        type: mapping.type,
+      },
+      state
+    );
+    if (value) {
+      hospitalisationDataValues.push({
+        dataElement: mapping.de,
+        value,
+      });
+    }
+  });
+
   const hospitalisationEvent = {
-    event: events?.find(
-      (e) => e.programStage === F63_CONFIG.hospitalisationStage.programStage
-    )?.event,
+    event:
+      syncType === "latest"
+        ? events?.find(
+            (e) =>
+              e.programStage === F63_CONFIG.hospitalisationStage.programStage
+          )?.event
+        : undefined,
     programStage: F63_CONFIG.hospitalisationStage.programStage,
     dataValues: hospitalisationDataValues,
   };
@@ -2191,9 +2292,12 @@ function mapF63(encounter, events, state) {
   });
 
   const exitEvent = {
-    event: events?.find(
-      (e) => e.programStage === F63_CONFIG.exitStage.programStage
-    )?.event,
+    event:
+      syncType === "latest"
+        ? events?.find(
+            (e) => e.programStage === F63_CONFIG.exitStage.programStage
+          )?.event
+        : undefined,
     programStage: F63_CONFIG.exitStage.programStage,
     dataValues: exitDataValues,
   };

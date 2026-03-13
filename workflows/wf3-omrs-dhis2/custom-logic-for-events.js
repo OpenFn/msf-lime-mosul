@@ -648,13 +648,11 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   let formMapping = [];
 
   const encounterOrder = (name) => {
-    if (name.includes("Admission")) return 0;
-    if (name.includes("Discharge")) return 2;
-    return 1;
+    const match = name.match(/F(\d+)/);
+    return match ? parseInt(match[1], 10) : Infinity;
   };
 
-  // Sort: admission first, other forms middle, discharge last
-  // This ensures discharge values always override matching dataElements
+  // Sort encounters by F-number (F00 first, F99 last)
   const sortedEncounters = [...pairedEncounters].sort(
     (a, b) => encounterOrder(a.form.name) - encounterOrder(b.form.name)
   );
