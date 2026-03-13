@@ -250,13 +250,10 @@ const multiSelectAns = (encounter, multiSelectQns) => {
 };
 function f8(encounter) {
   const timePart = encounter.encounterDatetime.substring(11, 16);
-  return [
-    {
-      dataElement: "iQio7NYSA3m",
-      value: timePart,
-    },
-    { eventDate: encounter.encounterDatetime.replace("+0000", "") },
-  ];
+  return {
+    dataValues: [{ dataElement: "iQio7NYSA3m", value: timePart }],
+    eventDate: encounter.encounterDatetime.replace("+0000", ""),
+  };
 }
 
 function f26(encounter, state) {
@@ -295,18 +292,13 @@ function f27(encounter) {
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
-  if (!admissionDate) return [];
+  if (!admissionDate) return { dataValues: [], eventDate: null };
   const timePart = admissionDate.substring(11, 16);
   const datePart = admissionDate.replace("+0000", "");
-  return [
-    {
-      dataElement: "eYvDzr2m8f5",
-      value: timePart,
-    },
-    {
-      eventDate: datePart,
-    },
-  ];
+  return {
+    dataValues: [{ dataElement: "eYvDzr2m8f5", value: timePart }],
+    eventDate: datePart,
+  };
 }
 
 function f41(encounter) {
@@ -314,24 +306,18 @@ function f41(encounter) {
     encounter,
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
   )?.value;
-  if (!obsDatetime) return [];
+  if (!obsDatetime) return { dataValues: [], eventDate: null };
 
   const timePart = obsDatetime.substring(11, 16);
   const datePart = obsDatetime.replace("+0000", "");
 
-  return [
-    {
-      dataElement: "gluXfK7zg1d",
-      value: timePart,
-    },
-    {
-      dataElement: "bkissws06TK",
-      value: timePart,
-    },
-    {
-      eventDate: datePart,
-    },
-  ];
+  return {
+    dataValues: [
+      { dataElement: "gluXfK7zg1d", value: timePart },
+      { dataElement: "bkissws06TK", value: timePart },
+    ],
+    eventDate: datePart,
+  };
 }
 
 function f42(encounter) {
@@ -339,21 +325,17 @@ function f42(encounter) {
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
   )?.value;
-  if (!obsDatetime) return [];
+  if (!obsDatetime) return { dataValues: [], eventDate: null };
 
-  return [
-    {
-      dataElement: "xr2Dqw14DGX",
-      value: obsDatetime,
-    },
-    {
-      eventDate: obsDatetime.replace("+0000", ""),
-    },
-  ];
+  return {
+    dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime }],
+    eventDate: obsDatetime.replace("+0000", ""),
+  };
 }
 
 function f43(encounter, tei, dhis2Attr) {
   const mappings = [];
+  let eventDate = null;
 
   // Date/Time mapping (Question #1)
   // Concept: 88472a4e-f26e-4235-8144-4ad6df874949
@@ -365,6 +347,7 @@ function f43(encounter, tei, dhis2Attr) {
   if (obsDatetime) {
     const datePart = obsDatetime.substring(0, 10);
     const timePart = obsDatetime.substring(11, 16);
+    eventDate = datePart;
     mappings.push(
       {
         dataElement: "tR7XL9TPVkr", // Emergency Room - Discharge date
@@ -373,9 +356,6 @@ function f43(encounter, tei, dhis2Attr) {
       {
         dataElement: "P8bmDESxYqn", // Emergency Room - Time of discharge (HH:MM)
         value: timePart,
-      },
-      {
-        eventDate: datePart,
       }
     );
   }
@@ -429,7 +409,7 @@ function f43(encounter, tei, dhis2Attr) {
     });
   }
 
-  return mappings;
+  return { dataValues: mappings, eventDate };
 }
 
 function f61(encounter, events, state) {
@@ -646,6 +626,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   const f61Uuid = formIdByName("F61-Travel medicine", state.formMaps);
 
   let formMapping = [];
+  let eventDate = null;
 
   const encounterOrder = (name) => {
     const match = name.match(/F(\d+)/);
@@ -689,8 +670,10 @@ const buildDataValues = (pairedEncounters, tei, state) => {
 
     if (f08Uuid === encounter.form.uuid) {
       // F08 Form Encounter Mapping
-      const f8Mapping = f8(encounter);
-      formMapping.push(...f8Mapping);
+      const { dataValues: f8DataValues, eventDate: f8EventDate } =
+        f8(encounter);
+      formMapping.push(...f8DataValues);
+      if (f8EventDate) eventDate = f8EventDate;
     }
     if (f09Uuid === encounter.form.uuid) {
       // F09 Form Encounter Mapping
@@ -806,8 +789,10 @@ const buildDataValues = (pairedEncounters, tei, state) => {
 
     // F27 Form Encounter Mapping
     if (f27Uuid === encounter.form.uuid) {
-      const f27Mapping = f27(encounter);
-      formMapping.push(...f27Mapping);
+      const { dataValues: f27DataValues, eventDate: f27EventDate } =
+        f27(encounter);
+      formMapping.push(...f27DataValues);
+      if (f27EventDate) eventDate = f27EventDate;
     }
 
     if (f28Uuid === encounter.form.uuid) {
@@ -832,13 +817,17 @@ const buildDataValues = (pairedEncounters, tei, state) => {
     }
 
     if (f41Uuid === encounter.form.uuid) {
-      const f41Mapping = f41(encounter);
-      formMapping.push(...f41Mapping);
+      const { dataValues: f41DataValues, eventDate: f41EventDate } =
+        f41(encounter);
+      formMapping.push(...f41DataValues);
+      if (f41EventDate) eventDate = f41EventDate;
     }
     if (f42Uuid === encounter.form.uuid) {
       // F42 Form Encounter Mapping
-      const f42Mapping = f42(encounter);
-      formMapping.push(...f42Mapping);
+      const { dataValues: f42DataValues, eventDate: f42EventDate } =
+        f42(encounter);
+      formMapping.push(...f42DataValues);
+      if (f42EventDate) eventDate = f42EventDate;
     }
     if (f43Uuid === encounter.form.uuid) {
       // F43 Form Encounter Mapping - TEI attributes and custom logic
@@ -852,10 +841,13 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       };
       const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
       // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
-      formMapping.push(
-        ...f43AttributeMapping,
-        ...f43(encounter, tei, dhis2Map.attr)
+      const { dataValues: f43DataValues, eventDate: f43EventDate } = f43(
+        encounter,
+        tei,
+        dhis2Map.attr
       );
+      formMapping.push(...f43AttributeMapping, ...f43DataValues);
+      if (f43EventDate) eventDate = f43EventDate;
     }
 
     if (f64Uuid === encounter.form.uuid) {
@@ -1007,7 +999,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   //setting the visitUuid here as a data element
   const combinedMapping = formMapping.filter(Boolean);
 
-  return combinedMapping;
+  return { dataValues: combinedMapping, eventDate };
 };
 
 fn((state) => {
@@ -1033,23 +1025,19 @@ fn((state) => {
 
       const tei = state.TEIs[patientUuid];
 
-      const dataValues = buildDataValues(patientEncounters, tei, state);
+      const { dataValues, eventDate: customEventDate } = buildDataValues(
+        patientEncounters,
+        tei,
+        state
+      );
 
       const latestEncounter = patientEncounters.sort(
         (a, b) => new Date(b.encounterDatetime) - new Date(a.encounterDatetime)
       )[0];
 
-      let eventDate = latestEncounter?.encounterDatetime.replace("+0000", "");
-
-      const eventDateObj = dataValues.find((obj) => obj.eventDate);
-      if (eventDateObj) {
-        eventDate = eventDateObj.eventDate;
-        const eventDateIndex = dataValues.findIndex((obj) => obj.eventDate);
-        if (eventDateIndex !== -1) {
-          eventDate = dataValues[eventDateIndex].eventDate;
-          dataValues.splice(eventDateIndex, 1);
-        }
-      }
+      const eventDate =
+        customEventDate ??
+        latestEncounter?.encounterDatetime.replace("+0000", "");
 
       const patientNumber = tei?.attributes?.find(
         (a) => a.code === "patient_number"
