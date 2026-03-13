@@ -103,6 +103,10 @@ const dataValueByConcept = (encounter, de, state) => {
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
 
+  if (isStringAnswer && type === "time") {
+    return answer.value.substring(11, 16);
+  }
+
   if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
@@ -166,6 +170,9 @@ const findDataValue = (encounter, dataElement, state) => {
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
 
+  if (isStringAnswer && type === "time") {
+    return answer.value.substring(11, 16);
+  }
   if (isStringAnswer || isNumberAnswer) {
     return answer.value;
   }
