@@ -79,7 +79,7 @@ const dhis2Map = {
       contracepition: "b6dGoMJm1jO",
       pregnancyMethod: "clnZXAAKStw",
       isReadmission: "SjNE9mM7Yu4",
-      ncdEventDate: "IgRurcU3NO7",
+
       diabetesTypeI: "onGHyvZ2RmZ",
       diabetesTypeII: "E9BaT4zG4J4",
       gestationalDiabetes: "iFvba0J2evJ",
@@ -108,7 +108,7 @@ const dhis2Map = {
       ifOtherSpecialistType3: "NYEmxR8LW75",
       otherNCD: "n36Fq9tLoWJ",
     },
-
+    ncdEventDate: "IgRurcU3NO7",
     extremistFootExam: "gPplT1Gk1uB",
     hba1cValue: "QJXo4pwCxJR",
     totalCholesterolValue: "YAkbJFXtTFU",

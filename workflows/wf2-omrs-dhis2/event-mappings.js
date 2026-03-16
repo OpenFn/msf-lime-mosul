@@ -1108,7 +1108,7 @@ function mapF49(encounter, events, state) {
 
   if (consultationDate) {
     defaultDataValues.push({
-      dataElement: dataEl.f49.ncdEventDate,
+      dataElement: dataEl.ncdEventDate,
       value: consultationDate,
     });
   }
@@ -1504,7 +1504,7 @@ function mapF50(encounter, events, state) {
 
   if (consultationDate) {
     defaultDataValues.push({
-      dataElement: dataEl.ncdEventDate,
+      dataElement: dataEl.f49.ncdEventDate,
       value: consultationDate,
     });
   }
@@ -1613,10 +1613,7 @@ function mapF50(encounter, events, state) {
       dataValues: defaultDataValues.filter((d) => d.value),
     },
     {
-      event:
-        syncType === "latest"
-          ? events?.find((e) => e.programStage === "ecvF615g1jZ")?.event
-          : undefined,
+      event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
       programStage: "ecvF615g1jZ",
       dataValues: [
         {
