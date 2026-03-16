@@ -1504,7 +1504,7 @@ function mapF50(encounter, events, state) {
 
   if (consultationDate) {
     defaultDataValues.push({
-      dataElement: dataEl.f49.ncdEventDate,
+      dataElement: dataEl.ncdEventDate,
       value: consultationDate,
     });
   }
