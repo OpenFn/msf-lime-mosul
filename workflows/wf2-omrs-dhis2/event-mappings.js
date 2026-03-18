@@ -1633,6 +1633,41 @@ function mapF50(encounter, events, state) {
   // DEFAULT STAGE
   const defaultDataValues = [];
 
+  // Multi-select TEXT slot-filling helper: distributes selected answers to N DE slots in order
+  const fillSlots = (conceptUuid, qid, slots, optionSetUid) => {
+    const obsArr = encounter.obs.filter(
+      (o) => o.concept.uuid === conceptUuid && o.formFieldPath === qid
+    );
+    obsArr.forEach((obs, i) => {
+      if (i >= slots.length) return;
+      const opt = state.optsMap.find(
+        (o) =>
+          o["value.uuid - External ID"] === obs.value?.uuid &&
+          o["DHIS2 Option Set UID"] === optionSetUid
+      );
+      if (!opt) {
+        state.missingOptsets.push({
+          timestamp: new Date().toISOString(),
+          openMrsQuestion: obs.concept.display || "N/A",
+          conceptExternalId: conceptUuid,
+          answerDisplay: obs.value?.display,
+          answerValueUuid: obs.value?.uuid,
+          dhis2DataElementUid: slots[i],
+          dhis2OptionSetUid: optionSetUid || "N/A",
+          metadataFormName: encounter.form.name || encounter.form.uuid,
+          encounterUuid: encounter.uuid,
+          patientUuid: encounter.patient.uuid,
+          sourceFile: state.sourceFile,
+          optionKey: `${encounter.form.uuid}-${conceptUuid}-${qid}`,
+        });
+      }
+      let value = opt?.["DHIS2 Option Code"];
+      if (["FALSE", "No"].includes(value)) value = "false";
+      else if (["TRUE", "Yes"].includes(value)) value = "true";
+      if (value) defaultDataValues.push({ dataElement: slots[i], value });
+    });
+  };
+
   // 1. Consultation date
   const consultationDate = encounter.obs.find(
     (o) => o.concept.uuid === "d329cd4b-a10f-4a4d-96b5-c907bf87e721"
@@ -1655,6 +1690,56 @@ function mapF50(encounter, events, state) {
       });
     }
   });
+
+  // Observed complication (multi-select, up to 4 slots) - optionSet YW1t64pNlUH
+  fillSlots(
+    "ec9ffc6e-22c9-4489-ab88-c517460e7838",
+    "rfe-forms-observedComplication",
+    ["as6ICto55cO", "y8TsEYlp5ai", "U4N9k9q8iM8", "M3rXGXDLVjx"],
+    "YW1t64pNlUH"
+  );
+
+  // Medication (multi-select, up to 10 slots) - optionSet z8NoIBE61lI
+  fillSlots(
+    "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef",
+    "rfe-forms-medication",
+    [
+      "gipSPNNghXK", "sZastBLPgJY", "SHEM1CY8873", "HIfDsB1IsSk", "X5Owq7U5Y4E",
+      "cRm0JmltkJX", "TzL2jbQo6nH", "E1dUkfQ2v47", "H8E7EJgibdt", "ScOa7FiWJTm",
+    ],
+    "z8NoIBE61lI"
+  );
+
+  // Referral specialist type (multi-select, up to 3 slots) - optionSet cWcZ5KAXfub
+  fillSlots(
+    "8fb3bb7d-c935-4b57-8444-1b953470e109",
+    "rfe-forms-referralSpecialistType",
+    ["TsG88CXqaii", "GeqxZYGIjPC", "QThCIIp4FRC"],
+    "cWcZ5KAXfub"
+  );
+
+  // "If other specialist type specify" - fill slot N when Nth referral type is 'Other specialist'
+  // TODO: add guard (obs.value?.uuid === '<Other-UUID>') once the 'Other specialist' answer UUID is known
+  const referralSpecialistObs = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === "8fb3bb7d-c935-4b57-8444-1b953470e109" &&
+      o.formFieldPath === "rfe-forms-referralSpecialistType"
+  );
+  const specialistOtherText = findAnswerByConcept(
+    encounter,
+    "790b41ce-e1e7-11e8-b02f-0242ac130002",
+    "rfe-forms-specialistIfOtherPleaseSpecify"
+  );
+  if (specialistOtherText) {
+    const otherSpecialistSlots = ["u68lzJcSaBa", "PO19ZbOBOO1", "OdrZUtuEaUU"];
+    referralSpecialistObs.forEach((_obs, i) => {
+      if (i >= otherSpecialistSlots.length) return;
+      defaultDataValues.push({
+        dataElement: otherSpecialistSlots[i],
+        value: specialistOtherText,
+      });
+    });
+  }
 
   // PREGNANCY STAGE
   const pregnancyEvent =
