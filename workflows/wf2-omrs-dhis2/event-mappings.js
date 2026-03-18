@@ -1138,6 +1138,36 @@ function mapF49(encounter, events, state) {
     }
   });
 
+  // NCD - if other, please specify
+  const ncdOtherSpecify = findAnswerByConcept(
+    encounter,
+    "790b41ce-e1e7-11e8-b02f-0242ac130002",
+    "rfe-forms-ncdIfOtherPleaseSpecify"
+  );
+  if (ncdOtherSpecify) {
+    defaultDataValues.push({
+      dataElement: "MJpqEQtsuTe",
+      value: ncdOtherSpecify,
+    });
+  }
+
+  // Blood glucose type (analysis type) - baseline stage
+  const bloodGlucoseType = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "SBOOnIpTfHb",
+      conceptUuid: "7b446689-cefa-49b9-a30a-7795bce1ff35",
+      questionId: "rfe-forms-bloodGlucoseType",
+    },
+    state
+  );
+  if (bloodGlucoseType) {
+    defaultDataValues.push({
+      dataElement: "SBOOnIpTfHb",
+      value: bloodGlucoseType,
+    });
+  }
+
   // PREGNANCY STAGE
   const pregnancyDataValues = [];
 
