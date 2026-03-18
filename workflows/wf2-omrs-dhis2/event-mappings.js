@@ -1251,10 +1251,28 @@ function mapF49(encounter, events, state) {
     "cWcZ5KAXfub"
   );
 
-  // TODO: "If other specialist type specify" slots (iXRsVYYypkU, xnpdL9cgpDH, NYEmxR8LW75)
-  // These require filling the nth slot with the text from rfe-forms-specialistIfOtherPleaseSpecify
-  // only when the nth selected referral specialist type is 'Other specialist'.
-  // Implementation blocked: the 'Other specialist' answer UUID for concept 8fb3bb7d is not known.
+  // "If other specialist type specify" slots - fill slot N if the Nth selected referral specialist type is 'Other specialist'
+  const referralSpecialistObs = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === "8fb3bb7d-c935-4b57-8444-1b953470e109" &&
+      o.formFieldPath === "rfe-forms-referralSpecialistType"
+  );
+  const specialistOtherText = findAnswerByConcept(
+    encounter,
+    "790b41ce-e1e7-11e8-b02f-0242ac130002",
+    "rfe-forms-specialistIfOtherPleaseSpecify"
+  );
+  if (specialistOtherText) {
+    const otherSpecialistSlots = ["iXRsVYYypkU", "xnpdL9cgpDH", "NYEmxR8LW75"];
+    referralSpecialistObs.forEach((obs, i) => {
+      if (i >= otherSpecialistSlots.length) return;
+
+      defaultDataValues.push({
+        dataElement: otherSpecialistSlots[i],
+        value: specialistOtherText,
+      });
+    });
+  }
 
   // PREGNANCY STAGE
   const pregnancyDataValues = [];
