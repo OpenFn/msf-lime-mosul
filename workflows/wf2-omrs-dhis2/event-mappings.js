@@ -1702,10 +1702,18 @@ function mapF50(encounter, events, state) {
   // Medication (multi-select, up to 10 slots) - optionSet z8NoIBE61lI
   fillSlots(
     "ae1e4603-7ab4-4ed1-902e-eee33a9c5eef",
-    "rfe-forms-medication",
+    "rfe-forms-medicationPrescribedInCurrentConsultation",
     [
-      "gipSPNNghXK", "sZastBLPgJY", "SHEM1CY8873", "HIfDsB1IsSk", "X5Owq7U5Y4E",
-      "cRm0JmltkJX", "TzL2jbQo6nH", "E1dUkfQ2v47", "H8E7EJgibdt", "ScOa7FiWJTm",
+      "gipSPNNghXK",
+      "sZastBLPgJY",
+      "SHEM1CY8873",
+      "HIfDsB1IsSk",
+      "X5Owq7U5Y4E",
+      "cRm0JmltkJX",
+      "TzL2jbQo6nH",
+      "E1dUkfQ2v47",
+      "H8E7EJgibdt",
+      "ScOa7FiWJTm",
     ],
     "z8NoIBE61lI"
   );
