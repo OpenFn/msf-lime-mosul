@@ -683,8 +683,8 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         f3n6kIB9IbI: dhis2Map.attr.ageInYears, // TODO:we see this in metadata "Rv8WM2mTuS5",
         oc9zlhOoWmP: dhis2Map.attr.currentStatus,
         DbyD9bbGIvE: dhis2Map.attr.legalStatus,
-        fiPFww1viBB: dhis2Map.attr.placeOfLivingAttr,
-        FsL5BjQocuo: dhis2Map.attr.nationalityAttr,
+        fiPFww1viBB: dhis2Map.attr.placeOfliving,
+        FsL5BjQocuo: dhis2Map.attr.nationality,
         Pi1zytYdq6l: dhis2Map.attr.patientNumber,
       };
       const f09Mapping = mapAttribute(tei.attributes, attributeMap);
@@ -700,7 +700,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       // Maps TEI attributes to DHIS2 data elements
       const attributeMap = {
         Hww0CNYYt3E: dhis2Map.attr.sex, // Sex from Patient registration
-        yE0dIWW0TXP: dhis2Map.attr.placeOfLivingAttr, // Place of living
+        yE0dIWW0TXP: dhis2Map.attr.placeOfliving, // Place of living
         fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
       };
       const attributeMapping = mapAttribute(tei.attributes, attributeMap);
@@ -739,7 +739,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         d7wOfzPBbQD: dhis2Map.attr.ageInYears,
         y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
         CDuiRuOcfzj: dhis2Map.attr.currentStatus,
-        Nd43pz1Oo62: dhis2Map.attr.placeOfLivingAttr,
+        Nd43pz1Oo62: dhis2Map.attr.placeOfliving,
         kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
       };
       const attributeMapping = mapAttribute(tei.attributes, attributeMap);
@@ -801,8 +801,8 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         WP5vr8KB2lH: dhis2Map.attr.sex,
         Y7qzoa4Qaiz: dhis2Map.attr.currentStatus,
         XCUd9xOGXkn: dhis2Map.attr.legalStatus,
-        onKT21rxH6Z: dhis2Map.attr.placeOfLivingAttr,
-        sCKCNreiqEA: dhis2Map.attr.nationalityAttr,
+        onKT21rxH6Z: dhis2Map.attr.placeOfliving,
+        sCKCNreiqEA: dhis2Map.attr.nationality,
         ci9C72RjN8Z: dhis2Map.attr.patientNumber,
       };
       const attributeMapping = mapAttribute(tei.attributes, attributeMap);
@@ -834,8 +834,8 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       const attributeMap = {
         gHPt2FCZEE6: dhis2Map.attr.patientNumber, // Emergency Room - Patient number
         eMXqL66pJSV: dhis2Map.attr.sex, // Emergency Room - Sex
-        xw5Vres1Ndt: dhis2Map.attr.placeOfLivingAttr, // Emergency Room - Place of living
-        iGHeO9F8CKm: dhis2Map.attr.nationalityAttr, // Emergency Room - Nationality
+        xw5Vres1Ndt: dhis2Map.attr.placeOfliving, // Emergency Room - Place of living
+        iGHeO9F8CKm: dhis2Map.attr.nationality, // Emergency Room - Nationality
         KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
         fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
       };
@@ -878,8 +878,8 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       const attributeMap = {
         j855dPp9p18: dhis2Map.attr.patientNumber, // ICU - Patient number
         // icmcR6av0Ob: dhis2Map.attr.sex, // ICU - Sex
-        OI2H3dEQLdQ: dhis2Map.attr.placeOfLivingAttr, // ICU - Place of living
-        QiVXQ2eAtpN: dhis2Map.attr.nationalityAttr, // ICU - Nationality
+        OI2H3dEQLdQ: dhis2Map.attr.placeOfliving, // ICU - Place of living
+        QiVXQ2eAtpN: dhis2Map.attr.nationality, // ICU - Nationality
       };
       const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
 
@@ -961,7 +961,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       const attributeMap = {
         ipRL5PApBZk: dhis2Map.attr.patientNumber, // Snakebites - Patient number
         ZlONTbktjvX: dhis2Map.attr.sex, // Snakebites - Sex
-        XK6Wnp4aBvi: dhis2Map.attr.placeOfLivingAttr, // Snakebites - Place of living
+        XK6Wnp4aBvi: dhis2Map.attr.placeOfliving, // Snakebites - Place of living
       };
       const f66AttributeMapping = mapAttribute(tei.attributes, attributeMap);
 

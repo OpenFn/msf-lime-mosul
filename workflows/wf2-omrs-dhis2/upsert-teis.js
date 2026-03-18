@@ -140,8 +140,9 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
       value: omrsPatient.person.birthdate?.slice(0, 10),
     },
     {
-      attribute: dhis2Map.attr.placeOflivingMap,
-      value: placeOflivingMap[omrsPatient.person?.preferredAddress?.cityVillage],
+      attribute: dhis2Map.attr.placeOfliving,
+      value:
+        placeOflivingMap[omrsPatient.person?.preferredAddress?.cityVillage],
     },
   ];
 
