@@ -165,7 +165,11 @@ const findDataValue = (encounter, dataElement, state) => {
   const form = state.formMaps[encounter.form.uuid];
   const [conceptUuid, type, questionId] =
     form.dataValueMap[dataElement]?.split("::") || [];
-  const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
+  const answer = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === conceptUuid &&
+      (questionId ? o.formFieldPath === questionId : true)
+  );
   const isObjectAnswer = answer && typeof answer.value === "object";
   const isStringAnswer = answer && typeof answer.value === "string";
   const isNumberAnswer = answer && typeof answer.value === "number";
