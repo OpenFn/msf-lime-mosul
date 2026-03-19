@@ -2264,12 +2264,12 @@ function mapF62(encounter, events) {
   if (dressingValue) {
     defaultDataValues.push({
       dataElement: F62_CONFIG.defaultStage.nursingCare.de,
-      value: "Dressing",
+      value: "dressing",
     });
   } else if (otherNursingCareValue) {
     defaultDataValues.push({
       dataElement: F62_CONFIG.defaultStage.nursingCare.de,
-      value: "Other nursing care",
+      value: "other",
     });
   }
 
@@ -2453,12 +2453,12 @@ function mapF63(encounter, events, state) {
   if (dressingValue) {
     defaultDataValues.push({
       dataElement: F63_CONFIG.defaultStage.nursingCare.de,
-      value: "Dressing",
+      value: "dressing",
     });
   } else if (otherNursingCareValue) {
     defaultDataValues.push({
       dataElement: F63_CONFIG.defaultStage.nursingCare.de,
-      value: "Other nursing care",
+      value: "other",
     });
   }
 
