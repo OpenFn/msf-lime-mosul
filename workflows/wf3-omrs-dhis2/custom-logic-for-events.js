@@ -579,14 +579,15 @@ function f66(encounter, state) {
       mappings.push({ dataElement: "kFjWm5ZYkS2", value: optionCode });
   }
 
-  // Snakebites - Adverse events from treatment (qWq8p9M0OFn)
+  // Snakebites - Other AE - specify (qWq8p9M0OFn): fill with 'other' (text)
+  // if 'Other' is selected in 'Adverse events from treatment' (rfe-forms-adverseEventsFromTreatment)
   if (
     hasObsByQid(
       "rfe-forms-adverseEventsFromTreatment",
       "790b41ce-e1e7-11e8-b02f-0242ac130002"
     )
   ) {
-    mappings.push({ dataElement: "qWq8p9M0OFn", value: "true" });
+    mappings.push({ dataElement: "qWq8p9M0OFn", value: "other" });
   }
 
   return mappings;
