@@ -2179,6 +2179,7 @@ const F62_CONFIG = {
     nursingCare: {
       de: "PG9mocTexDK",
       dressingAnswer: "d592dcaf-ae83-4acc-921e-127aa27545b5", // Dressing
+      otherNursingCareAnswer: "42131f0e-c9e2-492c-820e-bd7ff6b9180f", // Other nursing care
     },
   },
 
@@ -2195,7 +2196,7 @@ const F62_CONFIG = {
       {
         de: "LPIyv58pWVg",
         concept: "13cea1c8-e426-411f-95b4-33651fc4325d",
-        qid: "rfe-forms-dateOfDischargeFromHospital",
+        qid: "rfe-forms-dateOfDischarge",
       }, // Date of discharge
       {
         de: "nrqutHXxAUk",
@@ -2255,10 +2256,20 @@ function mapF62(encounter, events) {
     F62_CONFIG.defaultStage.concept,
     F62_CONFIG.defaultStage.nursingCare.dressingAnswer
   );
+  const otherNursingCareValue = conceptAndValueTrueOnly(
+    encounter,
+    F62_CONFIG.defaultStage.concept,
+    F62_CONFIG.defaultStage.nursingCare.otherNursingCareAnswer
+  );
   if (dressingValue) {
     defaultDataValues.push({
       dataElement: F62_CONFIG.defaultStage.nursingCare.de,
       value: "Dressing",
+    });
+  } else if (otherNursingCareValue) {
+    defaultDataValues.push({
+      dataElement: F62_CONFIG.defaultStage.nursingCare.de,
+      value: "Other nursing care",
     });
   }
 
@@ -2320,6 +2331,7 @@ function mapF62(encounter, events) {
           )?.event
         : undefined,
     programStage: F62_CONFIG.hospitalisationStage.programStage,
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
     dataValues: hospitalisationDataValues,
   };
 
@@ -2327,7 +2339,7 @@ function mapF62(encounter, events) {
   const exitDataValues = [];
 
   F62_CONFIG.exitStage.simpleValues.forEach((mapping) => {
-    const value = findAnswerByConcept(encounter, mapping.concept);
+    const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
       exitDataValues.push({
         dataElement: mapping.de,
@@ -2337,12 +2349,9 @@ function mapF62(encounter, events) {
   });
 
   const exitEvent = {
-    event:
-      syncType === "latest"
-        ? events?.find(
-            (e) => e.programStage === F62_CONFIG.exitStage.programStage
-          )?.event
-        : undefined,
+    event: events?.find(
+      (e) => e.programStage === F62_CONFIG.exitStage.programStage
+    )?.event,
     programStage: F62_CONFIG.exitStage.programStage,
     dataValues: exitDataValues,
   };
@@ -2359,6 +2368,7 @@ const F63_CONFIG = {
     nursingCare: {
       de: "LIlfhZdkMpB",
       dressingAnswer: "d592dcaf-ae83-4acc-921e-127aa27545b5", // Dressing
+      otherNursingCareAnswer: "42131f0e-c9e2-492c-820e-bd7ff6b9180f", // Other nursing care
     },
   },
 
@@ -2435,10 +2445,20 @@ function mapF63(encounter, events, state) {
     F63_CONFIG.defaultStage.concept,
     F63_CONFIG.defaultStage.nursingCare.dressingAnswer
   );
+  const otherNursingCareValue = conceptAndValueTrueOnly(
+    encounter,
+    F63_CONFIG.defaultStage.concept,
+    F63_CONFIG.defaultStage.nursingCare.otherNursingCareAnswer
+  );
   if (dressingValue) {
     defaultDataValues.push({
       dataElement: F63_CONFIG.defaultStage.nursingCare.de,
       value: "Dressing",
+    });
+  } else if (otherNursingCareValue) {
+    defaultDataValues.push({
+      dataElement: F63_CONFIG.defaultStage.nursingCare.de,
+      value: "Other nursing care",
     });
   }
 
@@ -2501,6 +2521,7 @@ function mapF63(encounter, events, state) {
           )?.event
         : undefined,
     programStage: F63_CONFIG.hospitalisationStage.programStage,
+    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
     dataValues: hospitalisationDataValues,
   };
 
@@ -2518,12 +2539,9 @@ function mapF63(encounter, events, state) {
   });
 
   const exitEvent = {
-    event:
-      syncType === "latest"
-        ? events?.find(
-            (e) => e.programStage === F63_CONFIG.exitStage.programStage
-          )?.event
-        : undefined,
+    event: events?.find(
+      (e) => e.programStage === F63_CONFIG.exitStage.programStage
+    )?.event,
     programStage: F63_CONFIG.exitStage.programStage,
     dataValues: exitDataValues,
   };
