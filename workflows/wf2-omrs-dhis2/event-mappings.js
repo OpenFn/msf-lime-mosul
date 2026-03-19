@@ -2198,13 +2198,13 @@ const F62_CONFIG = {
         concept: "13cea1c8-e426-411f-95b4-33651fc4325d",
         qid: "rfe-forms-dateOfDischarge",
       }, // Date of discharge
+    ],
+    customValues: [
       {
         de: "nrqutHXxAUk",
         concept: "09a06404-afc5-457a-91b9-54152e45a854",
         qid: "rfe-forms-typeOfDischarge",
       }, // Type of discharge
-    ],
-    customValues: [
       {
         de: "RSQqK2yZGz6",
         concept: "c149755e-dd32-43b0-b643-ab14aa483207",
@@ -2387,13 +2387,13 @@ const F63_CONFIG = {
         concept: "13cea1c8-e426-411f-95b4-33651fc4325d",
         qid: "rfe-forms-dateOfDischargeFromHospital",
       }, // Date of discharge
+    ],
+    customValues: [
       {
         de: "nrqutHXxAUk",
         concept: "09a06404-afc5-457a-91b9-54152e45a854",
         qid: "rfe-forms-typeOfDischarge",
       }, // Type of discharge
-    ],
-    customValues: [
       {
         de: "RSQqK2yZGz6",
         concept: "c149755e-dd32-43b0-b643-ab14aa483207",
