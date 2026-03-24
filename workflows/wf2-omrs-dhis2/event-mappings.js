@@ -296,7 +296,7 @@ const buildExitEvent = (encounter, tei, state) => {
     }
   }
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
-    const eventsMap = mapF56(encounter, events, state);
+    const eventsMap = mapF56(encounter, events);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
@@ -1899,7 +1899,7 @@ function mapF55(encounter, events, state) {
   ];
 }
 
-function mapF56(encounter, events, state) {
+function mapF56(encounter, events) {
   const event = events?.find((e) => e.programStage === "d5sMByjqQFm")?.event;
 
   return [
@@ -1947,7 +1947,6 @@ function mapF58(encounter, events, state) {
       dataValues: [
         {
           dataElement: "gn40F7cEQTI",
-          // value: encounter.encounterDatetime.replace("+0000", ""),
           value: dataValueByConcept(
             encounter,
             {
@@ -1969,10 +1968,6 @@ function mapF58(encounter, events, state) {
             },
             state
           ),
-          // value: findAnswerByConcept(
-          //   encounter,
-          //   "0f478fde-1219-4815-9481-f507e8457c38"
-          // ),
         },
       ].filter((d) => d.value),
     },
