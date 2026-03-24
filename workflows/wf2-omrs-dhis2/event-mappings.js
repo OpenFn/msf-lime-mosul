@@ -112,8 +112,8 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 
   if (isObjectAnswer) {
-    if (type === "true_only") {
-      return answer.value.display.toLowerCase() === "yes";
+    if (type === "true_only" && answer.value.display.toLowerCase() === "yes") {
+      return "true";
     }
     if (type === "boolean") {
       return toTrueOrFalse(answer.value.display);
@@ -185,8 +185,8 @@ const findDataValue = (encounter, dataElement, state) => {
   }
 
   if (isObjectAnswer) {
-    if (type === "true_only") {
-      return answer.value.display.toLowerCase() === "yes";
+    if (type === "true_only" && answer.value.display.toLowerCase() === "yes") {
+      return "true";
     }
     if (type === "boolean") {
       return toTrueOrFalse(answer.value.display);
