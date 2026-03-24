@@ -112,6 +112,9 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "true_only") {
+      return answer.value.display.toLowerCase() === "yes";
+    }
     if (type === "boolean") {
       return toTrueOrFalse(answer.value.display);
     }
@@ -182,6 +185,9 @@ const findDataValue = (encounter, dataElement, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "true_only") {
+      return answer.value.display.toLowerCase() === "yes";
+    }
     if (type === "boolean") {
       return toTrueOrFalse(answer.value.display);
     }
@@ -1660,9 +1666,7 @@ function mapF50(encounter, events, state) {
   };
 
   // 1. Consultation date
-  const consultationDate = encounter.obs.find(
-    (o) => o.concept.uuid === "d329cd4b-a10f-4a4d-96b5-c907bf87e721"
-  )?.value;
+  const consultationDate = encounter.encounterDatetime.split("T")[0];
 
   if (consultationDate) {
     defaultDataValues.push({
@@ -1824,8 +1828,6 @@ function mapF50(encounter, events, state) {
       });
     }
   });
-
-  // RETURN EVENTS
   return [
     {
       event: defaultEvent,
@@ -1837,24 +1839,38 @@ function mapF50(encounter, events, state) {
       programStage: "ecvF615g1jZ",
       dataValues: [
         {
+          // Row 114: Exit date (Date field)
           dataElement: dataEl.ncdEventDate,
-          value: findAnswerByConcept(
-            encounter,
-            "1f473371-613f-4ef3-b297-49eb779ccd27"
-          ),
+          value: encounter.obs.find(
+            (o) =>
+              o.concept.uuid === "1f473371-613f-4ef3-b297-49eb779ccd27" &&
+              o.formFieldPath === "rfe-forms-exitDate"
+          )?.value,
         },
         {
+          // Row 115: Type of exit (Coded, option set Gjx599aojCR)
           dataElement: dataEl.f50.typeOfExit,
-          value: findAnswerByConcept(
+          value: dataValueByConcept(
             encounter,
-            "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
+            {
+              dataElement: dataEl.f50.typeOfExit,
+              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+              questionId: "rfe-forms-typeOfExit",
+            },
+            state
           ),
         },
         {
+          // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
           dataElement: dataEl.f50.ifDefaulterSpecify,
-          value: findAnswerByConcept(
+          value: dataValueByConcept(
             encounter,
-            "f50f7325-53ed-45a5-bb41-f0987b296c5f"
+            {
+              dataElement: dataEl.f50.ifDefaulterSpecify,
+              conceptUuid: "f50f7325-53ed-45a5-bb41-f0987b296c5f",
+              questionId: "rfe-forms-ifDefaulterSpecify",
+            },
+            state
           ),
         },
       ].filter((d) => d.value),

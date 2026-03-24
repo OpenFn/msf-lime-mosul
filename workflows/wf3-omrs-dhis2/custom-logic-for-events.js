@@ -64,6 +64,12 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "true_only") {
+      return answer.value.display.toLowerCase() === "yes";
+    }
+    if (type === "boolean") {
+      return toTrueOrFalse(answer.value.display);
+    }
     const optionKey = questionId
       ? `${encounter.form.uuid}-${answer.concept.uuid}-${questionId}`
       : `${encounter.form.uuid}-${answer.concept.uuid}`;
@@ -162,6 +168,9 @@ const findDataValue = (encounter, dataElement, state) => {
   }
 
   if (isObjectAnswer) {
+    if (type === "true_only") {
+      return answer.value.display.toLowerCase() === "yes";
+    }
     if (type === "boolean") {
       return toTrueOrFalse(answer.value.display);
     }
