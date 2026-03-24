@@ -3,6 +3,10 @@ const extractAnswerValue = (answer) => {
   if (typeof answer.value === "string") return answer.value;
   if (typeof answer.value === "object") return answer.value.display;
 };
+function formatTime(time) {
+  const match = time.match(/^(\d{2}:\d{2})/);
+  return match ? match[1] : null;
+}
 
 const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
   if (questionId) {
@@ -387,7 +391,7 @@ function mapF16(encounter) {
       },
       {
         dataElement: "onsyxszD8X7",
-        value: time,
+        value: formatTime(time),
       },
     ];
   }
@@ -421,7 +425,7 @@ function mapF17(encounter) {
       },
       {
         dataElement: "mDOUf2zzwS2",
-        value: time,
+        value: formatTime(time),
       }
     );
   }
@@ -437,7 +441,7 @@ function mapF18(encounter, encounters) {
   if (encounter.form.name.includes("F18-Surgery Discharge") && isDischarge) {
     const lastAdmission = formEncounters("F17-Surgery Admission", encounters)
       .at(-1)
-      ?.encounterDatetime.replace("+0000", "");
+      ?.encounterDatetime.split("T")[0];
     return [
       {
         dataElement: "zt3Ocipob8I",
