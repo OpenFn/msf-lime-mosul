@@ -321,7 +321,7 @@ const buildExitEvent = (encounter, tei, state) => {
   }
 
   if (encounter.form.name.includes("F62-Palliative care Baseline")) {
-    const eventsMap = mapF62(encounter, events);
+    const eventsMap = mapF62(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
@@ -2233,7 +2233,7 @@ const F62_CONFIG = {
   },
 };
 
-function mapF62(encounter, events) {
+function mapF62(encounter, events, state) {
   const form = state.formMaps[encounter.form.uuid];
   const syncType = form?.syncType;
   const defaultProgramStage = form?.programStage;
