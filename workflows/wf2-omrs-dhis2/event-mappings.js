@@ -1234,19 +1234,6 @@ function mapF49(encounter, events, state) {
     "z8NoIBE61lI"
   );
 
-  // Other medication (free text)
-  const otherMedication = findAnswerByConcept(
-    encounter,
-    "f1213704-06fa-4b23-9c8a-94a7236b833d",
-    "rfe-forms-otherMedication"
-  );
-  if (otherMedication) {
-    defaultDataValues.push({
-      dataElement: "mVmxMXoEfCg",
-      value: otherMedication,
-    });
-  }
-
   // Referral specialist type (multi-select, up to 3 slots) - optionSet cWcZ5KAXfub
   fillSlots(
     "8fb3bb7d-c935-4b57-8444-1b953470e109",

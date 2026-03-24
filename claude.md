@@ -6,6 +6,29 @@ high-quality OpenFn jobs using JavaScript and OpenFn's adaptor ecosystem.
 
 See the guideline in `writing-jobs.md` for more details.
 
+## Project Scope
+
+This project is the **MSF LIME Mosul** integration. Focus only on these three
+workflows:
+
+- `workflows/wf1-dhis2-omrs-migration` — one-time migration from DHIS2 to
+  OpenMRS (patients/TEIs)
+- `workflows/wf2-omrs-dhis2` — ongoing sync from OpenMRS to DHIS2 (patients +
+  encounters/events, with parent-child TEI relationships)
+- `workflows/wf3-omrs-dhis2` — alternate/newer ongoing sync from OpenMRS to
+  DHIS2
+
+Ignore all other workflows (`wf2-omrs-dhis2-theory`, `wf3-omrs-dhis2-jfcopy`,
+`automated-test-suite`, etc.) unless explicitly asked.
+
+## Security Guards
+
+- NEVER read, print, or reference the contents of `.env`, `credentials.yaml`,
+  or any file listed in `.gitignore`
+- If a task requires credentials, ask the user to provide only the necessary
+  values directly in the conversation — do not look them up from files
+- If you accidentally encounter secrets in a file, do not repeat or log them
+
 ## When to Ask for Clarification
 
 Ask users for more information when:
@@ -30,5 +53,5 @@ For any custom mapping logic, follow these guidelines:
   in the OCL_labels.csv
   - If you can't find a value in OCL_labels.csv, flag the lines in job code for
     review but never use placeholder values
-- Don't use dispaly value for mapping data elements
+- Don't use display value for mapping data elements
   - Use data value UUIDs instead
