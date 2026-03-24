@@ -2540,6 +2540,11 @@ function mapF63(encounter, events, state) {
   return [defaultEvent, hospitalisationEvent, exitEvent];
 }
 
+const EXIT_EVENT_STAGE_IDS = [
+  "sBepdVG2c9O", // Social Work exit stage (F59, F60)
+  "Otoff7Cj8JQ", // Palliative Care exit stage (F62, F63)
+];
+
 fn((state) => {
   // Initialize array to track missing DHIS2 Option Codes
   state.missingOptsets ??= [];
@@ -2675,6 +2680,47 @@ fn((state) => {
   return state;
 });
 
+const deduplicateByLatest = (events, formMaps, exitStageIds) => {
+  // Build programStage -> syncType lookup from formMaps
+  const stageSyncType = {};
+  Object.values(formMaps).forEach((form) => {
+    if (form.programStage) {
+      stageSyncType[form.programStage] = form.syncType;
+    }
+  });
+
+  // Group by (trackedEntity, programStage) to find cross-date duplicates
+  const groups = new Map();
+  events.forEach((event) => {
+    const key = `${event.trackedEntity}||${event.programStage}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(event);
+  });
+
+  const result = [];
+  groups.forEach((groupEvents, key) => {
+    const programStage = key.split("||")[1];
+    const isLatest =
+      exitStageIds.includes(programStage) ||
+      stageSyncType[programStage] === "latest";
+
+    if (isLatest && groupEvents.length > 1) {
+      // Keep only the event with the most recent occurredAt
+      const latest = groupEvents.reduce((a, b) =>
+        new Date(a.occurredAt) >= new Date(b.occurredAt) ? a : b
+      );
+      console.log(
+        `Deduplicating programStage ${programStage}: kept 1 of ${groupEvents.length} events (latest)`
+      );
+      result.push(latest);
+    } else {
+      result.push(...groupEvents);
+    }
+  });
+
+  return result;
+};
+
 const mergeEvents = (events) => {
   const eventMap = new Map();
 
@@ -2702,10 +2748,15 @@ const mergeEvents = (events) => {
   return Array.from(eventMap.values());
 };
 
-// Combinining events and exit events
+// Combining events and exit events
 fn((state) => {
   const { data, references, response, ...rest } = state;
   rest.eventsMapping = mergeEvents(rest.eventsMapping);
+  rest.eventsMapping = deduplicateByLatest(
+    rest.eventsMapping,
+    rest.formMaps,
+    EXIT_EVENT_STAGE_IDS
+  );
   return rest;
 });
 
