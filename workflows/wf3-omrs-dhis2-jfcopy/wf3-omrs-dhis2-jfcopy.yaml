@@ -1,19 +1,12 @@
 id: wf3-omrs-dhis2-jfcopy
 name: wf3-omrs-dhis2-jfcopy
-start: cron
+start: webhook
 options: {}
 steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
     expression: ./create-events.js
-  - id: cron
-    type: cron
-    enabled: false
-    next:
-      get-patients:
-        disabled: false
-        condition: always
   - id: custom-logic-for-events
     name: Custom Logic for Events
     adaptor: "@openfn/language-common@2.1.1"

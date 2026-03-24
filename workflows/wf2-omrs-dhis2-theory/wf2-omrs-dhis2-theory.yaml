@@ -1,6 +1,6 @@
 id: wf2-omrs-dhis2-theory
 name: wf2-omrs-dhis2-theory
-start: cron
+start: webhook
 options: {}
 steps:
   - id: create-child-teis
@@ -35,13 +35,6 @@ steps:
       event-mappings:
         disabled: false
         condition: on_job_success
-  - id: cron
-    type: cron
-    enabled: false
-    next:
-      get-patients:
-        disabled: false
-        condition: always
   - id: event-mappings
     name: Event Mappings
     adaptor: "@openfn/language-common@2.1.1"
