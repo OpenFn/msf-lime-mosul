@@ -2543,6 +2543,12 @@ function mapF63(encounter, events, state) {
 const EXIT_EVENT_STAGE_IDS = [
   "sBepdVG2c9O", // Social Work exit stage (F59, F60)
   "Otoff7Cj8JQ", // Palliative Care exit stage (F62, F63)
+  "ecvF615g1jZ", // NCD exit stage (F50)
+  "tGfMHhweXBX", // HIV exit stage (F52)
+  "lhoIy2xFovz", // TB DSTB exit stage (F54)
+  "fcgrvRF4OqI", // TB DRTB exit stage (F54)
+  "d5sMByjqQFm", // HBV exit stage (F56)
+  "Rd73a6zlYEy", // HCV exit stage (F58)
 ];
 
 fn((state) => {
