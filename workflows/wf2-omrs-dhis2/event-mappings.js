@@ -343,6 +343,20 @@ const buildExitEvent = (encounter, tei, state) => {
     }
   }
 
+  if (encounter.form.name.includes("F68-NTDs Dengue")) {
+    const eventsMap = mapF68(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+
+  if (encounter.form.name.includes("F69-NTDs Filariasis")) {
+    const eventsMap = mapF69(encounter, events, state);
+    for (const event of eventsMap) {
+      exitEvents.push({ ...sharedEventMap, ...event });
+    }
+  }
+
   return exitEvents;
 };
 
@@ -2768,6 +2782,107 @@ const mergeEvents = (events) => {
 
   return Array.from(eventMap.values());
 };
+
+const F68_CONFIG = {
+  warningSignsConcept: 'bb939282-3ca7-4c26-9f52-79c01719c276',
+  warningSignsAnswers: [
+    '2442b56b-4c2a-4855-ba0a-c30153c28793', // Petechiae
+    'b19d153f-4dde-4eb0-92fa-3434d82a5943', // Agitation or lethargy
+    '56ea8f6e-07a7-44b3-a422-046ca7617a39', // Mucosal bleeding
+    'b2583e99-7b07-48c8-a8ca-691f70031a41', // Persistent vomiting
+    '1f168818-b2da-489b-9113-a0a1108436d0', // Severe abdominal pain
+    '15a5c6b0-d535-4e53-9a30-54469822d291', // Fluid accumulation (lungs or abdomen)
+  ],
+};
+
+function mapF68(encounter, events, state) {
+  const formMap = state.formMaps[encounter.form.uuid];
+  if (!formMap) return [];
+
+  const { programStage } = formMap;
+  const existingEvent = events?.find((e) => e.programStage === programStage);
+
+  const dataValues = [];
+
+  // Warning signs parent (I4ftnXcPClh):
+  //   TRUE if any specific warning sign is selected (any answer other than 'None of the above')
+  const warningSignsObs = encounter.obs.filter(
+    (o) => o.concept.uuid === F68_CONFIG.warningSignsConcept
+  );
+  const hasWarningSign = warningSignsObs.some(
+    (o) => F68_CONFIG.warningSignsAnswers.includes(o.value.uuid)
+  );
+  if (hasWarningSign) {
+    dataValues.push({ dataElement: 'I4ftnXcPClh', value: 'true' });
+  }
+
+  return [
+    {
+      programStage,
+      event: existingEvent?.event,
+      dataValues,
+    },
+  ];
+}
+
+const F69_CONFIG = {
+  treatmentConcept: 'd6081b93-291a-4349-a1c7-8a11e7326de1',
+  noneAnswer: '68297667-f4d1-4e5d-9cb3-5c95f283f762',
+  otherTreatmentAnswers: [
+    '309ded30-b62e-4c5e-b55f-5b2a44c56e68', // Other antibiotics
+    '94c7cc7e-8279-48e7-86c3-597f47405cb5', // Antifungal
+    '6551dc1e-f8db-469c-9929-93c334178390', // Other treatments
+  ],
+};
+
+function mapF69(encounter, events, state) {
+  const formMap = state.formMaps[encounter.form.uuid];
+  if (!formMap) return [];
+
+  const { programStage } = formMap;
+  const existingEvent = events?.find((e) => e.programStage === programStage);
+
+  const dataValues = [];
+
+  // Always TRUE — "Are there data to record" (Zd2WqtxnDI9)
+  dataValues.push({ dataElement: 'Zd2WqtxnDI9', value: 'TRUE' });
+
+  // Treatment parent (RZ6xnHzHH5J):
+  //   TRUE  if any non-None answer selected
+  //   FALSE if only None selected
+  const treatmentAnswers = encounter.obs.filter(
+    (o) => o.concept.uuid === F69_CONFIG.treatmentConcept
+  );
+  const hasNonNone = treatmentAnswers.some(
+    (o) => o.value.uuid !== F69_CONFIG.noneAnswer
+  );
+  const hasNone = treatmentAnswers.some(
+    (o) => o.value.uuid === F69_CONFIG.noneAnswer
+  );
+  if (hasNonNone || hasNone) {
+    dataValues.push({
+      dataElement: 'RZ6xnHzHH5J',
+      value: hasNonNone ? 'TRUE' : 'FALSE',
+    });
+  }
+
+  // Other treatment required (L003PVb0q56):
+  //   TRUE if Other antibiotics OR Antifungal OR Other treatments selected
+  const hasOtherTreatment = F69_CONFIG.otherTreatmentAnswers.some((uuid) =>
+    treatmentAnswers.some((o) => o.value.uuid === uuid)
+  );
+  if (hasOtherTreatment) {
+    dataValues.push({ dataElement: 'L003PVb0q56', value: 'TRUE' });
+  }
+
+  return [
+    {
+      programStage,
+      event: existingEvent?.event,
+      dataValues,
+    },
+  ];
+}
 
 // Combining events and exit events
 fn((state) => {
