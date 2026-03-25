@@ -602,6 +602,53 @@ function f66(encounter, state) {
   return mappings;
 }
 
+function f67(tei, dhis2Map) {
+  const birthdate = tei?.attributes?.find(
+    (attr) => attr.attribute === dhis2Map.attr.birthdate
+  )?.value;
+
+  // Calculate patient age in months from birthdate
+  let ageInMonths = null;
+  if (birthdate) {
+    const birth = new Date(birthdate);
+    const now = new Date();
+    const diffTime = Math.abs(now - birth);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    ageInMonths = Math.floor(diffDays / 30.44);
+  }
+
+  // Base attribute mappings
+  const attributeMap = {
+    KVIidg9rDcd: dhis2Map.attr.patientNumber, // Cholera - Patient number
+    j5tAuXutbsp: dhis2Map.attr.sex, // Cholera - Sex
+    EX28AP1WI0B: dhis2Map.attr.placeOfliving, // Cholera - Place of living
+  };
+  const mapping = mapAttribute(tei.attributes, attributeMap);
+
+  // Conditional age mapping based on patient age
+  if (ageInMonths !== null) {
+    if (ageInMonths > 23) {
+      // Age > 23 months: use age in years
+      const ageInYears = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.ageInYears
+      )?.value;
+      if (ageInYears) {
+        mapping.push({ dataElement: "KfrcDYB9Axf", value: ageInYears });
+      }
+    } else if (ageInMonths >= 1 && ageInMonths <= 23) {
+      // Age >= 1 month and <= 23 months: use age in months
+      const ageInMonthsValue = tei?.attributes?.find(
+        (attr) => attr.attribute === dhis2Map.attr.ageInMonth
+      )?.value;
+      if (ageInMonthsValue) {
+        mapping.push({ dataElement: "SmJJ7aBGe4e", value: ageInMonthsValue });
+      }
+    }
+  }
+
+  return mapping;
+}
+
 function mapAttribute(attributes, attributeMap) {
   const attrMapping = Object.entries(attributeMap)
     .map(([dataElement, attributeId]) => {
@@ -633,6 +680,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   const f64Uuid = formIdByName("F64-ICU Admission", state.formMaps);
   const f65Uuid = formIdByName("F65-ICU Discharge", state.formMaps);
   const f66Uuid = formIdByName("F66-Snakebites", state.formMaps);
+  const f67Uuid = formIdByName("F67-Cholera", state.formMaps);
   const f61Uuid = formIdByName("F61-Travel medicine", state.formMaps);
 
   let formMapping = [];
@@ -1003,6 +1051,12 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       }
 
       formMapping.push(...f66AttributeMapping);
+    }
+
+    if (f67Uuid === encounter.form.uuid) {
+      // F67 Form Encounter Mapping - Cholera Outbreaks
+      const f67Mapping = f67(tei, dhis2Map);
+      formMapping.push(...f67Mapping);
     }
   });
 
