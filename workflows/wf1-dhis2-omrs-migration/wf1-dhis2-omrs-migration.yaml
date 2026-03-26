@@ -42,16 +42,16 @@ steps:
         condition: |
           state.uniqueTeis.length > 0 && !state.errors
         label: has-teis
-      validate-teis-with-omrs-id:
-        disabled: false
-        condition: |
-          !state.errors && state. teisWithOMRSID.length > 0
-        label: has-teisWithOMRSID
       alert-admin-of-duplicate-teis:
         disabled: false
         condition: |
           state.duplicatePatients.length > 0 && !state.errors
         label: has-duplicate-patients
+      validate-teis-with-omrs-id:
+        disabled: false
+        condition: |
+          !state.errors && state. teisWithOMRSID.length > 0
+        label: has-teisWithOMRSID
   - id: update-teis
     name: Update Teis
     adaptor: "@openfn/language-dhis2@5.0.1"

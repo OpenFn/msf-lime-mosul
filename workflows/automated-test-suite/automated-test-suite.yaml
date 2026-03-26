@@ -22,7 +22,6 @@ steps:
   - id: read-test-cases-from-google-sheet
     name: Read test cases from Google Sheet
     adaptor: "@openfn/language-googlesheets@latest"
-    configuration: justin@openfn.org|Justin-GSheets-Sandbox
     expression: ./read-test-cases-from-google-sheet.js
     next:
       get-inputs-from-github:
@@ -31,7 +30,6 @@ steps:
   - id: trigger-workflow
     name: Trigger Workflow
     adaptor: "@openfn/language-http@7.2.7"
-    configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./trigger-workflow.js
     next:
       capture-actual-output:

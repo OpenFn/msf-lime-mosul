@@ -12,19 +12,18 @@ steps:
     adaptor: "@openfn/language-common@2.1.1"
     expression: ./custom-logic-for-events.js
     next:
+      populate-outcomes-in-test-suite:
+        disabled: false
+        condition: "!state.errors && state.testMode"
+        label: is-test
       create-events:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
         label: has-events
-      populate-outcomes-in-test-suite:
-        disabled: false
-        condition: "!state.errors && state.testMode"
-        label: is-test
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./get-encounters.js
     next:
       get-teis-and-map-answers:
@@ -35,7 +34,6 @@ steps:
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
     adaptor: "@openfn/language-common@3.2.2"
-    configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./get-mappings-from-collection.js
     next:
       get-encounters:
@@ -51,7 +49,6 @@ steps:
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./get-patients.js
     next:
       get-mappings-from-collection:
@@ -60,7 +57,6 @@ steps:
   - id: get-teis-and-map-answers
     name: Get TEIs and Map Answers
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-teis-and-map-answers.js
     next:
       custom-logic-for-events:
@@ -71,7 +67,6 @@ steps:
   - id: populate-outcomes-in-test-suite
     name: Populate Outcomes in Test Suite
     adaptor: "@openfn/language-googlesheets@4.0.8"
-    configuration: justin@openfn.org|Justin-GSheets-Sandbox
     expression: ./populate-outcomes-in-test-suite.js
   - id: prepare-tests
     name: Prepare Tests
@@ -84,7 +79,6 @@ steps:
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./upsert-teis.js
     next:
       get-encounters:
@@ -94,7 +88,7 @@ steps:
         label: has-patient-uuids
   - id: webhook
     type: webhook
-    enabled: true
+    enabled: false
     next:
       prepare-tests:
         disabled: false

@@ -44,15 +44,15 @@ steps:
     adaptor: "@openfn/language-common@2.1.1"
     expression: ./event-mappings.js
     next:
+      missing-optionsets:
+        disabled: false
+        condition: "!state.errors && state.missingOptsets.length > 0"
+        label: missing-opts
       create-events:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         label: has-events
-      missing-optionsets:
-        disabled: false
-        condition: "!state.errors && state.missingOptsets.length > 0"
-        label: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -70,15 +70,15 @@ steps:
     configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-parent-and-child-teis.js
     next:
-      create-child-teis:
-        disabled: false
-        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
-        label: has-child-teis-to-create
       event-mappings:
         disabled: false
         condition: "!state.errors && Object.keys(state?.childTeisToCreate).length === 0
           && state?.existingTeis"
         label: has-existing-teis
+      create-child-teis:
+        disabled: false
+        condition: "!state.errors && Object.keys(state?.childTeisToCreate).length > 0"
+        label: has-child-teis-to-create
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -94,16 +94,16 @@ steps:
     configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./mappings.js
     next:
-      get-encounters:
-        disabled: false
-        condition: |
-          !state.errors && state.patients.length === 0
-        label: has-no-patients
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
         label: has-patients
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        label: has-no-patients
   - id: missing-optionsets
     name: Missing OptionSets
     adaptor: "@openfn/language-googlesheets@4.0.7"
