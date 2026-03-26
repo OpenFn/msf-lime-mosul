@@ -493,7 +493,7 @@ workflows:
       Missing-OptionSets:
         name: Missing OptionSets
         adaptor: '@openfn/language-googlesheets@4.0.8'
-        credential: null
+        credential: mtuchi@openfn.org-mtuchi-gsheet
         body: |
           // Only run if there are missing option sets to report
           fn((state) => {
@@ -646,19 +646,19 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
-      Get-Mappings-from-Collection->Upsert-TEIs:
-        source_job: Get-Mappings-from-Collection
-        target_job: Upsert-TEIs
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
         condition_type: js_expression
-        condition_label: has-patients
+        condition_label: has-patient-uuids
         condition_expression: |
-          state.patients.length > 0 && !state.errors
+          state.patientUuids.length > 0 && !state.errors
 
         enabled: true
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
+      Get-Patients->Get-Mappings-from-Collection:
+        source_job: Get-Patients
+        target_job: Get-Mappings-from-Collection
+        condition_type: on_job_success
         enabled: true
       Get-TEIs-and-Map-Answers->Custom-Logic-for-Events:
         source_job: Get-TEIs-and-Map-Answers
@@ -669,18 +669,18 @@ workflows:
           state.TEIs && !state.errors
 
         enabled: true
-      Get-Patients->Get-Mappings-from-Collection:
-        source_job: Get-Patients
-        target_job: Get-Mappings-from-Collection
-        condition_type: on_job_success
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
         enabled: true
-      Get-Encounters->Get-TEIs-and-Map-Answers:
-        source_job: Get-Encounters
-        target_job: Get-TEIs-and-Map-Answers
+      Get-Mappings-from-Collection->Upsert-TEIs:
+        source_job: Get-Mappings-from-Collection
+        target_job: Upsert-TEIs
         condition_type: js_expression
-        condition_label: has-encounters
+        condition_label: has-patients
         condition_expression: |
-          !state.errors && state?.encountersPatientUuids?.length > 0
+          state.patients.length > 0 && !state.errors
 
         enabled: true
       Get-Tie->Custom-Logic-for-Events:
@@ -692,13 +692,13 @@ workflows:
           state.testMode
 
         enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
         condition_type: js_expression
-        condition_label: has-patient-uuids
+        condition_label: has-encounters
         condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
+          !state.errors && state?.encountersPatientUuids?.length > 0
 
         enabled: true
       Custom-Logic-for-Events->Missing-OptionSets:
