@@ -2352,9 +2352,9 @@ fn((state) => {
           }
         })
         .filter(
-          ({ dataElement, value }) =>
-            value &&
-            !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(dataElement)
+          (dv) =>
+            dv?.value &&
+            !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(dv?.dataElement)
         );
 
       const customMapping = [

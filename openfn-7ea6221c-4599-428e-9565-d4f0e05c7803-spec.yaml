@@ -7,6 +7,12 @@ credentials:
   aisha@openfn.org-MSF-OMRS-admin:
     name: MSF OMRS admin
     owner: aisha@openfn.org
+  justin@openfn.org-Justin-GSheets:
+    name: Justin-GSheets
+    owner: justin@openfn.org
+  justin@openfn.org-Justin-OpenFn:
+    name: Justin-OpenFn
+    owner: justin@openfn.org
   mtuchi@openfn.org-MSF-DHIS2-UAT:
     name: MSF DHIS2 UAT
     owner: mtuchi@openfn.org
@@ -19,8 +25,8 @@ credentials:
   mtuchi@openfn.org-mtuchi-collections-config:
     name: mtuchi-collections-config
     owner: mtuchi@openfn.org
-  mtuchi@openfn.org-mtuchi-github-token:
-    name: mtuchi-github-token
+  mtuchi@openfn.org-mtuchi-gsheet:
+    name: mtuchi-gsheet
     owner: mtuchi@openfn.org
 workflows:
   wf1-dhis2-omrs-migration:
@@ -368,6 +374,15 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
       Get-Patients->Get-Mappings-from-Collection:
         source_job: Get-Patients
         target_job: Get-Mappings-from-Collection
@@ -412,14 +427,5 @@ workflows:
         condition_label: has-encounters
         condition_expression: |
           !state.errors && state?.encountersPatientUuids?.length > 0
-
-        enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
 
         enabled: true

@@ -249,7 +249,7 @@ create(
 );
 fn((state) => {
   const {
-    data,
+    //data,
     response,
     references,
     patients,
