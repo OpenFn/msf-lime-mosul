@@ -66,7 +66,7 @@ const findlatestAnswer = (encounters, conceptUuid) => {
 fn((state) => {
   const {
     encounters,
-    childTeis,
+    existingTeis,
     parentTeis,
     program,
     orgUnit,
@@ -77,6 +77,8 @@ fn((state) => {
     eventsMapping,
     formUuids,
     references,
+    data,
+    response,
     ...next
   } = state;
 
@@ -94,12 +96,14 @@ fn((state) => {
 
   const genderUpdated = latestGenderUpdate
     .map((answer) => {
-      const chilProgram = formMaps[answer.formUuid].programId;
-      const childOrgUnit = formMaps[answer.formUuid].orgUnit;
-      const personUuid = answer.person.uuid;
+      const chilProgram = formMaps[answer.formUuid]?.programId;
+      const childOrgUnit = formMaps[answer.formUuid]?.orgUnit;
+      const personUuid = answer?.person?.uuid;
       const parentTei = parentTeis[personUuid]?.trackedEntity;
+
       const childTei =
-        childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`].trackedEntity;
+        existingTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
+          ?.trackedEntity;
 
       const mappings = [];
       const sharedMapping = {
@@ -147,12 +151,12 @@ fn((state) => {
   // console.log({ latestEducationUpdate })
   const educationUpdated = latestEducationUpdate
     .map((answer) => {
-      const chilProgram = formMaps[answer.formUuid].programId;
-      const childOrgUnit = formMaps[answer.formUuid].orgUnit;
+      const chilProgram = formMaps[answer.formUuid]?.programId;
+      const childOrgUnit = formMaps[answer.formUuid]?.orgUnit;
       const personUuid = answer.person.uuid;
       const parentTei = parentTeis[personUuid]?.trackedEntity;
       const childTei =
-        childTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
+        existingTeis[`${childOrgUnit}-${chilProgram}-${personUuid}`]
           ?.trackedEntity;
       console.log({ parentTei, childTei });
       const mappings = [];
@@ -199,7 +203,7 @@ fn((state) => {
   };
 });
 
-fnIf(
-  (state) => state.teisToUpdate.length === 0,
-  ({ lastRunDateTime }) => ({ lastRunDateTime })
-);
+// fnIf(
+//   (state) => state.teisToUpdate.length === 0,
+//   ({ lastRunDateTime }) => ({ lastRunDateTime })
+// );

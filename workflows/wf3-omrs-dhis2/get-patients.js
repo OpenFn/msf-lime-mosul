@@ -55,7 +55,8 @@ fn((state) => {
         removeNulls(p)
       );
       const { dateCreated } = auditInfo;
-      const { age, birthdate, gender, names, addresses, attributes } = person;
+      const { age, birthdate, gender, names, preferredAddress, attributes } =
+        person;
 
       return {
         uuid,
@@ -64,7 +65,7 @@ fn((state) => {
           birthdate,
           gender,
           names,
-          addresses: [addresses.find((a) => a.cityVillage)],
+          preferredAddress,
           attributes,
         },
         identifiers,
@@ -134,11 +135,13 @@ fn((state) => {
     patients,
     searchPatientUuids,
     encounterPatientUuids,
+    testMode,
   } = state;
 
-  if (state.testMode) {
+  if (testMode) {
     return {
       cursor,
+      testMode,
       lastRunDateTime,
       patients,
       patientUuids: [...new Set(searchPatientUuids)],
@@ -163,5 +166,5 @@ fn((state) => {
   console.log("R4/Encounter only", onlyInR4Encounter.length);
   console.log("searchPatient() + R4/Encounter Uuids", patientUuids.length);
 
-  return { cursor, lastRunDateTime, patients, patientUuids };
+  return { cursor, lastRunDateTime, patients, patientUuids, testMode };
 });

@@ -44,5 +44,4 @@ create(
     },
   }
 );
-fn(({ data, lastRunDateTime }) => ({ data,
-lastRunDateTime }));
+fn(({ lastRunDateTime }) => ({ lastRunDateTime }));

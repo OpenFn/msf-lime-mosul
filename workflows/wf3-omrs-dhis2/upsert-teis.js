@@ -88,8 +88,9 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
 
   const patientMap = formMaps.patient.dataValueMap;
   const statusAttrMaps = Object.keys(patientMap).map((d) => {
+    const attrTypeUuid = patientMap[d].split("::")[0];
     const attrValue = findAttrValue(
-      patientMap[d],
+      attrTypeUuid,
       omrsPatient.person.attributes
     );
     return {
@@ -139,19 +140,23 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
       value: omrsPatient.person.birthdate?.slice(0, 10),
     },
     {
-      attribute: dhis2Map.attr.placeOflivingMap,
-      value: placeOflivingMap[omrsPatient.person?.addresses[0]?.cityVillage],
+      attribute: dhis2Map.attr.placeOfliving,
+      value:
+        placeOflivingMap[omrsPatient.person?.preferredAddress?.cityVillage],
     },
   ];
 
   //filter out attributes that don't have a value from dhis2
   const filteredAttr = standardAttr.filter((a) => a.value);
   const filteredStatusAttr = statusAttrMaps.filter((a) => a.value);
-
+  const genderAttr = {
+    attribute: dhis2Map.attr.sex,
+    value: genderMap[omrsPatient.person.gender],
+  };
   const payload = {
     program,
     orgUnit,
-    attributes: [...filteredAttr, ...filteredStatusAttr],
+    attributes: [...filteredAttr, ...filteredStatusAttr, genderAttr],
   };
   // console.log('mapped dhis2 payloads:: ', JSON.stringify(payload, null, 2));
   const enrollments = [
@@ -166,11 +171,6 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
   if (!patientTei) {
     payload.trackedEntityType = "cHlzCA2MuEF";
 
-    payload.attributes.push({
-      attribute: dhis2Map.attr.sex,
-      value: genderMap[omrsPatient.person.gender],
-    });
-    // console.log("create enrollment");
     payload.enrollments = enrollments;
   }
 
@@ -179,6 +179,7 @@ const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
     payload.trackedEntityType = patientTei.trackedEntityType;
   }
 
+  console.log({ payload });
   return payload;
 };
 
@@ -249,7 +250,7 @@ create(
 );
 fn((state) => {
   const {
-    //data,
+    data,
     response,
     references,
     patients,

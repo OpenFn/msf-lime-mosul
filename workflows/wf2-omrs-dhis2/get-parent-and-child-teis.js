@@ -75,6 +75,7 @@ fn((state) => {
     const patientUuid = obj.patient.uuid;
     const orgUnit = state.formMaps[formUuid]?.orgUnit;
     const program = state.formMaps[formUuid]?.programId;
+    const programStage = state.formMaps[formUuid]?.programStage;
     const relationshipType = state.formMaps[formUuid]?.relationshipId;
     const encounterKey = `${orgUnit}-${program}`;
     const parentKey = `${state.orgUnit}-${state.program}`;
@@ -84,6 +85,7 @@ fn((state) => {
           orgUnit,
           program,
           relationshipType,
+          programStage,
           patientUuids: [patientUuid],
         };
       }
@@ -113,7 +115,7 @@ each(
     };
   })
     .then((state) => {
-      const { orgUnit, program, patientUuids, relationshipType } =
+      const { orgUnit, program, patientUuids, relationshipType, programStage } =
         state.references.at(-1);
 
       patientUuids.forEach((patientUuid) => {
@@ -145,6 +147,7 @@ each(
             trackedEntityType: parentTei?.trackedEntityType || "cHlzCA2MuEF",
             enrollments: [
               {
+                programStage,
                 orgUnit,
                 program,
                 enrolledAt: new Date().toISOString().split("T")[0],
@@ -155,6 +158,7 @@ each(
                 ),
               },
             ],
+
             attributes: parentTei?.attributes || [],
             orgUnit,
             program,
@@ -171,7 +175,8 @@ each(
 );
 
 fn((state) => {
-  const { currChildTeis, parentTeis, ...next } = state;
+  const { data, references, response, currChildTeis, ...next } = state;
+  const parentTeis = next.parentTeis;
   next.existingTeis = { ...currChildTeis, ...parentTeis };
   return next;
 });

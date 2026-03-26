@@ -8,8 +8,8 @@ const dhis2Map = {
     omrsPatientUuid: "AYbfTPYMNJH", //"OpenMRS Patient UID"
     ageInYears: "T1iX2NuPyqS",
     birthdate: "WDp4nVor9Z7",
-    placeOflivingMap: "rBtrjV1Mqkz", //Place of living
-    nationalityAttr: "Xvzc9e0JJmp", //"Nationality"
+    placeOfliving: "rBtrjV1Mqkz", //Place of living
+    nationality: "Xvzc9e0JJmp", //"Nationality"
     sex: "qptKDiv9uPl",
     currentStatus: "YUIQIA2ClN6",
     legalStatus: "Qq6xQ2s6LO8",

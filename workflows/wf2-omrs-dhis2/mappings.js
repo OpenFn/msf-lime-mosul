@@ -8,7 +8,7 @@ const dhis2Map = {
     omrsPatientUuid: "AYbfTPYMNJH", //"OpenMRS Patient UID"
     ageInYears: "T1iX2NuPyqS",
     birthdate: "WDp4nVor9Z7",
-    placeOflivingMap: "rBtrjV1Mqkz", //Place of living
+    placeOfliving: "rBtrjV1Mqkz", //Place of living
     sex: "qptKDiv9uPl",
   },
   de: {
@@ -79,7 +79,7 @@ const dhis2Map = {
       contracepition: "b6dGoMJm1jO",
       pregnancyMethod: "clnZXAAKStw",
       isReadmission: "SjNE9mM7Yu4",
-      ncdEventDate: "IgRurcU3NO7",
+
       diabetesTypeI: "onGHyvZ2RmZ",
       diabetesTypeII: "E9BaT4zG4J4",
       gestationalDiabetes: "iFvba0J2evJ",
@@ -108,7 +108,7 @@ const dhis2Map = {
       ifOtherSpecialistType3: "NYEmxR8LW75",
       otherNCD: "n36Fq9tLoWJ",
     },
-
+    ncdEventDate: "IgRurcU3NO7",
     extremistFootExam: "gPplT1Gk1uB",
     hba1cValue: "QJXo4pwCxJR",
     totalCholesterolValue: "YAkbJFXtTFU",
@@ -137,7 +137,7 @@ const isValidUUID = (id) => {
   return UUID_PATTERN.test(id);
 };
 
-collections.get("mosul-metadata-mappings-main").then((state) => {
+collections.get("mosul-metadata-mappings-staging").then((state) => {
   state.optsMap = state.data
     .filter((i) => i.key.includes("optsMap-value-"))
     .map((i) => i.value);
@@ -170,7 +170,7 @@ collections.get("mosul-metadata-mappings-main").then((state) => {
 });
 
 fn((state) => {
-  const { formMetadata, identifiers, ...rest } = state;
+  const { formMetadata, identifiers, data, references, ...rest } = state;
 
   rest.v2FormUuids = formMetadata
     .filter(

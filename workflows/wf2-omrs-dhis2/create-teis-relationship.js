@@ -66,3 +66,8 @@ each(
 
 // Creating relationship between parent and child tei
 each($.relationshipsToCreate || [], create("relationships", $.data));
+
+fn((state) => {
+  const { data, references, response, ...next } = state;
+  return next;
+});

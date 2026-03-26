@@ -195,6 +195,138 @@ workflows:
         body:
           path: workflows/wf2-omrs-dhis2/create-child-teis.js
 
+      Missing-OptionSets:
+        name: Missing OptionSets
+        adaptor: '@openfn/language-googlesheets@4.0.7'
+        credential: mtuchi@openfn.org-mtuchi-gsheet
+        body: |
+          // Only run if there are missing option sets to report
+          fn((state) => {
+            const CHUNK_SIZE = 10000;
+            const missingOptsets = state.missingOptsets;
+
+            const headers = [
+              "Timestamp",
+              "OpenMRS Question",
+              "Concept External ID",
+              "Answer Display",
+              "Answer UUID",
+              "DHIS2 DE UID",
+              "DHIS2 OptionSet UID",
+              "Metadata Form",
+              "Encounter UUID",
+              "Patient UUID",
+              "Source File",
+            ];
+
+            const allRows = missingOptsets.map((opt) => [
+              opt.timestamp,
+              opt.openMrsQuestion,
+              opt.conceptExternalId,
+              opt.answerDisplay,
+              opt.answerValueUuid,
+              opt.dhis2DataElementUid,
+              opt.dhis2OptionSetUid,
+              opt.metadataFormName,
+              opt.encounterUuid,
+              opt.patientUuid,
+              opt.sourceFile,
+            ]);
+
+            state.allRows = allRows;
+            state.headers = headers;
+
+            return state;
+          });
+
+          // Get existing data to check for duplicates
+          getValues(
+            "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
+            "Missing OptionSets Mappings"
+          );
+
+          // Filter duplicates and prepare chunks
+          const CHUNK_SIZE = 10000;
+          fn((state) => {
+            const allRows = state.allRows;
+
+            // Get existing data (skip header row)
+            const existingData = state.data?.values?.slice(1) || [];
+
+            // Create a Set of unique keys from existing data
+            // Key format: conceptExternalId|answerUuid|dhis2DeUid|encounterUuid
+            const existingKeys = new Set(
+              existingData.map(row => `${row[2]}|${row[4]}|${row[5]}|${row[8]}`)
+            );
+
+            // Filter out duplicates
+            const newRows = allRows.filter(row => {
+              const key = `${row[2]}|${row[4]}|${row[5]}|${row[8]}`;
+              return !existingKeys.has(key);
+            });
+
+            console.log(`Total errors found: ${allRows.length}`);
+            console.log(`New unique errors to add: ${newRows.length}`);
+            console.log(`Duplicates filtered out: ${allRows.length - newRows.length}`);
+
+            const chunks = [];
+            for (let i = 0; i < newRows.length; i += CHUNK_SIZE) {
+              chunks.push(newRows.slice(i, i + CHUNK_SIZE));
+            }
+
+            const nextRow = existingData.length + 2; // +2 for header and 1-indexing
+
+            state.chunks = chunks;
+            state.nextRow = nextRow;
+            state.newRowCount = newRows.length;
+
+            return state;
+          });
+
+          // Append data chunks (will add after existing rows)
+          each(
+            (state) => state.chunks,
+            batchUpdateValues({
+              spreadsheetId: "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
+              range: (state) => {
+                const currentChunkIndex = state.index;
+                const startRow = state.nextRow + (currentChunkIndex * CHUNK_SIZE);
+                return `Missing OptionSets Mappings!A${startRow}`;
+              },
+              values: (state) => state.data,
+            })
+          );
+
+          // Log summary statistics
+          fn((state) => {
+            if (state.missingOptsets && state.missingOptsets.length > 0) {
+              const totalErrors = state.missingOptsets.length;
+              const uniqueOptionSets = new Set(
+                state.missingOptsets.map((opt) => opt.dhis2OptionSetUid),
+              ).size;
+              const uniqueDataElements = new Set(
+                state.missingOptsets.map((opt) => opt.dhis2DataElementUid),
+              ).size;
+
+              const googleSheetUrl =
+                "https://docs.google.com/spreadsheets/d/13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k/edit#gid=0";
+
+              console.log("");
+              console.log("⚠️  Missing DHIS2 Option Codes Detected");
+              console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+              console.log(`Metadata File: ${state.sourceFile}`);
+              console.log(`Total Errors: ${totalErrors}`);
+              console.log(`Affected Option Sets: ${uniqueOptionSets}`);
+              console.log(`Affected Data Elements: ${uniqueDataElements}`);
+              console.log(`View Details: ${googleSheetUrl}`);
+              console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+              console.log("");
+            } else {
+              console.log("✅ No missing DHIS2 Option Codes detected");
+            }
+
+            return { lastRunDateTime: state.lastRunDateTime };
+          });
     triggers:
       cron:
         type: cron
@@ -242,15 +374,6 @@ workflows:
           state?.teisToUpdate?.length > 0
 
         enabled: true
-      Get-Encounters->Get-Parent-and-Child-TEIs:
-        source_job: Get-Encounters
-        target_job: Get-Parent-and-Child-TEIs
-        condition_type: js_expression
-        condition_label: has-encounters
-        condition_expression: |
-          !state.errors && state.encounters.length > 0
-
-        enabled: true
       Get-Patients->Mappings:
         source_job: Get-Patients
         target_job: Mappings
@@ -283,6 +406,15 @@ workflows:
         target_job: Event-Mappings
         condition_type: on_job_success
         enabled: true
+      Get-Encounters->Get-Parent-and-Child-TEIs:
+        source_job: Get-Encounters
+        target_job: Get-Parent-and-Child-TEIs
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state.encounters?.length > 0
+
+        enabled: true
       Get-Parent-and-Child-TEIs->Event-Mappings:
         source_job: Get-Parent-and-Child-TEIs
         target_job: Event-Mappings
@@ -290,6 +422,14 @@ workflows:
         condition_label: has-existing-teis
         condition_expression: |
           !state.errors && Object.keys(state?.childTeisToCreate).length === 0 && state?.existingTeis
+        enabled: true
+      Event-Mappings->Missing-OptionSets:
+        source_job: Event-Mappings
+        target_job: Missing-OptionSets
+        condition_type: js_expression
+        condition_label: missing-opts
+        condition_expression: |
+          !state.errors && state.missingOptsets.length > 0
         enabled: true
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
@@ -350,6 +490,138 @@ workflows:
         body:
           path: workflows/wf3-omrs-dhis2/get-tie.js
 
+      Missing-OptionSets:
+        name: Missing OptionSets
+        adaptor: '@openfn/language-googlesheets@4.0.8'
+        credential: null
+        body: |
+          // Only run if there are missing option sets to report
+          fn((state) => {
+            const CHUNK_SIZE = 10000;
+            const missingOptsets = state.missingOptsets;
+
+            const headers = [
+              "Timestamp",
+              "OpenMRS Question",
+              "Concept External ID",
+              "Answer Display",
+              "Answer UUID",
+              "DHIS2 DE UID",
+              "DHIS2 OptionSet UID",
+              "Metadata Form",
+              "Encounter UUID",
+              "Patient UUID",
+              "Source File",
+            ];
+
+            const allRows = missingOptsets.map((opt) => [
+              opt.timestamp,
+              opt.openMrsQuestion,
+              opt.conceptExternalId,
+              opt.answerDisplay,
+              opt.answerValueUuid,
+              opt.dhis2DataElementUid,
+              opt.dhis2OptionSetUid,
+              opt.metadataFormName,
+              opt.encounterUuid,
+              opt.patientUuid,
+              opt.sourceFile,
+            ]);
+
+            state.allRows = allRows;
+            state.headers = headers;
+
+            return state;
+          });
+
+          // Get existing data to check for duplicates
+          getValues(
+            "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
+            "Missing OptionSets Mappings"
+          );
+
+          // Filter duplicates and prepare chunks
+          const CHUNK_SIZE = 10000;
+          fn((state) => {
+            const allRows = state.allRows;
+
+            // Get existing data (skip header row)
+            const existingData = state.data?.values?.slice(1) || [];
+
+            // Create a Set of unique keys from existing data
+            // Key format: conceptExternalId|answerUuid|dhis2DeUid|encounterUuid
+            const existingKeys = new Set(
+              existingData.map(row => `${row[2]}|${row[4]}|${row[5]}|${row[8]}`)
+            );
+
+            // Filter out duplicates
+            const newRows = allRows.filter(row => {
+              const key = `${row[2]}|${row[4]}|${row[5]}|${row[8]}`;
+              return !existingKeys.has(key);
+            });
+
+            console.log(`Total errors found: ${allRows.length}`);
+            console.log(`New unique errors to add: ${newRows.length}`);
+            console.log(`Duplicates filtered out: ${allRows.length - newRows.length}`);
+
+            const chunks = [];
+            for (let i = 0; i < newRows.length; i += CHUNK_SIZE) {
+              chunks.push(newRows.slice(i, i + CHUNK_SIZE));
+            }
+
+            const nextRow = existingData.length + 2; // +2 for header and 1-indexing
+
+            state.chunks = chunks;
+            state.nextRow = nextRow;
+            state.newRowCount = newRows.length;
+
+            return state;
+          });
+
+          // Append data chunks (will add after existing rows)
+          each(
+            (state) => state.chunks,
+            batchUpdateValues({
+              spreadsheetId: "13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k",
+              range: (state) => {
+                const currentChunkIndex = state.index;
+                const startRow = state.nextRow + (currentChunkIndex * CHUNK_SIZE);
+                return `Missing OptionSets Mappings!A${startRow}`;
+              },
+              values: (state) => state.data,
+            })
+          );
+
+          // Log summary statistics
+          fn((state) => {
+            if (state.missingOptsets && state.missingOptsets.length > 0) {
+              const totalErrors = state.missingOptsets.length;
+              const uniqueOptionSets = new Set(
+                state.missingOptsets.map((opt) => opt.dhis2OptionSetUid),
+              ).size;
+              const uniqueDataElements = new Set(
+                state.missingOptsets.map((opt) => opt.dhis2DataElementUid),
+              ).size;
+
+              const googleSheetUrl =
+                "https://docs.google.com/spreadsheets/d/13yjqiejKFf6HlNCvgfgaKNi9Gffhq22RUTwXKUPR36k/edit#gid=0";
+
+              console.log("");
+              console.log("⚠️  Missing DHIS2 Option Codes Detected");
+              console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+              console.log(`Metadata File: ${state.sourceFile}`);
+              console.log(`Total Errors: ${totalErrors}`);
+              console.log(`Affected Option Sets: ${uniqueOptionSets}`);
+              console.log(`Affected Data Elements: ${uniqueDataElements}`);
+              console.log(`View Details: ${googleSheetUrl}`);
+              console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
+              console.log("");
+            } else {
+              console.log("✅ No missing DHIS2 Option Codes detected");
+            }
+
+            return { lastRunDateTime: state.lastRunDateTime };
+          });
     triggers:
       cron:
         type: cron
@@ -362,7 +634,7 @@ workflows:
         condition_type: js_expression
         condition_label: has-events
         condition_expression: |
-          state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
+          state?.eventsMapping?.length > 0 && !state.errors
 
         enabled: true
       Get-Mappings-from-Collection->Get-Encounters:
@@ -374,19 +646,19 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
+      Get-Mappings-from-Collection->Upsert-TEIs:
+        source_job: Get-Mappings-from-Collection
+        target_job: Upsert-TEIs
         condition_type: js_expression
-        condition_label: has-patient-uuids
+        condition_label: has-patients
         condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
+          state.patients.length > 0 && !state.errors
 
         enabled: true
-      Get-Patients->Get-Mappings-from-Collection:
-        source_job: Get-Patients
-        target_job: Get-Mappings-from-Collection
-        condition_type: on_job_success
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
         enabled: true
       Get-TEIs-and-Map-Answers->Custom-Logic-for-Events:
         source_job: Get-TEIs-and-Map-Answers
@@ -397,18 +669,18 @@ workflows:
           state.TEIs && !state.errors
 
         enabled: true
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
+      Get-Patients->Get-Mappings-from-Collection:
+        source_job: Get-Patients
+        target_job: Get-Mappings-from-Collection
+        condition_type: on_job_success
         enabled: true
-      Get-Mappings-from-Collection->Upsert-TEIs:
-        source_job: Get-Mappings-from-Collection
-        target_job: Upsert-TEIs
+      Get-Encounters->Get-TEIs-and-Map-Answers:
+        source_job: Get-Encounters
+        target_job: Get-TEIs-and-Map-Answers
         condition_type: js_expression
-        condition_label: has-patients
+        condition_label: has-encounters
         condition_expression: |
-          state.patients.length > 0 && !state.errors
+          !state.errors && state?.encountersPatientUuids?.length > 0
 
         enabled: true
       Get-Tie->Custom-Logic-for-Events:
@@ -420,12 +692,20 @@ workflows:
           state.testMode
 
         enabled: true
-      Get-Encounters->Get-TEIs-and-Map-Answers:
-        source_job: Get-Encounters
-        target_job: Get-TEIs-and-Map-Answers
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
         condition_type: js_expression
-        condition_label: has-encounters
+        condition_label: has-patient-uuids
         condition_expression: |
-          !state.errors && state?.encountersPatientUuids?.length > 0
+          state.patientUuids.length > 0 && !state.errors
 
+        enabled: true
+      Custom-Logic-for-Events->Missing-OptionSets:
+        source_job: Custom-Logic-for-Events
+        target_job: Missing-OptionSets
+        condition_type: js_expression
+        condition_label: missing-opts
+        condition_expression: |
+          "!state.errors && state.missingOptsets.length > 0"
         enabled: true
