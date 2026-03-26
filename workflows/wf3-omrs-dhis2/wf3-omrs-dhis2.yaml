@@ -6,10 +6,11 @@ steps:
   - id: create-events
     name: Create Events
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./create-events.js
   - id: cron
     type: cron
+    enabled: true
     next:
       get-patients:
         disabled: false
@@ -22,39 +23,43 @@ steps:
       create-events:
         disabled: false
         condition: |
-          state?.eventsMapping?.length > 0 && !state.errors && !state.testMode
-        name: has-events
+          state?.eventsMapping?.length > 0 && !state.errors
+        label: has-events
+      missing-optionsets:
+        disabled: false
+        condition: '"!state.errors && state.missingOptsets.length > 0"'
+        label: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
+    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./get-encounters.js
     next:
       get-teis-and-map-answers:
         disabled: false
         condition: |
           !state.errors && state?.encountersPatientUuids?.length > 0
-        name: has-encounters
+        label: has-encounters
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
     adaptor: "@openfn/language-common@2.3.0"
-    configuration: 90cddfa1-9b77-4625-a812-2a04d061522c
+    configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./get-mappings-from-collection.js
     next:
       get-encounters:
         disabled: false
         condition: |
           !state.errors && state.patients.length === 0
-        name: has-no-patients
+        label: has-no-patients
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
-        name: has-patients
+        label: has-patients
   - id: get-patients
     name: Get Patients
     adaptor: "@openfn/language-openmrs@4.3.0"
-    configuration: efd2a233-caf8-4346-bc0c-6a25c24e1a08
+    configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./get-patients.js
     next:
       get-mappings-from-collection:
@@ -63,33 +68,38 @@ steps:
   - id: get-teis-and-map-answers
     name: Get TEIs and Map Answers
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-teis-and-map-answers.js
     next:
       custom-logic-for-events:
         disabled: false
         condition: |
           state.TEIs && !state.errors
-        name: has-teis
+        label: has-teis
   - id: get-tie
     name: Get Tie
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-tie.js
     next:
       custom-logic-for-events:
         disabled: false
         condition: |
           state.testMode
-        name: test-mode
+        label: test-mode
+  - id: missing-optionsets
+    name: Missing OptionSets
+    adaptor: "@openfn/language-googlesheets@4.0.8"
+    configuration: mtuchi@openfn.org|mtuchi-gsheet
+    expression: ./missing-optionsets.js
   - id: upsert-teis
     name: Upsert TEIs
     adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: 448e46cd-482d-4cb5-88f9-b413cdd7ff3f
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./upsert-teis.js
     next:
       get-encounters:
         disabled: false
         condition: |
           state.patientUuids.length > 0 && !state.errors
-        name: has-patient-uuids
+        label: has-patient-uuids
