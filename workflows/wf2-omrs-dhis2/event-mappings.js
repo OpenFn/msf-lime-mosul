@@ -360,7 +360,7 @@ const buildExitEvent = (encounter, tei, state) => {
   return exitEvents;
 };
 
-function mapF13(encounter, optsMap) {
+function mapF13(encounter, state) {
   if (encounter.form.name.includes("F13-PNC")) {
     const answers = encounter.obs.filter(
       (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
@@ -378,13 +378,32 @@ function mapF13(encounter, optsMap) {
     // Only add mappings for answers that exist
     return mappingConfig.map((config) => {
       if (answers[config.index] !== undefined) {
+        const value = state.optsMap.find(
+          (o) =>
+            o["value.uuid - External ID"] ===
+              answers[config.index]?.value?.uuid &&
+            o["DHIS2 Option Set UID"] === "lOD0K3UhiN2"
+        )?.["DHIS2 Option Code"];
+
+        if (!value) {
+          state.missingOptsets.push({
+            timestamp: new Date().toISOString(),
+            openMrsQuestion: answers[config.index]?.concept?.display || "N/A",
+            conceptExternalId: answers[config.index]?.concept?.uuid,
+            answerDisplay: answers[config.index]?.value?.display,
+            answerValueUuid: answers[config.index]?.value?.uuid,
+            dhis2DataElementUid: dataElement,
+            dhis2OptionSetUid: "N/A",
+            metadataFormName: encounter.form.name || encounter.form.uuid,
+            encounterUuid: encounter.uuid,
+            patientUuid: encounter.patient.uuid,
+            sourceFile: state.sourceFile,
+            optionKey: "N/A",
+          });
+        }
         return {
           dataElement: config.dataElement,
-          value: optsMap.find(
-            (o) =>
-              o["value.display - Answers"] ===
-              answers[config.index]?.value?.display
-          )?.["DHIS2 Option Code"],
+          value,
         };
       }
     });
@@ -2644,7 +2663,7 @@ fn((state) => {
 
       const multiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
       const customMapping = [
-        mapF13(encounter, state.optsMap),
+        mapF13(encounter, state),
         mapF18(encounter, state.encounters),
         mapF16(encounter),
         mapF17(encounter),
@@ -2784,14 +2803,14 @@ const mergeEvents = (events) => {
 };
 
 const F68_CONFIG = {
-  warningSignsConcept: 'bb939282-3ca7-4c26-9f52-79c01719c276',
+  warningSignsConcept: "bb939282-3ca7-4c26-9f52-79c01719c276",
   warningSignsAnswers: [
-    '2442b56b-4c2a-4855-ba0a-c30153c28793', // Petechiae
-    'b19d153f-4dde-4eb0-92fa-3434d82a5943', // Agitation or lethargy
-    '56ea8f6e-07a7-44b3-a422-046ca7617a39', // Mucosal bleeding
-    'b2583e99-7b07-48c8-a8ca-691f70031a41', // Persistent vomiting
-    '1f168818-b2da-489b-9113-a0a1108436d0', // Severe abdominal pain
-    '15a5c6b0-d535-4e53-9a30-54469822d291', // Fluid accumulation (lungs or abdomen)
+    "2442b56b-4c2a-4855-ba0a-c30153c28793", // Petechiae
+    "b19d153f-4dde-4eb0-92fa-3434d82a5943", // Agitation or lethargy
+    "56ea8f6e-07a7-44b3-a422-046ca7617a39", // Mucosal bleeding
+    "b2583e99-7b07-48c8-a8ca-691f70031a41", // Persistent vomiting
+    "1f168818-b2da-489b-9113-a0a1108436d0", // Severe abdominal pain
+    "15a5c6b0-d535-4e53-9a30-54469822d291", // Fluid accumulation (lungs or abdomen)
   ],
 };
 
@@ -2809,11 +2828,11 @@ function mapF68(encounter, events, state) {
   const warningSignsObs = encounter.obs.filter(
     (o) => o.concept.uuid === F68_CONFIG.warningSignsConcept
   );
-  const hasWarningSign = warningSignsObs.some(
-    (o) => F68_CONFIG.warningSignsAnswers.includes(o.value.uuid)
+  const hasWarningSign = warningSignsObs.some((o) =>
+    F68_CONFIG.warningSignsAnswers.includes(o.value.uuid)
   );
   if (hasWarningSign) {
-    dataValues.push({ dataElement: 'I4ftnXcPClh', value: 'true' });
+    dataValues.push({ dataElement: "I4ftnXcPClh", value: "true" });
   }
 
   return [
@@ -2826,12 +2845,12 @@ function mapF68(encounter, events, state) {
 }
 
 const F69_CONFIG = {
-  treatmentConcept: 'd6081b93-291a-4349-a1c7-8a11e7326de1',
-  noneAnswer: '68297667-f4d1-4e5d-9cb3-5c95f283f762',
+  treatmentConcept: "d6081b93-291a-4349-a1c7-8a11e7326de1",
+  noneAnswer: "68297667-f4d1-4e5d-9cb3-5c95f283f762",
   otherTreatmentAnswers: [
-    '309ded30-b62e-4c5e-b55f-5b2a44c56e68', // Other antibiotics
-    '94c7cc7e-8279-48e7-86c3-597f47405cb5', // Antifungal
-    '6551dc1e-f8db-469c-9929-93c334178390', // Other treatments
+    "309ded30-b62e-4c5e-b55f-5b2a44c56e68", // Other antibiotics
+    "94c7cc7e-8279-48e7-86c3-597f47405cb5", // Antifungal
+    "6551dc1e-f8db-469c-9929-93c334178390", // Other treatments
   ],
 };
 
@@ -2845,7 +2864,7 @@ function mapF69(encounter, events, state) {
   const dataValues = [];
 
   // Always TRUE — "Are there data to record" (Zd2WqtxnDI9)
-  dataValues.push({ dataElement: 'Zd2WqtxnDI9', value: 'TRUE' });
+  dataValues.push({ dataElement: "Zd2WqtxnDI9", value: "TRUE" });
 
   // Treatment parent (RZ6xnHzHH5J):
   //   TRUE  if any non-None answer selected
@@ -2861,8 +2880,8 @@ function mapF69(encounter, events, state) {
   );
   if (hasNonNone || hasNone) {
     dataValues.push({
-      dataElement: 'RZ6xnHzHH5J',
-      value: hasNonNone ? 'TRUE' : 'FALSE',
+      dataElement: "RZ6xnHzHH5J",
+      value: hasNonNone ? "TRUE" : "FALSE",
     });
   }
 
@@ -2872,7 +2891,7 @@ function mapF69(encounter, events, state) {
     treatmentAnswers.some((o) => o.value.uuid === uuid)
   );
   if (hasOtherTreatment) {
-    dataValues.push({ dataElement: 'L003PVb0q56', value: 'TRUE' });
+    dataValues.push({ dataElement: "L003PVb0q56", value: "TRUE" });
   }
 
   return [
