@@ -31,7 +31,7 @@ function removeNulls(data) {
   return data;
 }
 
-cursor($.lastRunDateTime || "2025-03-20T06:01:24.000Z");
+cursor($.lastRunDateTime || "2026-03-20T06:01:24.000Z");
 
 cursor("today", {
   key: "lastRunDateTime",

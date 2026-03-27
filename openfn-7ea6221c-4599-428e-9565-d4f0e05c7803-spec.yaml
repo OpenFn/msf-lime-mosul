@@ -199,7 +199,7 @@ workflows:
         name: Missing OptionSets
         adaptor: '@openfn/language-googlesheets@4.0.7'
         credential: mtuchi@openfn.org-mtuchi-gsheet
-        body: 
+        body:
           path: workflows/wf2-omrs-dhis2/missing-optionsets.js
     triggers:
       cron:
