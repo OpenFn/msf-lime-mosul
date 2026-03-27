@@ -450,7 +450,9 @@ function f61(encounter, tei, state) {
           o.formFieldPath === "rfe-forms-howDoYouPlanToTravel" &&
           o.value.uuid === "1eff97cc-bec8-4bdf-9022-dc0f2132c260"
         );
-      })?.value?.display,
+      })?.value?.display
+        ? "road"
+        : undefined,
     },
   ].filter((d) => d.value);
 }
