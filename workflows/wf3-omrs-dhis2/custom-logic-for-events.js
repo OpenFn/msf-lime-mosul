@@ -109,8 +109,11 @@ const dataValueByConcept = (encounter, de, state) => {
       state.missingOptsets.push(optSet);
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -208,8 +211,11 @@ const findDataValue = (encounter, dataElement, state) => {
       });
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
