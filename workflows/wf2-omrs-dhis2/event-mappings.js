@@ -2598,6 +2598,7 @@ const EXIT_EVENT_STAGE_IDS = [
   "sBepdVG2c9O", // Social Work exit stage (F59, F60)
   "Otoff7Cj8JQ", // Palliative Care exit stage (F62, F63)
   "ecvF615g1jZ", // NCD exit stage (F50)
+  "zqmLGzSPv3T", // NCDs investigation results stage (F50)
   "tGfMHhweXBX", // HIV exit stage (F52)
   "lhoIy2xFovz", // TB DSTB exit stage (F54)
   "fcgrvRF4OqI", // TB DRTB exit stage (F54)
@@ -2781,33 +2782,6 @@ const deduplicateByLatest = (events, formMaps, exitStageIds) => {
   return result;
 };
 
-const mergeEvents = (events) => {
-  const eventMap = new Map();
-
-  events.forEach((event) => {
-    // Create a unique key based on all properties except dataValues
-    const key = JSON.stringify({
-      program: event.program,
-      orgUnit: event.orgUnit,
-      trackedEntity: event.trackedEntity,
-      enrollment: event.enrollment,
-      occurredAt: event.occurredAt,
-      programStage: event.programStage,
-    });
-
-    if (eventMap.has(key)) {
-      // Merge dataValues if event already exists
-      const existing = eventMap.get(key);
-      existing.dataValues = [...existing.dataValues, ...event.dataValues];
-    } else {
-      // Add new event to map
-      eventMap.set(key, { ...event });
-    }
-  });
-
-  return Array.from(eventMap.values());
-};
-
 const F68_CONFIG = {
   warningSignsConcept: "bb939282-3ca7-4c26-9f52-79c01719c276",
   warningSignsAnswers: [
@@ -2912,7 +2886,6 @@ function mapF69(encounter, events, state) {
 // Combining events and exit events
 fn((state) => {
   const { data, references, response, ...rest } = state;
-  rest.eventsMapping = mergeEvents(rest.eventsMapping);
   rest.eventsMapping = deduplicateByLatest(
     rest.eventsMapping,
     rest.formMaps,
