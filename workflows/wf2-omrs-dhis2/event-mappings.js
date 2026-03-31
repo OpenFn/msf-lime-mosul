@@ -90,10 +90,10 @@ const multiSelectAns = (encounter, multiSelectQns) => {
   return dataValues;
 };
 const toTrueOrFalse = (value) => {
-  if (["true", "yes"].includes(value.toLowerCase())) {
+  if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
     return "true";
   }
-  if (["false", "no"].includes(value.toLowerCase())) {
+  if (["false", "no", "negative"].includes(value?.toLowerCase())) {
     return "false";
   }
   return value;
@@ -161,8 +161,11 @@ const dataValueByConcept = (encounter, de, state) => {
       state.missingOptsets.push(optSet);
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -228,9 +231,11 @@ const findDataValue = (encounter, dataElement, state) => {
         optionKey,
       });
     }
-
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -306,7 +311,7 @@ const buildExitEvent = (encounter, tei, state) => {
     }
   }
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
-    const eventsMap = mapF56(encounter, events);
+    const eventsMap = mapF56(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
@@ -1160,20 +1165,6 @@ function mapF49(encounter, events, state) {
     });
   }
 
-  // 2. Is readmission
-  const admissionTypeObs = encounter.obs.find(
-    (o) => o.concept.uuid === "4dae5b12-070f-4153-b1ca-fbec906106e1"
-  );
-
-  if (admissionTypeObs) {
-    const isReadmission =
-      admissionTypeObs.value?.display?.toLowerCase() === "re-admission";
-    defaultDataValues.push({
-      dataElement: "SjNE9mM7Yu4",
-      value: `${isReadmission}`,
-    });
-  }
-
   // 3. Diagnosis mappings
   F49_CONFIG.diagnosisMappings.forEach((mapping) => {
     const value = mapDiagnosisF49(encounter, mapping, state);
@@ -1952,7 +1943,7 @@ function mapF55(encounter, events, state) {
   ];
 }
 
-function mapF56(encounter, events) {
+function mapF56(encounter, events, state) {
   const event = events?.find((e) => e.programStage === "d5sMByjqQFm")?.event;
 
   return [
@@ -1966,23 +1957,38 @@ function mapF56(encounter, events) {
         },
         {
           dataElement: "WaPztwF7kGN",
-          value: findAnswerByConcept(
+          value: dataValueByConcept(
             encounter,
-            "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
+            {
+              dataElement: "WaPztwF7kGN",
+              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+              questionId: "rfe-forms-typeOfExit",
+            },
+            state
           ),
         },
         {
           dataElement: "Gl1axYBX5gV",
-          value: findAnswerByConcept(
+          value: dataValueByConcept(
             encounter,
-            "0f478fde-1219-4815-9481-f507e8457c38"
+            {
+              dataElement: "Gl1axYBX5gV",
+              conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
+              questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
+            },
+            state
           ),
         },
         {
           dataElement: "psbKn33o6yi",
-          value: findAnswerByConcept(
+          value: dataValueByConcept(
             encounter,
-            "ef0b1e26-411e-40d5-bd98-8762f92c22d0"
+            {
+              dataElement: "psbKn33o6yi",
+              conceptUuid: "ef0b1e26-411e-40d5-bd98-8762f92c22d0",
+              questionId: "rfe-forms-ifReferredProvideTheReason",
+            },
+            state
           ),
         },
       ].filter((d) => d.value),
