@@ -136,10 +136,10 @@ const filterObsByConcept = (encounter, conceptUuid, questionId) => {
 };
 
 const toTrueOrFalse = (value) => {
-  if (["true", "yes"].includes(value.toLowerCase())) {
+  if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
     return "true";
   }
-  if (["false", "no"].includes(value.toLowerCase())) {
+  if (["false", "no", "negative"].includes(value?.toLowerCase())) {
     return "false";
   }
   return value;
@@ -1064,7 +1064,9 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   });
 
   //setting the visitUuid here as a data element
-  const combinedMapping = formMapping.filter(Boolean);
+  const combinedMapping = formMapping.filter(
+    (dv) => dv.value !== undefined && dv.value !== null
+  );
 
   return { dataValues: combinedMapping, eventDate };
 };
