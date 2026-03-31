@@ -1,10 +1,12 @@
-const buildTeiUrl = (baseUrl, { trackedEntity, program, orgUnit }) => {
-  return `${baseUrl}/dhis-web-tracker-capture/index.html#/dashboard?tei=${trackedEntity}&program=${program}&ou=${orgUnit}`;
+const logEventUrl = (baseUrl, objectReports) => {
+  objectReports.forEach((event) => {
+    console.log(`${baseUrl}/api/40/tracker/events/${event.uid}`);
+  });
 };
 
 const buildEventsUrl = (baseUrl, { program, orgUnit }) => {
-  return `${baseUrl}/dhis-web-capture/index.html#/?orgUnitId=${orgUnit}&programId=${program}`
-}
+  return `${baseUrl}/dhis-web-capture/index.html#/?orgUnitId=${orgUnit}&programId=${program}`;
+};
 // Create or update events for each encounter
 create(
   "tracker",
@@ -22,16 +24,11 @@ create(
         return acc;
       }, {});
       Object.entries(groupedEvents).forEach(([key, events]) => {
-        const [trackedEntity, program, orgUnit] = key.split("-");
+        const [program, orgUnit] = key.split("-");
 
-        const teiUrl = buildTeiUrl(baseUrl, {
-          trackedEntity,
-          program,
-          orgUnit,
-        });
-        const eventsUrl = buildEventsUrl(baseUrl, { program, orgUnit })
+        const eventsUrl = buildEventsUrl(baseUrl, { program, orgUnit });
 
-        console.log({ events, teiUrl, eventsUrl });
+        console.log({ events, eventsUrl });
       });
       return state.eventsMapping;
     },
@@ -43,5 +40,14 @@ create(
       importStrategy: "CREATE_AND_UPDATE",
     },
   }
-);
+).then((state) => {
+  const baseUrl = state.configuration.hostUrl;
+  logEventUrl(
+    baseUrl,
+    state.data?.bundleReport?.typeReportMap?.EVENT?.objectReports || []
+  );
+
+  return state;
+});
+
 fn(({ lastRunDateTime }) => ({ lastRunDateTime }));
