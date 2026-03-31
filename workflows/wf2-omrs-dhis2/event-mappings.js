@@ -36,13 +36,13 @@ const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : "FALSE";
+  return answer ? "true" : "false";
 };
 const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid !== valueUuid
   );
-  return answer ? "TRUE" : "FALSE";
+  return answer ? "true" : "false";
 };
 
 const conceptTrueOnly = (encounter, conceptUuid) => {
@@ -51,14 +51,14 @@ const conceptTrueOnly = (encounter, conceptUuid) => {
       o.concept.uuid === conceptUuid &&
       ["yes", "true"].includes(o?.value?.display?.toLowerCase())
   );
-  return answer ? "TRUE" : undefined;
+  return answer ? "true" : undefined;
 };
 
 const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : undefined;
+  return answer ? "true" : undefined;
 };
 
 const multiSelectAns = (encounter, multiSelectQns) => {
@@ -1235,8 +1235,8 @@ function mapF49(encounter, events, state) {
         });
       }
       let value = opt?.["DHIS2 Option Code"];
-      if (["FALSE", "No"].includes(value)) value = "false";
-      else if (["TRUE", "Yes"].includes(value)) value = "true";
+      if (["false", "no"].includes(value?.toLowerCase())) value = "false";
+      else if (["true", "yes"].includes(value?.toLowerCase())) value = "true";
       if (value) defaultDataValues.push({ dataElement: slots[i], value });
     });
   };
@@ -1687,8 +1687,8 @@ function mapF50(encounter, events, state) {
         });
       }
       let value = opt?.["DHIS2 Option Code"];
-      if (["FALSE", "No"].includes(value)) value = "false";
-      else if (["TRUE", "Yes"].includes(value)) value = "true";
+      if (["false", "no"].includes(value?.toLowerCase())) value = "false";
+      else if (["true", "yes"].includes(value?.toLowerCase())) value = "true";
       if (value) defaultDataValues.push({ dataElement: slots[i], value });
     });
   };
@@ -1833,7 +1833,7 @@ function mapF50(encounter, events, state) {
     if (obs && ["yes", "true"].includes(obs?.value?.display?.toLowerCase())) {
       investigationDataValues.push({
         dataElement: mapping.de,
-        value: "TRUE",
+        value: "true",
       });
     }
   });
@@ -2870,7 +2870,7 @@ function mapF69(encounter, events, state) {
   const dataValues = [];
 
   // Always TRUE — "Are there data to record" (Zd2WqtxnDI9)
-  dataValues.push({ dataElement: "Zd2WqtxnDI9", value: "TRUE" });
+  dataValues.push({ dataElement: "Zd2WqtxnDI9", value: "true" });
 
   // Treatment parent (RZ6xnHzHH5J):
   //   TRUE  if any non-None answer selected
@@ -2887,7 +2887,7 @@ function mapF69(encounter, events, state) {
   if (hasNonNone || hasNone) {
     dataValues.push({
       dataElement: "RZ6xnHzHH5J",
-      value: hasNonNone ? "TRUE" : "FALSE",
+      value: hasNonNone ? "true" : "false",
     });
   }
 
@@ -2897,7 +2897,7 @@ function mapF69(encounter, events, state) {
     treatmentAnswers.some((o) => o.value.uuid === uuid)
   );
   if (hasOtherTreatment) {
-    dataValues.push({ dataElement: "L003PVb0q56", value: "TRUE" });
+    dataValues.push({ dataElement: "L003PVb0q56", value: "true" });
   }
 
   return [

@@ -39,13 +39,13 @@ const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : "FALSE";
+  return answer ? "true" : "false";
 };
 const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : undefined;
+  return answer ? "true" : undefined;
 };
 
 const dataValueByConcept = (encounter, de, state) => {
@@ -445,8 +445,8 @@ function f61(encounter, tei, state) {
       value: encounter.obs.some(
         (o) => o.concept.uuid === "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"
       )
-        ? "TRUE"
-        : "FALSE",
+        ? "true"
+        : "false",
     },
     {
       dataElement: "wiOCvUUHUEr",
