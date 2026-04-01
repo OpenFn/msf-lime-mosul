@@ -1,3 +1,7 @@
+const CONCEPTS = {
+  OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
+  OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+};
 const extractAnswerValue = (answer) => {
   if (!answer) return undefined;
   if (typeof answer.value === "string") return answer.value;
@@ -501,10 +505,6 @@ function mapF22(encounter) {
 }
 
 function mapF29(encounter) {
-  const CONCEPTS = {
-    OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
-    OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
-  };
   const mappings = [];
   if (encounter.form.name.includes("F29-MHPSS Baseline")) {
     mappings.push({
@@ -2119,7 +2119,7 @@ function mapF59(encounter, events, state) {
     encounter,
     {
       dataElement: "k64e6bcyPtH",
-      conceptUuid: CONCEPTS.OTHER,
+      conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
       questionId: "rfe-forms-typeOfExitIfOtherSpecify",
     },
     state
@@ -2212,7 +2212,10 @@ function mapF60(encounter, events, state) {
     ].filter((d) => d.value),
   };
 
-  return [defaultEvent, exitEvent];
+  return [
+    defaultEvent,
+    ...(exitEvent.dataValues.length > 0 ? [exitEvent] : []),
+  ];
 }
 
 // F62 Configuration
