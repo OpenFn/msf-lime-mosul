@@ -235,6 +235,7 @@ const findDataValue = (encounter, dataElement, state) => {
         optionKey,
       });
     }
+
     if (matchingOption && type === "boolean") {
       if (["false", "no"].includes(matchingOption.toLowerCase()))
         return "false";
@@ -1856,53 +1857,63 @@ function mapF50(encounter, events, state) {
       });
     }
   });
+  const exitDate = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === "1f473371-613f-4ef3-b297-49eb779ccd27" &&
+      o.formFieldPath === "rfe-forms-exitDate"
+  )?.value;
+
+  const typeOfExitF50 = dataValueByConcept(
+    encounter,
+    {
+      dataElement: dataEl.f50.typeOfExit,
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
+  );
+
+  const ifDefaulterSpecify = dataValueByConcept(
+    encounter,
+    {
+      dataElement: dataEl.f50.ifDefaulterSpecify,
+      conceptUuid: "f50f7325-53ed-45a5-bb41-f0987b296c5f",
+      questionId: "rfe-forms-ifDefaulterSpecify",
+    },
+    state
+  );
+
   return [
     {
       event: defaultEvent,
       programStage,
       dataValues: defaultDataValues.filter((d) => d.value),
     },
-    {
-      event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
-      programStage: "ecvF615g1jZ",
-      dataValues: [
-        {
-          // Row 114: Exit date (Date field)
-          dataElement: dataEl.ncdEventDate,
-          value: encounter.obs.find(
-            (o) =>
-              o.concept.uuid === "1f473371-613f-4ef3-b297-49eb779ccd27" &&
-              o.formFieldPath === "rfe-forms-exitDate"
-          )?.value,
-        },
-        {
-          // Row 115: Type of exit (Coded, option set Gjx599aojCR)
-          dataElement: dataEl.f50.typeOfExit,
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: dataEl.f50.typeOfExit,
-              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
-              questionId: "rfe-forms-typeOfExit",
-            },
-            state
-          ),
-        },
-        {
-          // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
-          dataElement: dataEl.f50.ifDefaulterSpecify,
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: dataEl.f50.ifDefaulterSpecify,
-              conceptUuid: "f50f7325-53ed-45a5-bb41-f0987b296c5f",
-              questionId: "rfe-forms-ifDefaulterSpecify",
-            },
-            state
-          ),
-        },
-      ].filter((d) => d.value),
-    },
+    ...(ifDefaulterSpecify || typeOfExitF50
+      ? [
+          {
+            event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+            programStage: "ecvF615g1jZ",
+            dataValues: [
+              {
+                // Row 114: Exit date (Date field)
+                dataElement: dataEl.ncdEventDate,
+                value: exitDate,
+              },
+              {
+                // Row 115: Type of exit (Coded, option set Gjx599aojCR)
+                dataElement: dataEl.f50.typeOfExit,
+                value: typeOfExitF50,
+              },
+              {
+                // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
+                dataElement: dataEl.f50.ifDefaulterSpecify,
+                value: ifDefaulterSpecify,
+              },
+            ].filter((d) => d.value),
+          },
+        ]
+      : []),
     ...(pregnancyDataValues.length > 0
       ? [
           {
@@ -1944,93 +1955,103 @@ function mapF55(encounter, events, state) {
 }
 
 function mapF56(encounter, events, state) {
+  const typeOfExit = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "WaPztwF7kGN",
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
+  );
+
+  const ifDiscontinuation = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "Gl1axYBX5gV",
+      conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
+      questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
+    },
+    state
+  );
+
+  const ifReferred = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "psbKn33o6yi",
+      conceptUuid: "ef0b1e26-411e-40d5-bd98-8762f92c22d0",
+      questionId: "rfe-forms-ifReferredProvideTheReason",
+    },
+    state
+  );
+
   const event = events?.find((e) => e.programStage === "d5sMByjqQFm")?.event;
 
-  return [
-    {
-      event,
-      programStage: "d5sMByjqQFm",
-      dataValues: [
-        {
-          dataElement: "W450u7KdzUz",
-          value: encounter.encounterDatetime.replace("+0000", ""),
-        },
-        {
-          dataElement: "WaPztwF7kGN",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "WaPztwF7kGN",
-              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
-              questionId: "rfe-forms-typeOfExit",
-            },
-            state
-          ),
-        },
-        {
-          dataElement: "Gl1axYBX5gV",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "Gl1axYBX5gV",
-              conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
-              questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
-            },
-            state
-          ),
-        },
-        {
-          dataElement: "psbKn33o6yi",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "psbKn33o6yi",
-              conceptUuid: "ef0b1e26-411e-40d5-bd98-8762f92c22d0",
-              questionId: "rfe-forms-ifReferredProvideTheReason",
-            },
-            state
-          ),
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  if (typeOfExit || ifDiscontinuation || ifReferred) {
+    return [
+      {
+        event,
+        programStage: "d5sMByjqQFm",
+        dataValues: [
+          {
+            dataElement: "W450u7KdzUz",
+            value: encounter.encounterDatetime.replace("+0000", ""),
+          },
+          {
+            dataElement: "WaPztwF7kGN",
+            value: typeOfExit,
+          },
+          {
+            dataElement: "Gl1axYBX5gV",
+            value: ifDiscontinuation,
+          },
+          {
+            dataElement: "psbKn33o6yi",
+            value: ifReferred,
+          },
+        ].filter((d) => d.value),
+      },
+    ];
+  }
+  return [];
 }
 
 function mapF58(encounter, events, state) {
+  const typeOfExit = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "gn40F7cEQTI",
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
+  );
+
+  const ifDiscontinuation = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "rmYRcxE5I5G",
+      conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
+      questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
+    },
+    state
+  );
+
   const event = events?.find((e) => e.programStage === "Rd73a6zlYEy")?.event;
 
-  return [
-    {
-      event,
-      programStage: "Rd73a6zlYEy",
-      dataValues: [
-        {
-          dataElement: "gn40F7cEQTI",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "gn40F7cEQTI",
-              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
-              questionId: "rfe-forms-typeOfExit",
-            },
-            state
-          ),
-        },
-        {
-          dataElement: "rmYRcxE5I5G",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "rmYRcxE5I5G",
-              conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
-              questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
-            },
-            state
-          ),
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  if (typeOfExit || ifDiscontinuation) {
+    return [
+      {
+        event,
+        programStage: "Rd73a6zlYEy",
+        dataValues: [
+          { dataElement: "gn40F7cEQTI", value: typeOfExit },
+          { dataElement: "rmYRcxE5I5G", value: ifDiscontinuation },
+        ].filter((d) => d.value),
+      },
+    ];
+  }
+  return [];
 }
 
 function mapF59(encounter, events, state) {
@@ -2124,27 +2145,29 @@ function mapF59(encounter, events, state) {
     },
     state
   );
-
-  const exitEvent = {
-    event,
-    programStage: "sBepdVG2c9O",
-    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-    dataValues: [
-      {
-        dataElement: "JvgfNjNklmI",
-        value: dischargeDate,
-      },
-      {
-        dataElement: "LhgHv4gjW18",
-        value: typeOfExit,
-      },
-      {
-        dataElement: "k64e6bcyPtH",
-        value: typeOfExitOther,
-      },
-    ].filter((d) => d.value),
-  };
-  return [defaultEvent, exitEvent];
+  if (typeOfExitOther || typeOfExit) {
+    const exitEvent = {
+      event,
+      programStage: "sBepdVG2c9O",
+      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+      dataValues: [
+        {
+          dataElement: "JvgfNjNklmI",
+          value: dischargeDate,
+        },
+        {
+          dataElement: "LhgHv4gjW18",
+          value: typeOfExit,
+        },
+        {
+          dataElement: "k64e6bcyPtH",
+          value: typeOfExitOther,
+        },
+      ].filter((d) => d.value),
+    };
+    return [defaultEvent, exitEvent];
+  }
+  return [defaultEvent];
 }
 
 function mapF60(encounter, events, state) {
@@ -2156,11 +2179,7 @@ function mapF60(encounter, events, state) {
       : undefined;
   const defaultProgramStage = form?.programStage;
 
-  const dischargeDate = encounter.obs.find(
-    (o) =>
-      o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d" &&
-      o.formFieldPath === "rfe-forms-dateOfDischarge"
-  )?.value;
+  const dischargeDate = encounter.encounterDatetime.split("T")[0];
 
   const typeOfExit = dataValueByConcept(
     encounter,
@@ -2192,30 +2211,29 @@ function mapF60(encounter, events, state) {
     dataValues: [],
   };
 
-  const exitEvent = {
-    event,
-    programStage: "sBepdVG2c9O",
-    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-    dataValues: [
-      {
-        dataElement: "JvgfNjNklmI",
-        value: dischargeDate,
-      },
-      {
-        dataElement: "LhgHv4gjW18",
-        value: typeOfExit,
-      },
-      {
-        dataElement: "k64e6bcyPtH",
-        value: typeOfExitOther,
-      },
-    ].filter((d) => d.value),
-  };
-
-  return [
-    defaultEvent,
-    ...(exitEvent.dataValues.length > 0 ? [exitEvent] : []),
-  ];
+  if (typeOfExit || typeOfExitOther) {
+    const exitEvent = {
+      event,
+      programStage: "sBepdVG2c9O",
+      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+      dataValues: [
+        {
+          dataElement: "JvgfNjNklmI",
+          value: dischargeDate,
+        },
+        {
+          dataElement: "LhgHv4gjW18",
+          value: typeOfExit,
+        },
+        {
+          dataElement: "k64e6bcyPtH",
+          value: typeOfExitOther,
+        },
+      ].filter((d) => d.value),
+    };
+    return [defaultEvent, exitEvent];
+  }
+  return [defaultEvent];
 }
 
 // F62 Configuration
@@ -2330,18 +2348,9 @@ function mapF62(encounter, events, state) {
     dataValues: defaultDataValues,
   };
 
-  // HOSPITALISATION STAGE
+  // HOSPITALISATION STAGE — collect obs-based values first
   const hospitalisationDataValues = [];
 
-  // Add time data element
-  if (encounter.encounterDatetime) {
-    hospitalisationDataValues.push({
-      dataElement: F62_CONFIG.hospitalisationStage.timeDataElement,
-      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
-    });
-  }
-
-  // Add simple values
   F62_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
     const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
@@ -2369,6 +2378,14 @@ function mapF62(encounter, events, state) {
       });
     }
   });
+
+  // Add time data element only when obs-based values exist
+  if (hospitalisationDataValues.length > 0 && encounter.encounterDatetime) {
+    hospitalisationDataValues.unshift({
+      dataElement: F62_CONFIG.hospitalisationStage.timeDataElement,
+      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
+    });
+  }
 
   const hospitalisationEvent = {
     event:
@@ -2404,7 +2421,11 @@ function mapF62(encounter, events, state) {
     dataValues: exitDataValues,
   };
 
-  return [defaultEvent, hospitalisationEvent, exitEvent];
+  return [
+    defaultEvent,
+    ...(hospitalisationDataValues.length > 0 ? [hospitalisationEvent] : []),
+    ...(exitDataValues.length > 0 ? [exitEvent] : []),
+  ];
 }
 
 // F63 Configuration
@@ -2519,18 +2540,9 @@ function mapF63(encounter, events, state) {
     dataValues: defaultDataValues,
   };
 
-  // HOSPITALISATION STAGE
+  // HOSPITALISATION STAGE — collect obs-based values first
   const hospitalisationDataValues = [];
 
-  // Add time data element
-  if (encounter.encounterDatetime) {
-    hospitalisationDataValues.push({
-      dataElement: F63_CONFIG.hospitalisationStage.timeDataElement,
-      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
-    });
-  }
-
-  // Add simple values
   F63_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
     const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
@@ -2559,6 +2571,14 @@ function mapF63(encounter, events, state) {
       });
     }
   });
+
+  // Add time data element only when obs-based values exist
+  if (hospitalisationDataValues.length > 0 && encounter.encounterDatetime) {
+    hospitalisationDataValues.unshift({
+      dataElement: F63_CONFIG.hospitalisationStage.timeDataElement,
+      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
+    });
+  }
 
   const hospitalisationEvent = {
     event:
@@ -2594,7 +2614,11 @@ function mapF63(encounter, events, state) {
     dataValues: exitDataValues,
   };
 
-  return [defaultEvent, hospitalisationEvent, exitEvent];
+  return [
+    defaultEvent,
+    ...(hospitalisationDataValues.length > 0 ? [hospitalisationEvent] : []),
+    ...(exitDataValues.length > 0 ? [exitEvent] : []),
+  ];
 }
 
 const EXIT_EVENT_STAGE_IDS = [
