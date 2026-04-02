@@ -450,15 +450,25 @@ function f61(encounter, tei, state) {
     },
     {
       dataElement: "wiOCvUUHUEr",
-      value: encounter.obs.find((o) => {
-        return (
-          o.concept.uuid === "d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c" &&
-          o.formFieldPath === "rfe-forms-howDoYouPlanToTravel" &&
-          o.value.uuid === "1eff97cc-bec8-4bdf-9022-dc0f2132c260"
-        );
-      })?.value?.display
-        ? "road"
-        : undefined,
+      value: (() => {
+        const hasTravel = (valueUuid) =>
+          encounter.obs.some(
+            (o) =>
+              o.concept.uuid === "d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c" &&
+              o.formFieldPath === "rfe-forms-howDoYouPlanToTravel" &&
+              o.value?.uuid === valueUuid
+          );
+        const road = hasTravel("1eff97cc-bec8-4bdf-9022-dc0f2132c260");
+        const boat = hasTravel("a31cd4a6-a02b-490b-b913-59cbc8f305f8");
+        const plane = hasTravel("8c5d6c46-1712-483f-91db-c6a9db213c50");
+        if (road && boat && plane) return "road_boat_plane";
+        if (road && boat) return "road_boat";
+        if (road && plane) return "road_plane";
+        if (boat && plane) return "boat_plane";
+        if (road) return "road";
+        if (plane) return "plane";
+        return undefined;
+      })(),
     },
   ].filter((d) => d.value);
 }
@@ -466,20 +476,10 @@ function f61(encounter, tei, state) {
 function f64(encounter) {
   const mappings = [];
 
-  // Admission date and time (Question #1)
-  // Concept: 7f00c65d-de60-467a-8964-fe80c7a85ef0
-  const admissionTime = findObsByConcept(
-    encounter,
-    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  )?.value;
-
-  if (admissionTime) {
-    const timePart = admissionTime.substring(11, 16);
-    mappings.push({
-      dataElement: "KDZguOxdsZk", // ICU - Admission time
-      value: timePart,
-    });
-  }
+  mappings.push({
+    dataElement: "KDZguOxdsZk", // ICU - Admission time
+    value: encounter.encounterDatetime.substring(11, 16),
+  });
 
   return mappings;
 }
