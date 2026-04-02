@@ -1940,6 +1940,7 @@ function mapF55(encounter, events, state) {
   const event = events?.find((e) => e.programStage === programStage)?.event;
 
   const encounterDate = encounter.encounterDatetime.replace("+0000", "");
+
   return [
     {
       event,
@@ -2910,9 +2911,50 @@ function mapF69(encounter, events, state) {
   ];
 }
 
+const mergeEvents = (events) => {
+  const eventMap = new Map();
+
+  events.forEach((event) => {
+    const key = JSON.stringify({
+      program: event.program,
+      orgUnit: event.orgUnit,
+      trackedEntity: event.trackedEntity,
+      enrollment: event.enrollment,
+      occurredAt: event.occurredAt,
+      programStage: event.programStage,
+    });
+
+    if (eventMap.has(key)) {
+      const existing = eventMap.get(key);
+
+      // Prefer a real event UID over undefined
+      existing.event = existing.event ?? event.event;
+
+      // Merge dataValues, skipping any dataElement already present
+      const existingDEs = new Set(
+        existing.dataValues.map((dv) => dv.dataElement)
+      );
+      const newDVs = event.dataValues.filter(
+        (dv) => !existingDEs.has(dv.dataElement)
+      );
+
+      if (newDVs.length > 0) {
+        existing.dataValues = [...existing.dataValues, ...newDVs];
+        console.log(
+          `mergeEvents: merged ${newDVs.length} dataValue(s) into programStage ${event.programStage}`
+        );
+      }
+    } else {
+      eventMap.set(key, { ...event, dataValues: [...event.dataValues] });
+    }
+  });
+
+  return Array.from(eventMap.values());
+};
 // Combining events and exit events
 fn((state) => {
   const { data, references, response, ...rest } = state;
+  rest.eventsMapping = mergeEvents(rest.eventsMapping);
   rest.eventsMapping = deduplicateByLatest(
     rest.eventsMapping,
     rest.formMaps,
