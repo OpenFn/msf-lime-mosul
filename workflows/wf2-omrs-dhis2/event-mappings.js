@@ -1760,7 +1760,7 @@ function mapF50(encounter, events, state) {
   const specialistOtherText = findAnswerByConcept(
     encounter,
     "790b41ce-e1e7-11e8-b02f-0242ac130002",
-    "rfe-forms-specialistIfOtherPleaseSpecify"
+    "rfe-forms-ifOtherSpecialistTypeSpecify"
   );
   if (specialistOtherText) {
     const otherSpecialistSlots = ["u68lzJcSaBa", "PO19ZbOBOO1", "OdrZUtuEaUU"];
@@ -1887,7 +1887,7 @@ function mapF50(encounter, events, state) {
     {
       event: defaultEvent,
       programStage,
-      dataValues: defaultDataValues.filter((d) => d.value),
+      dataValues: defaultDataValues,
     },
     ...(ifDefaulterSpecify || typeOfExitF50
       ? [
@@ -1910,7 +1910,7 @@ function mapF50(encounter, events, state) {
                 dataElement: dataEl.f50.ifDefaulterSpecify,
                 value: ifDefaulterSpecify,
               },
-            ].filter((d) => d.value),
+            ].filter((d) => d?.value != null && d?.value !== ""),
           },
         ]
       : []),
@@ -2010,7 +2010,7 @@ function mapF56(encounter, events, state) {
             dataElement: "psbKn33o6yi",
             value: ifReferred,
           },
-        ].filter((d) => d.value),
+        ].filter((d) => d?.value != null && d?.value !== ""),
       },
     ];
   }
@@ -2048,7 +2048,7 @@ function mapF58(encounter, events, state) {
         dataValues: [
           { dataElement: "gn40F7cEQTI", value: typeOfExit },
           { dataElement: "rmYRcxE5I5G", value: ifDiscontinuation },
-        ].filter((d) => d.value),
+        ].filter((d) => d?.value != null && d?.value !== ""),
       },
     ];
   }
@@ -2083,15 +2083,15 @@ function mapF59(encounter, events, state) {
 
   // Apply custom logic for Type of Income
   // Fill DHIS2 with 'Employment' if the answer is 'Full time job' or 'Part time job'
-  const typeOfIncomeValue = ["full time", "part time"].some((keyword) =>
+  const typeOfIncomeValue = ["full_time", "part_time"].some((keyword) =>
     typeOfIncomeRaw?.toLowerCase()?.includes(keyword)
   )
     ? "Employment"
-    : null;
+    : typeOfIncomeRaw;
 
   // Apply custom logic for Drug Use
   // Fill DHIS2 with 'Yes' if the answer is 'Yes, in the past' or 'Yes, currently'
-  const usedDrugValue = ["in the past", "currently"].some((keyword) =>
+  const usedDrugValue = ["yes_in_the_past", "yes_currently"].some((keyword) =>
     usedDrugRaw?.toLowerCase()?.includes(keyword)
   )
     ? "Yes"
@@ -2112,7 +2112,7 @@ function mapF59(encounter, events, state) {
         dataElement: "Ir0qLWsNv4n",
         value: usedDrugValue,
       },
-    ].filter((d) => d.value),
+    ].filter((d) => d?.value != null && d?.value !== ""),
   };
 
   // Discharge event mappings
@@ -2164,7 +2164,7 @@ function mapF59(encounter, events, state) {
           dataElement: "k64e6bcyPtH",
           value: typeOfExitOther,
         },
-      ].filter((d) => d.value),
+      ].filter((d) => d?.value != null && d?.value !== ""),
     };
     return [defaultEvent, exitEvent];
   }
@@ -2230,7 +2230,7 @@ function mapF60(encounter, events, state) {
           dataElement: "k64e6bcyPtH",
           value: typeOfExitOther,
         },
-      ].filter((d) => d.value),
+      ].filter((d) => d?.value != null && d?.value !== ""),
     };
     return [defaultEvent, exitEvent];
   }
@@ -2622,206 +2622,6 @@ function mapF63(encounter, events, state) {
   ];
 }
 
-const EXIT_EVENT_STAGE_IDS = [
-  "sBepdVG2c9O", // Social Work exit stage (F59, F60)
-  "Otoff7Cj8JQ", // Palliative Care exit stage (F62, F63)
-  "ecvF615g1jZ", // NCD exit stage (F50)
-  "zqmLGzSPv3T", // NCDs investigation results stage (F50)
-  "tGfMHhweXBX", // HIV exit stage (F52)
-  "lhoIy2xFovz", // TB DSTB exit stage (F54)
-  "fcgrvRF4OqI", // TB DRTB exit stage (F54)
-  "d5sMByjqQFm", // HBV exit stage (F56)
-  "Rd73a6zlYEy", // HCV exit stage (F58)
-];
-
-fn((state) => {
-  // Initialize array to track missing DHIS2 Option Codes
-  state.missingOptsets ??= [];
-
-  const handleMissingRecord = (data, state) => {
-    const { uuid, display } = data.patient;
-
-    console.log(uuid, "Patient is missing trackedEntity or enrollment");
-
-    state.missingRecords ??= {};
-    state.missingRecords[uuid] ??= {
-      encounters: [],
-      patient: display,
-    };
-
-    state.missingRecords[uuid].encounters.push(data.uuid);
-  };
-  console.log("Total encounters:", state.encounters.length);
-
-  state.eventsMapping = state.encounters
-    .map((encounter, index) => {
-      console.log(`Processing encounter ${index}:`, encounter.form.uuid);
-
-      const form = state.formMaps[encounter.form.uuid];
-      if (!form?.dataValueMap) {
-        return null;
-      }
-      const program = state.formMaps[encounter.form.uuid].programId;
-      const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
-      const patientOuProgram = `${orgUnit}-${program}-${encounter.patient.uuid}`;
-      const { trackedEntity, enrollments } =
-        state.existingTeis[patientOuProgram] || {};
-      const enrollment = enrollments?.[0]?.enrollment;
-      const events = enrollments?.[0]?.events;
-
-      if (!trackedEntity || !enrollment) {
-        console.log(
-          `❌ Missing TEI data for patient ${encounter.patient.uuid}`
-        );
-
-        handleMissingRecord(encounter, state);
-        return null;
-      }
-      console.log(`✅ Processing encounter ${index} successfully`);
-
-      const formDataElements = Object.keys(form.dataValueMap);
-      let formDataValues = formDataElements
-        .map((dataElement) => {
-          const value = findDataValue(encounter, dataElement, state);
-          if (value !== null && value !== undefined && value !== "") {
-            return { dataElement, value };
-          }
-        })
-        .filter((dv) => {
-          return (
-            dv?.value &&
-            !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(
-              dv?.dataElement
-            )
-          );
-        });
-
-      const multiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
-      const customMapping = [
-        mapF13(encounter, state),
-        mapF18(encounter, state.encounters),
-        mapF16(encounter),
-        mapF17(encounter),
-        mapF29(encounter),
-        mapF22(encounter),
-        mapF37(encounter),
-        mapF38(encounter),
-        mapF30F29(encounter, state.allEncounters),
-        mapF32F31(encounter, state.allEncounters),
-        mapF33F34(encounter, state.allEncounters),
-        mapF40(encounter),
-      ]
-        .filter(Boolean) // Only include non-empty mappings
-        .flat(); // flattening the array
-
-      const latestFormEvent = events.find(
-        (e) => e.programStage === form.programStage
-      )?.event;
-
-      const encounterEvent = events.find(
-        (e) =>
-          e.programStage === form.programStage &&
-          e.occurredAt === encounter.encounterDatetime.replace("+0000", "")
-      )?.event;
-
-      const event =
-        form.syncType === "latest" ? latestFormEvent : encounterEvent;
-      const formEvent = {
-        event,
-        program,
-        orgUnit,
-        trackedEntity,
-        enrollment,
-        occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-        programStage: form.programStage,
-        dataValues: [
-          ...formDataValues,
-          ...customMapping,
-          ...multiSelectDvs,
-        ].filter((d) => d?.value),
-      };
-
-      const exitFormEvents = buildExitEvent(
-        encounter,
-        {
-          program,
-          orgUnit,
-          trackedEntity,
-          enrollment,
-          events,
-        },
-        state
-      );
-
-      const mappings = [
-        formEvent,
-        ...exitFormEvents.map((e) => {
-          return { ...e, dataValues: e.dataValues.filter((d) => d.value) };
-        }),
-      ];
-
-      return mappings;
-    })
-    .flat()
-    .filter(Boolean);
-  console.log("Final eventsMapping length:", state.eventsMapping.length);
-
-  return state;
-});
-
-const deduplicateByLatest = (events, formMaps, exitStageIds) => {
-  // Build programStage -> syncType lookup from formMaps
-  const stageSyncType = {};
-  Object.values(formMaps).forEach((form) => {
-    if (form.programStage) {
-      stageSyncType[form.programStage] = form.syncType;
-    }
-  });
-
-  // Group by (trackedEntity, programStage) to find cross-date duplicates
-  const groups = new Map();
-  events.forEach((event) => {
-    const key = `${event.trackedEntity}||${event.programStage}`;
-    if (!groups.has(key)) groups.set(key, []);
-    groups.get(key).push(event);
-  });
-
-  const result = [];
-  groups.forEach((groupEvents, key) => {
-    const programStage = key.split("||")[1];
-    const isLatest =
-      exitStageIds.includes(programStage) ||
-      stageSyncType[programStage] === "latest";
-
-    if (isLatest && groupEvents.length > 1) {
-      // Keep only the event with the most recent occurredAt
-      const latest = groupEvents.reduce((a, b) =>
-        new Date(a.occurredAt) >= new Date(b.occurredAt) ? a : b
-      );
-      console.log(
-        `Deduplicating programStage ${programStage}: kept 1 of ${groupEvents.length} events (latest)`
-      );
-      result.push(latest);
-    } else {
-      result.push(...groupEvents);
-    }
-  });
-
-  return result;
-};
-
-const F68_CONFIG = {
-  warningSignsConcept: "bb939282-3ca7-4c26-9f52-79c01719c276",
-  warningSignsAnswers: [
-    "2442b56b-4c2a-4855-ba0a-c30153c28793", // Petechiae
-    "b19d153f-4dde-4eb0-92fa-3434d82a5943", // Agitation or lethargy
-    "56ea8f6e-07a7-44b3-a422-046ca7617a39", // Mucosal bleeding
-    "b2583e99-7b07-48c8-a8ca-691f70031a41", // Persistent vomiting
-    "1f168818-b2da-489b-9113-a0a1108436d0", // Severe abdominal pain
-    "15a5c6b0-d535-4e53-9a30-54469822d291", // Fluid accumulation (lungs or abdomen)
-  ],
-};
-
 function mapF68(encounter, events, state) {
   const formMap = state.formMaps[encounter.form.uuid];
   if (!formMap) return [];
@@ -2832,17 +2632,26 @@ function mapF68(encounter, events, state) {
   const dataValues = [];
 
   // Warning signs parent (I4ftnXcPClh):
-  //   TRUE if any specific warning sign is selected (any answer other than 'None of the above')
+  // TRUE if any specific warning sign is selected (any answer other than 'None of the above')
   const warningSignsObs = encounter.obs.filter(
-    (o) => o.concept.uuid === F68_CONFIG.warningSignsConcept
+    (o) =>
+      o.concept.uuid === "bb939282-3ca7-4c26-9f52-79c01719c276" &&
+      o.formFieldPath === "rfe-forms-warningSigns" &&
+      o.value.uuid !== "68297667-f4d1-4e5d-9cb3-5c95f283f762" // None of the above
   );
-  const hasWarningSign = warningSignsObs.some((o) =>
-    F68_CONFIG.warningSignsAnswers.includes(o.value.uuid)
-  );
-  if (hasWarningSign) {
+
+  if (warningSignsObs.length > 0) {
     dataValues.push({ dataElement: "I4ftnXcPClh", value: "true" });
   }
 
+  const hasTreatmentObs = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === "7f490435-ed9e-4de1-85e8-0e52e5ef7318" &&
+      o.formFieldPath === "rfe-forms-treatment"
+  );
+  if (hasTreatmentObs.length > 0) {
+    dataValues.push({ dataElement: "SLnsGkj2o4h", value: "true" });
+  }
   return [
     {
       programStage,
@@ -2910,6 +2719,191 @@ function mapF69(encounter, events, state) {
     },
   ];
 }
+
+const EXIT_EVENT_STAGE_IDS = [
+  "sBepdVG2c9O", // Social Work exit stage (F59, F60)
+  "Otoff7Cj8JQ", // Palliative Care exit stage (F62, F63)
+  "ecvF615g1jZ", // NCD exit stage (F50)
+  "zqmLGzSPv3T", // NCDs investigation results stage (F50)
+  "tGfMHhweXBX", // HIV exit stage (F52)
+  "lhoIy2xFovz", // TB DSTB exit stage (F54)
+  "fcgrvRF4OqI", // TB DRTB exit stage (F54)
+  "d5sMByjqQFm", // HBV exit stage (F56)
+  "Rd73a6zlYEy", // HCV exit stage (F58)
+];
+
+fn((state) => {
+  // Initialize array to track missing DHIS2 Option Codes
+  state.missingOptsets ??= [];
+
+  const handleMissingRecord = (data, state) => {
+    const { uuid, display } = data.patient;
+
+    console.log(uuid, "Patient is missing trackedEntity or enrollment");
+
+    state.missingRecords ??= {};
+    state.missingRecords[uuid] ??= {
+      encounters: [],
+      patient: display,
+    };
+
+    state.missingRecords[uuid].encounters.push(data.uuid);
+  };
+  console.log("Total encounters:", state.encounters.length);
+
+  state.eventsMapping = state.encounters
+    .map((encounter, index) => {
+      console.log(`Processing encounter ${index}:`, encounter.form.uuid);
+
+      const form = state.formMaps[encounter.form.uuid];
+      if (!form?.dataValueMap) {
+        return null;
+      }
+      const program = state.formMaps[encounter.form.uuid].programId;
+      const orgUnit = state.formMaps[encounter.form.uuid].orgUnit;
+      const patientOuProgram = `${orgUnit}-${program}-${encounter.patient.uuid}`;
+      const { trackedEntity, enrollments } =
+        state.existingTeis[patientOuProgram] || {};
+      const enrollment = enrollments?.[0]?.enrollment;
+      const events = enrollments?.[0]?.events;
+
+      if (!trackedEntity || !enrollment) {
+        console.log(
+          `❌ Missing TEI data for patient ${encounter.patient.uuid}`
+        );
+
+        handleMissingRecord(encounter, state);
+        return null;
+      }
+      console.log(`✅ Processing encounter ${index} successfully`);
+
+      const formDataElements = Object.keys(form.dataValueMap);
+      let formDataValues = formDataElements
+        .map((dataElement) => {
+          const value = findDataValue(encounter, dataElement, state);
+
+          if (value !== null && value !== undefined && value !== "") {
+            return { dataElement, value };
+          }
+        })
+        .filter((dv) => {
+          return (
+            dv?.value != null &&
+            dv?.value !== "" &&
+            !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(
+              dv?.dataElement
+            )
+          );
+        });
+
+      const multiSelectDvs = multiSelectAns(encounter, form.multiSelectQns);
+      const customMapping = [
+        mapF13(encounter, state),
+        mapF18(encounter, state.encounters),
+        mapF16(encounter),
+        mapF17(encounter),
+        mapF29(encounter),
+        mapF22(encounter),
+        mapF37(encounter),
+        mapF38(encounter),
+        mapF30F29(encounter, state.allEncounters),
+        mapF32F31(encounter, state.allEncounters),
+        mapF33F34(encounter, state.allEncounters),
+        mapF40(encounter),
+      ]
+        .filter(Boolean) // Only include non-empty mappings
+        .flat(); // flattening the array
+
+      const latestFormEvent = events.find(
+        (e) => e.programStage === form.programStage
+      )?.event;
+
+      const encounterEvent = events.find(
+        (e) =>
+          e.programStage === form.programStage &&
+          e.occurredAt === encounter.encounterDatetime.replace("+0000", "")
+      )?.event;
+
+      const event =
+        form.syncType === "latest" ? latestFormEvent : encounterEvent;
+      const formEvent = {
+        event,
+        program,
+        orgUnit,
+        trackedEntity,
+        enrollment,
+        occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+        programStage: form.programStage,
+        dataValues: [
+          ...formDataValues,
+          ...customMapping,
+          ...multiSelectDvs,
+        ].filter((d) => d?.value != null && d?.value !== ""),
+      };
+
+      const exitFormEvents = buildExitEvent(
+        encounter,
+        {
+          program,
+          orgUnit,
+          trackedEntity,
+          enrollment,
+          events,
+        },
+        state
+      );
+
+      const mappings = [formEvent, ...exitFormEvents];
+
+      return mappings;
+    })
+    .flat()
+    .filter(Boolean);
+  console.log("Final eventsMapping length:", state.eventsMapping.length);
+
+  return state;
+});
+
+const deduplicateByLatest = (events, formMaps, exitStageIds) => {
+  // Build programStage -> syncType lookup from formMaps
+  const stageSyncType = {};
+  Object.values(formMaps).forEach((form) => {
+    if (form.programStage) {
+      stageSyncType[form.programStage] = form.syncType;
+    }
+  });
+
+  // Group by (trackedEntity, programStage) to find cross-date duplicates
+  const groups = new Map();
+  events.forEach((event) => {
+    const key = `${event.trackedEntity}||${event.programStage}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(event);
+  });
+
+  const result = [];
+  groups.forEach((groupEvents, key) => {
+    const programStage = key.split("||")[1];
+    const isLatest =
+      exitStageIds.includes(programStage) ||
+      stageSyncType[programStage] === "latest";
+
+    if (isLatest && groupEvents.length > 1) {
+      // Keep only the event with the most recent occurredAt
+      const latest = groupEvents.reduce((a, b) =>
+        new Date(a.occurredAt) >= new Date(b.occurredAt) ? a : b
+      );
+      console.log(
+        `Deduplicating programStage ${programStage}: kept 1 of ${groupEvents.length} events (latest)`
+      );
+      result.push(latest);
+    } else {
+      result.push(...groupEvents);
+    }
+  });
+
+  return result;
+};
 
 const mergeEvents = (events) => {
   const eventMap = new Map();
