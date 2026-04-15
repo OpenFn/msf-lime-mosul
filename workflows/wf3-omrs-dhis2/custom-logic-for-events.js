@@ -21,6 +21,9 @@ const teiAge = (tei, attr) => {
   return age;
 };
 
+function isPositiveInteger(n) {
+  return Number.isInteger(n) && n > 0;
+}
 const formIdByName = (name, formMaps) => {
   const entry = Object.entries(formMaps).find(([formId, form]) =>
     form.formName.includes(name)
@@ -59,7 +62,14 @@ const dataValueByConcept = (encounter, de, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
+  if (isStringAnswer || (isNumberAnswer && type === "number")) {
     return answer.value;
   }
 
@@ -147,6 +157,7 @@ const toTrueOrFalse = (value) => {
   }
   return value;
 };
+
 const findDataValue = (encounter, dataElement, state) => {
   if (dataElement === "H9noxo3e7ox") {
     return;
@@ -166,7 +177,14 @@ const findDataValue = (encounter, dataElement, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
+  if (isStringAnswer || (isNumberAnswer && type === "number")) {
     return answer.value;
   }
 

@@ -12,6 +12,9 @@ function formatTime(time) {
   return match ? match[1] : null;
 }
 
+function isPositiveInteger(n) {
+  return Number.isInteger(n) && n > 0;
+}
 const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
   if (questionId) {
     const answer = encounter.obs.find(
@@ -114,8 +117,15 @@ const dataValueByConcept = (encounter, de, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
 
-  if (isStringAnswer || isNumberAnswer) {
+  if (isStringAnswer || (isNumberAnswer && type === "number")) {
     return answer.value;
   }
 
@@ -191,7 +201,14 @@ const findDataValue = (encounter, dataElement, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
+  if (isStringAnswer || (isNumberAnswer && type === "number")) {
     return answer.value;
   }
 
