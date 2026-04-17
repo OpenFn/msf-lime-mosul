@@ -58,3 +58,12 @@ In Workflow 2, there is a step to dynamically export mapping specifications from
 
 ## Questions? 
 Contact support@openfn.org for questions or help. 
+
+## MSF Security Contacts
+Michael BONTYES - Michael.BONTYES@geneva.msf.org
+Ludovic ROSSEL - Ludovic.ROSSEL@geneva.msf.org
+Additional Security contacts: 
+Data Protection Compliance Officer: alexandre.baillat@geneva.msf.org
+Information Security Manager: nicolas.kirchhofer@geneva.msf.org
+
+
