@@ -88,7 +88,7 @@ const processAnswer = (answer, question, metadata) => {
       );
     }
 
-    return matchingOption ?? "";
+    return matchingOption;
   }
 
   return answer.value;
@@ -481,7 +481,9 @@ fn((state) => {
         enrollment,
         occurredAt: encounter.encounterDatetime.replace("+0000", ""),
         programStage: form.programStage,
-        dataValues: [...formDataValues, ...customMapping],
+        dataValues: [...formDataValues, ...customMapping].filter(
+        (d) => d.value !== undefined && d.value !== null && d.value !== ""
+      ),
       };
     })
     .filter(Boolean);
