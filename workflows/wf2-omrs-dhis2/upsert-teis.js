@@ -81,20 +81,26 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
 
   const patientMap = formMaps.patient.dataValueMap;
   const piiAttrs = ["Jt9BhFZkvP2", "mVbzW9TVo7r", "fa7uwpCKIwa"]
-  const statusAttrMaps = Object.keys(patientMap).filter((d) => !piiAttrs.includes(d)).map((d) => {
-    const attrTypeUuid = patientMap[d].split("::")[0]
+  const statusAttrMaps = Object.keys(patientMap).filter((d) => !piiAttrs.includes(d)).map((attribute) => {
+    const attrTypeUuid = patientMap[attribute]
     const attrValue = findAttrValue(attrTypeUuid);
-    if (!findOptCode(attrValue)) {
-      console.log(`'Missing OptCode for', ${attrValue}`)
-    }
+    const value = findOptCode(attrValue)
 
-    return {
-      attribute: d,
-      value: findOptCode(attrValue),
-    };
+    if (attrValue && !value) {
+      console.log(`Missing OptCode for: ${attrValue}`)
+    }
+    if (value) {
+      return { attribute, value };
+    }
+    return null
+
   });
 
   const standardAttr = [
+    {
+      attribute: "yfkofnrR4Tf",
+      value: findIdentifierByUuid(omrsPatient.identifiers, "22348099-3873-459e-a32e-d93b17eda533") // Legacy MSF ID
+    },
     {
       attribute: "P4wdYGkldeG", //DHIS2 ID ==> "Patient Number"
       value:
@@ -125,8 +131,8 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
   ];
 
   //filter out attributes that don't have a value from dhis2
-  const filteredAttr = standardAttr.filter((a) => a.value);
-  const filteredStatusAttr = statusAttrMaps.filter((a) => a.value);
+  const filteredAttr = standardAttr.filter((a) => a?.value);
+  const filteredStatusAttr = statusAttrMaps.filter((a) => a?.value);
 
   const payload = {
     query: {
