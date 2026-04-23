@@ -82,6 +82,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
+        cron_cursor_job: Fetch-Metadata
         enabled: false
     edges:
       cron->Fetch-Metadata:
@@ -123,7 +124,7 @@ workflows:
       Get-Patients:
         name: Get Patients
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2-omrs-dhis2/get-patients.js
 
@@ -137,7 +138,7 @@ workflows:
       Get-Encounters:
         name: Get Encounters
         adaptor: '@openfn/language-openmrs@4.3.0'
-        credential: michael.bontyes@geneva.msf.org-openmrs
+        credential: mtuchi@openfn.org-OpenMRS-Demo
         body:
           path: workflows/wf2-omrs-dhis2/get-encounters.js
 
@@ -180,6 +181,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
+        cron_cursor_job: Get-Patients
         enabled: false
     edges:
       Upsert-TEIs->Get-Encounters:
