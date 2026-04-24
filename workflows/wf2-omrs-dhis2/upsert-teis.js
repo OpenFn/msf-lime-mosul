@@ -87,7 +87,7 @@ const buildPatientsUpsert = (omrsPatient, teiData, mappingConfig) => {
     const value = findOptCode(attrValue)
 
     if (attrValue && !value) {
-      console.log(`Missing OptCode for: ${attrValue}`)
+      console.log("Missing OptCode for: ", attrValue)
     }
     if (value) {
       return { attribute, value };
