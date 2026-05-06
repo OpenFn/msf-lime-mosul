@@ -259,7 +259,7 @@ workflows:
       Check-if-Option-Set-and-options-UID-matches:
         name: Check if Option Set and options UID matches
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           fn(state => {
             // Initialize array to track OptionSet UID mismatches
@@ -426,7 +426,7 @@ workflows:
       Check-if-Data-Elements-Exist-in-DHIS2:
         name: Check if Data Elements Exist in DHIS2
         adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: null
+        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
           fn(state => {
 
