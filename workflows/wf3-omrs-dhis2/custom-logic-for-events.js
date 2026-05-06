@@ -555,7 +555,7 @@ function f66(encounter, state) {
 
   const resolveOptionCode = (optionUid) =>
     state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-      "DHIS2 Option Code"
+    "DHIS2 Option Code"
     ];
 
   // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
@@ -1095,6 +1095,21 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   return { dataValues: combinedMapping, eventDate };
 };
 
+const handleMissingRecord = (patientKey, state) => {
+  const [orgUnit, program, programStage, patientUuid, visitUuid] =
+    patientKey.split(":");
+  console.log("Missing trackedEntity for patient", {
+    patientUuid,
+    orgUnit,
+    program,
+    programStage,
+    visitUuid,
+  });
+
+  state.missingRecords ??= {};
+  state.missingRecords[patientKey] = state.pairedEncounters[patientKey];
+};
+
 fn((state) => {
   state.missingOptsets ??= [];
 
@@ -1111,12 +1126,17 @@ fn((state) => {
   }, {});
 
   state.pairedEncounters = pairedEncounters;
-  state.eventsMapping = Object.entries(pairedEncounters).map(
-    ([patientKey, patientEncounters]) => {
+  state.eventsMapping = Object.entries(pairedEncounters)
+    .map(([patientKey, patientEncounters]) => {
       const [orgUnit, program, programStage, patientUuid] =
         patientKey.split(":");
 
       const tei = state.TEIs[patientUuid];
+
+      if (!tei?.trackedEntity || !tei?.enrollment) {
+        handleMissingRecord(patientKey, state);
+        return null;
+      }
 
       const { dataValues, eventDate: customEventDate } = buildDataValues(
         patientEncounters,
@@ -1158,8 +1178,10 @@ fn((state) => {
         dataValues,
         trackedEntity: tei?.trackedEntity,
       };
-    }
-  );
+    })
+    .flat()
+    .filter(Boolean);
+  console.log("Final eventsMapping length:", state.eventsMapping.length);
 
   return state;
 });
