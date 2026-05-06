@@ -454,7 +454,7 @@ function f61(encounter, tei, state) {
     CeQKylwVj7u: dhis2Map.attr.nationality, // Travel Medicine - Nationality
     vqMs7hmPtFT: dhis2Map.attr.placeOfliving, // Travel Medicine - Place of living
   };
-  const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+  const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
   return [
     ...attributeMapping,
@@ -650,7 +650,7 @@ function f67(tei, dhis2Map) {
     j5tAuXutbsp: dhis2Map.attr.sex, // Cholera - Sex
     EX28AP1WI0B: dhis2Map.attr.placeOfliving, // Cholera - Place of living
   };
-  const mapping = mapAttribute(tei.attributes, attributeMap);
+  const mapping = mapAttribute(tei?.attributes, attributeMap);
 
   // Conditional age mapping based on patient age
   if (ageInMonths !== null) {
@@ -772,7 +772,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         FsL5BjQocuo: dhis2Map.attr.nationality,
         Pi1zytYdq6l: dhis2Map.attr.patientNumber,
       };
-      const f09Mapping = mapAttribute(tei.attributes, attributeMap);
+      const f09Mapping = mapAttribute(tei?.attributes, attributeMap);
       formMapping.push(...f09Mapping);
     }
     if (f61Uuid === encounter.form.uuid) {
@@ -788,7 +788,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         yE0dIWW0TXP: dhis2Map.attr.placeOfliving, // Place of living
         fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
       };
-      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       // Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
       const dob = tei?.attributes?.find(
@@ -827,7 +827,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         Nd43pz1Oo62: dhis2Map.attr.placeOfliving,
         kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
       };
-      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       // Custom mapping for sex and legalStatus (f26 only)
       // Sex: leave blank if value is "unknown" or "other"
@@ -890,7 +890,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         sCKCNreiqEA: dhis2Map.attr.nationality,
         ci9C72RjN8Z: dhis2Map.attr.patientNumber,
       };
-      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       const f28Mapping = [
         {
@@ -924,7 +924,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
         fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
       };
-      const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const f43AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
       // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
       const { dataValues: f43DataValues, eventDate: f43EventDate } = f43(
         encounter,
@@ -966,7 +966,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         OI2H3dEQLdQ: dhis2Map.attr.placeOfliving, // ICU - Place of living
         QiVXQ2eAtpN: dhis2Map.attr.nationality, // ICU - Nationality
       };
-      const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const f64AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       if (sex) {
         const value = sex === "unknown" ? "others" : sex;
@@ -1048,7 +1048,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         ZlONTbktjvX: dhis2Map.attr.sex, // Snakebites - Sex
         XK6Wnp4aBvi: dhis2Map.attr.placeOfliving, // Snakebites - Place of living
       };
-      const f66AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const f66AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       // Conditional age mapping based on patient age
       if (ageInMonths !== null) {
@@ -1134,7 +1134,7 @@ fn((state) => {
 
       const patientNumber = tei?.attributes?.find(
         (a) => a.code === "patient_number"
-      ).value;
+      )?.value;
 
       const visitUuid = latestEncounter.visit.uuid;
       const event = state.eventsByPatient[`${orgUnit}-${program}`]?.[
@@ -1156,7 +1156,7 @@ fn((state) => {
         occurredAt: eventDate,
         programStage,
         dataValues,
-        trackedEntity: tei.trackedEntity,
+        trackedEntity: tei?.trackedEntity,
       };
     }
   );

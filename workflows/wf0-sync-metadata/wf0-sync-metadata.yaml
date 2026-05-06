@@ -1,0 +1,99 @@
+id: wf0-sync-metadata
+name: wf0-sync-metadata
+start: webhook
+options: {}
+steps:
+  - id: add-errors-to-googlesheet
+    name: Add Errors to GoogleSheet
+    adaptor: "@openfn/language-googlesheets@4.0.7"
+    configuration: mtuchi@openfn.org|mtuchi-gsheet
+    expression: ./add-errors-to-googlesheet.js
+  - id: check-if-data-elements-exist-in-dhis2
+    name: Check if Data Elements Exist in DHIS2
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
+    expression: ./check-if-data-elements-exist-in-dhis2.js
+    next:
+      check-if-option-set-and-options-uid-matches:
+        disabled: false
+        condition: on_job_success
+  - id: check-if-option-set-and-options-uid-matches
+    name: Check if Option Set and options UID matches
+    adaptor: "@openfn/language-dhis2@5.0.1"
+    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
+    expression: ./check-if-option-set-and-options-uid-matches.js
+    next:
+      warn-admin-of-errors:
+        disabled: false
+        condition: on_job_success
+  - id: get-metadata-file-from-sharepoint
+    name: Get metadata file from Sharepoint
+    adaptor: "@openfn/language-msgraph@0.7.11"
+    configuration: mtuchi@openfn.org|OpenFnSharepoint
+    expression: ./get-metadata-file-from-sharepoint.js
+    next:
+      map-metadata-file-to-option-set-json-format:
+        disabled: false
+        condition: on_job_success
+  - id: map-metadata-file-to-option-set-json-format
+    name: Map metadata file to option-set Json format
+    adaptor: "@openfn/language-common@2.3.1"
+    expression: ./map-metadata-file-to-option-set-json-format.js
+    next:
+      check-if-data-elements-exist-in-dhis2:
+        disabled: false
+        condition: on_job_success
+      save-option-set-json-to-github:
+        disabled: true
+        condition: on_job_success
+  - id: prepare-mapping-per-sheet
+    name: Prepare Mapping Per Sheet
+    adaptor: "@openfn/language-http@7.2.6"
+    expression: ./prepare-mapping-per-sheet.js
+    next:
+      add-errors-to-googlesheet:
+        disabled: false
+        condition: on_job_success
+  - id: save-option-set-json-to-collections
+    name: Save option-set json to collections
+    adaptor: "@openfn/language-http@7.2.7"
+    expression: ./save-option-set-json-to-collections.js
+  - id: save-option-set-json-to-collections-main
+    name: Save option-set json to collections main
+    adaptor: "@openfn/language-common@latest"
+    expression: ./save-option-set-json-to-collections-main.js
+  - id: save-option-set-json-to-github
+    name: Save option-set json to github
+    adaptor: "@openfn/language-http@6.5.4"
+    expression: ./save-option-set-json-to-github.js
+  - id: throw-errors
+    name: Throw Errors
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./throw-errors.js
+    next:
+      save-option-set-json-to-collections:
+        disabled: true
+        condition: always
+        label: staging-collection
+      save-option-set-json-to-collections-main:
+        disabled: false
+        condition: always
+        label: main-collection
+  - id: warn-admin-of-errors
+    name: Warn admin of errors
+    adaptor: "@openfn/language-common@2.1.1"
+    expression: ./warn-admin-of-errors.js
+    next:
+      throw-errors:
+        disabled: false
+        condition: on_job_success
+      prepare-mapping-per-sheet:
+        disabled: false
+        condition: on_job_success
+  - id: webhook
+    type: webhook
+    enabled: true
+    next:
+      get-metadata-file-from-sharepoint:
+        disabled: false
+        condition: always

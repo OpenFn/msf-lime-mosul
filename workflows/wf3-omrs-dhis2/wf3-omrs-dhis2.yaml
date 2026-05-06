@@ -20,15 +20,15 @@ steps:
     adaptor: "@openfn/language-common@2.1.1"
     expression: ./custom-logic-for-events.js
     next:
+      missing-optionsets:
+        disabled: true
+        condition: '"!state.errors && state.missingOptsets.length > 0"'
+        label: missing-opts
       create-events:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         label: has-events
-      missing-optionsets:
-        disabled: false
-        condition: '"!state.errors && state.missingOptsets.length > 0"'
-        label: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
@@ -76,17 +76,6 @@ steps:
         condition: |
           state.TEIs && !state.errors
         label: has-teis
-  - id: get-tie
-    name: Get Tie
-    adaptor: "@openfn/language-dhis2@5.0.1"
-    configuration: mtuchi@openfn.org|MSF DHIS2 UAT
-    expression: ./get-tie.js
-    next:
-      custom-logic-for-events:
-        disabled: false
-        condition: |
-          state.testMode
-        label: test-mode
   - id: missing-optionsets
     name: Missing OptionSets
     adaptor: "@openfn/language-googlesheets@4.0.8"
