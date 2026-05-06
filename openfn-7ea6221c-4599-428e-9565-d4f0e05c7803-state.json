@@ -52,6 +52,11 @@
       "id": "4a6f5e19-7641-4656-b614-359054ff9a8d",
       "name": "Justin-OpenFn",
       "owner": "justin@openfn.org"
+    },
+    "ludovic.rossel@geneva.msf.org-LIME-OpenFn-Credential": {
+      "id": "0435d46d-1cb1-4411-a8d2-05df39ef695a",
+      "name": "LIME OpenFn Credential",
+      "owner": "ludovic.rossel@geneva.msf.org"
     }
   },
   "collections": {},
@@ -66,7 +71,8 @@
           "enabled": false,
           "id": "836df7a7-d15f-4fc6-8f3d-5bb85c823218",
           "type": "cron",
-          "cron_expression": "0 0 * * *"
+          "cron_expression": "0 0 * * *",
+          "cron_cursor_job_id": "c4616bf4-6a28-4307-8798-d5710dcfc75f"
         }
       },
       "jobs": {
@@ -174,7 +180,8 @@
           "enabled": true,
           "id": "d10691b1-666f-4e0f-8064-40d4ce8fdc32",
           "type": "cron",
-          "cron_expression": "0 0 * * *"
+          "cron_expression": "0 0 * * *",
+          "cron_cursor_job_id": "9cc0cbea-ba1a-4555-83a1-a191944f303e"
         }
       },
       "jobs": {
@@ -378,7 +385,8 @@
           "enabled": true,
           "id": "cd9ea573-fb86-4ec4-8c39-200c7de22dfb",
           "type": "cron",
-          "cron_expression": "0 0 * * *"
+          "cron_expression": "0 0 * * *",
+          "cron_cursor_job_id": "51485ee3-05c2-4690-8da6-9b962b6c19d5"
         }
       },
       "jobs": {
@@ -532,6 +540,180 @@
           "condition_type": "js_expression",
           "condition_label": "missing-opts",
           "condition_expression": "\"!state.errors && state.missingOptsets.length > 0\""
+        }
+      }
+    },
+    "wf0-sync-metadata": {
+      "id": "d7dc8443-a59d-4005-b2da-9f566b295cae",
+      "name": "wf0-sync-metadata",
+      "inserted_at": "2026-05-06T10:10:48.022218Z",
+      "lock_version": 2,
+      "triggers": {
+        "webhook": {
+          "enabled": true,
+          "id": "34509286-032a-48c2-8b2f-222cb3046189",
+          "type": "webhook",
+          "webhook_reply": "before_start"
+        }
+      },
+      "jobs": {
+        "Save-option-set-json-to-collections-main": {
+          "id": "af5756aa-170e-46cd-828e-42fbbb7f0d35",
+          "name": "Save option-set json to collections main",
+          "body": "// Check out the Job Writing Guide for help getting started:\n// https://docs.openfn.org/documentation/jobs/job-writing-guide\n// Cleanup: remove all collections data\ncollections.remove('mosul-metadata-mappings-main', '*');\n\ncollections.set('mosul-metadata-mappings-main', 'syncedAt', $.syncedAt);\ncollections.set('mosul-metadata-mappings-main', 'sourceFile', $.sourceFile);\ncollections.set(\n  'mosul-metadata-mappings-main',\n  'formMetadata',\n  $.formMetadata\n);\ncollections.set(\n  'mosul-metadata-mappings-main',\n  'fileDateModified',\n  $.fileDateModified\n);\n\ncollections.set(\n  'mosul-metadata-mappings-main',\n  'optionSetKey',\n  $.optionSetKey\n);\n\ncollections.set('mosul-metadata-mappings-main', 'formMaps', $.formMaps);\n\ncollections.set(\n  'mosul-metadata-mappings-main',\n  'placeOflivingMap',\n  $.placeOflivingMap\n);\n\nlet itemCount = 0;\ncollections.set(\n  'mosul-metadata-mappings-main',\n  i => `optsMap-value-${++itemCount}`,\n  $.optsMap\n);\n\nitemCount = 0;\ncollections.set(\n  'mosul-metadata-mappings-main',\n  i => `identifiers-value-${++itemCount}`,\n  $.identifiers\n);\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-common@latest"
+        },
+        "Warn-admin-of-errors": {
+          "id": "17590c98-a41e-4a22-873c-416a4d133f03",
+          "name": "Warn admin of errors",
+          "body": "fn(state => {\n \n  const DENameNotMatched = state.DENameNotMatched || [];\n  const OptionUIDNotMatched = state.OptionUIDNotMatched || [];\n  const OptionNameNotMatched = state.OptionNameNotMatched || [];\n\n  // Combine all warning lists into one object\n  const warningSummary = {\n    DENameNotMatched,\n    OptionUIDNotMatched,\n    OptionNameNotMatched,\n  };\n\n  // Check whether we have any warnings\n  const hasWarnings =\n    DENameNotMatched.length > 0 ||\n    OptionUIDNotMatched.length > 0 ||\n    OptionNameNotMatched.length > 0;\n\n  if (hasWarnings) {\n    console.log('******DHIS2 metadata Warnings found:******');\n    console.log(JSON.stringify(warningSummary, null, 2));\n  } else {\n    console.log('No DHIS2 metadata warnings detected.');\n  }\n\n  // Keep the warnings in state \n  state.warningSummary = warningSummary;\n\n  return state;\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-common@2.1.1"
+        },
+        "Throw-Errors": {
+          "id": "960ea99d-0e39-45a0-8ac2-7a3aa5d2688f",
+          "name": "Throw Errors",
+          "body": "fn(state => {\n\n  const DEIdNotFound = state.DEIdNotFound || [];\n  const OptionUIDNotMatched = state.OptionUIDNotMatched || [];\n  const OptionCodeNotMatched = state.OptionCodeNotMatched || [];\n\n\n  const errorSummary = {\n    DEIdNotMatched: DEIdNotFound,\n    OptionUIDNotMatched,\n    OptionCodeNotMatched,\n  };\n\n\n  const hasErrors =\n    DEIdNotFound.length > 0 ||\n    OptionUIDNotMatched.length > 0 ||\n    OptionCodeNotMatched.length > 0;\n\n\n  state.validationErrorSummary = errorSummary;\n\n  if (hasErrors) {\n    // Throw if errors exist\n    const message =\n      '****** Validation errors found in DHIS2 metadata checks:\\n' +\n      JSON.stringify(errorSummary, null, 2);\n\n    throw new Error(message);\n  }\n\n  return state;\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-common@2.1.1"
+        },
+        "Check-if-Option-Set-and-options-UID-matches": {
+          "id": "83124485-a9e8-4b10-8bb1-da37e63b814e",
+          "name": "Check if Option Set and options UID matches",
+          "body": "fn(state => {\n  // Initialize array to track OptionSet UID mismatches\n  state.OptionSetUIDNotMatched = state.OptionSetUIDNotMatched || [];\n\n  // Get the fetched program stage data from previous job\n  const fetchedDataEntryData = state.fetchedDataEntryData || [];\n\n\n  // Process each program stage's data elements\n  fetchedDataEntryData.forEach((programStageData, index) => {\n\n    if (programStageData.programStageDataElements) {\n      programStageData.programStageDataElements.forEach(element => {\n        const dataElementId = element.dataElement.id;\n        const dhis2OptionSetUid = element.dataElement.optionSet?.id;\n\n        // Only validate if the data element has an option set in DHIS2\n        if (dhis2OptionSetUid) {\n          // Find corresponding entry in optsMap using DHIS2 DE UID\n          const optsMapEntry = state.optsMap?.find(opts => opts[\"DHIS2 DE UID\"] === dataElementId);\n\n          if (optsMapEntry) {\n            const xlsOptionSetUid = optsMapEntry[\"DHIS2 Option Set UID\"];\n\n            // Compare OptionSet UIDs\n            if (xlsOptionSetUid && xlsOptionSetUid !== dhis2OptionSetUid) {\n              const errorMessage = `Option Set UID mismatch for Data Element ${dataElementId}: XLS UID '${xlsOptionSetUid}' does not match DHIS2 UID '${dhis2OptionSetUid}'.`;\n\n              state.OptionSetUIDNotMatched.push(errorMessage);\n            }\n          }\n          //  else {\n          //   console.log(`No optsMap entry found for Data Element ${dataElementId}`);\n          // }\n        }\n      });\n    }\n  });\n\n\n  // Group optsMap by DHIS2 Option Set UID\n  const groupedByOptionSet = (state.optsMap || []).reduce((groups, entry) => {\n    const optionSetUid = entry[\"DHIS2 Option Set UID\"];\n\n    if (optionSetUid) {\n      if (!groups[optionSetUid]) {\n        groups[optionSetUid] = [];\n      }\n      groups[optionSetUid].push(entry);\n    }\n    return groups;\n  }, {});\n\n  state.groupedByOptionSet = groupedByOptionSet;\n\n  // Get unique DHIS2 Option Set UIDs for API calls\n  const uniqueOptionSetUids = Object.keys(groupedByOptionSet);\n  state.uniqueOptionSetUids = uniqueOptionSetUids;\n\n  console.log(`OptionSet UID validation complete: ${state.OptionSetUIDNotMatched.length} mismatches found`);\n  return state;\n});\n\n\n// Fetch OptionSets data for each unique DHIS2 Option Set UID\neach(\n  '$.uniqueOptionSetUids[*]',\n  get(\n    state => `optionSets/${state.data}?fields=id,name,options[id,name,code]`)\n    .catch((error, state) => {\n      // ...\n      return state;\n    })\n    .then((state) => {\n\n      // Initialize optionSetsData \n      if (!state.optionSetsData) {\n        state.optionSetsData = {};\n      }\n\n      // Store fetched optionSet data\n      const optionSetUid = state.data.id;\n      state.optionSetsData[optionSetUid] = state.data;\n\n\n      return state;\n    })\n\n);\n\nfn(state => {\n\n  state.OptionUIDNotMatched = state.OptionUIDNotMatched || [];\n  state.OptionNameNotMatched = state.OptionNameNotMatched || [];\n  state.OptionCodeNotMatched = state.OptionCodeNotMatched || [];\n\n  const groupedByOptionSet = state.groupedByOptionSet || {};\n  const optionSetsData = state.optionSetsData || {};\n\n  // For each Option Set UID from the XLS mapping\n  Object.entries(groupedByOptionSet).forEach(([optionSetUid, rows]) => {\n    const optionSet = optionSetsData[optionSetUid];\n\n    if (!optionSet) {\n      // console.log(`No DHIS2 OptionSet data found for UID ${optionSetUid}`);\n      return;\n    }\n\n    // Build a map: option UID -> { name, code } from DHIS2\n    const dhis2OptionsById = new Map(\n      (optionSet.options || [])\n        .filter(opt => opt != null)\n        .map(opt => [\n          opt.id,\n          { name: opt.name, code: opt.code }\n        ])\n    );\n\n    // Compare each XLS row in OptionSet\n    rows.forEach(entry => {\n      const optionUid = entry['DHIS2 Option UID'];\n      const xlsName = entry['DHIS2 Option Name'];\n      const xlsCode = entry['DHIS2 Option Code'];\n\n\n      if (!optionUid) return;\n\n      const dhis2Option = dhis2OptionsById.get(optionUid);\n\n      // 1. Option UID must exist in DHIS2 OptionSet\n      if (!dhis2Option) {\n        const msg = `Option UID ${optionUid} not found in DHIS2 Option Set ${optionSetUid}.`;\n        state.OptionUIDNotMatched.push(msg);\n        return;\n      }\n\n      // 2. Compare names\n      const dhis2Name = dhis2Option.name || '';\n      const xlsNameNorm = (xlsName || '').trim().toLowerCase();\n      const dhis2NameNorm = (dhis2Name || '').trim().toLowerCase();\n\n      if (xlsNameNorm && dhis2NameNorm && xlsNameNorm !== dhis2NameNorm) {\n        const msg = `Option name mismatch for Option UID ${optionUid}: XLS name '${xlsName}' does not match DHIS2 name '${dhis2Name}'.`;\n        state.OptionNameNotMatched.push(msg);\n      }\n\n      // 2. Compare codes\n      const dhis2Code = dhis2Option.code || '';\n      const xlsCodeNorm = (xlsCode || '').trim().toLowerCase();\n      const dhis2CodeNorm = (dhis2Code || '').trim().toLowerCase();\n\n      if (xlsCodeNorm && dhis2CodeNorm && xlsCodeNorm !== dhis2CodeNorm) {\n        const msg = `Option code mismatch for Option UID ${optionUid}: XLS code '${xlsCode}' does not match DHIS2 code '${dhis2Code}'.`;\n        state.OptionCodeNotMatched.push(msg);\n      }\n\n    });\n  });\n\n  return state;\n});\n",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f",
+          "adaptor": "@openfn/language-dhis2@5.0.1"
+        },
+        "Check-if-Data-Elements-Exist-in-DHIS2": {
+          "id": "56a0e300-8b32-45f5-8962-ba456e4e3051",
+          "name": "Check if Data Elements Exist in DHIS2",
+          "body": "fn(state => {\n\n  const programStageIds = Object.values(state.formMaps);\n  state.fetchedDataEntryData = [];\n  state.extractedDataValueMaps = {};\n  state.DEIdNotFound=[];\n    state.DENameNotMatched = [];\n\n  Object.entries(state.formMaps).forEach(([formUuid, values]) => {\n    if (state.formMaps[formUuid] && state.formMaps[formUuid].dataValueMap) {\n      state.extractedDataValueMaps[values.programStage] = {\n        formUuid,\n        dataValueMap: state.formMaps[formUuid].dataValueMap\n      };\n    }\n  });\n\n  return { programStageIds, ...state };\n})\n\neach('$.programStageIds[*]', get(state => `programStages/${state.data.programStage}.json?fields=programStageDataElements[dataElement[id,name,optionSet[id, name]]]`).then(state => {\n\n  state.fetchedDataEntryData.push(state.data)\n  return state\n}))\n\n\nfn(state => {\n  state.comparison = [];\n  state.missingDataElements = [];\n  \n  state.fetchedDataEntryData.forEach((programStageData, index) => {\n    const programStageId = state.programStageIds[index];\n    const extractedData = state.extractedDataValueMaps[programStageId.programStage];\n    \n    if (extractedData) {\n      // Create a Set of valid DHIS2 data element IDs for fast lookup\n      const validDhis2DataElementIds = new Set(\n        programStageData.programStageDataElements?.map(element => element.dataElement.id) || []\n      );\n\n        const dhis2DataElementNames = new Map(\n        programStageData.programStageDataElements?.map(element => [\n          element.dataElement.id, \n          element.dataElement.name\n        ]) || []\n      );\n      \n      const comparison = {\n        programStageId: programStageId.programStage,\n        formUuid: extractedData.formUuid,\n        totalFormDataElements: Object.keys(extractedData.dataValueMap).length,\n        validFormDataElements: 0,\n        invalidFormDataElements: 0,\n        nameMatchedElements: 0,\n        nameMismatchedElements: 0,\n        results: []\n      };\n      \n      // Check each data element from state against DHIS2 API response\n      Object.entries(extractedData.dataValueMap).forEach(([dataElementId, value]) => {\n        const existsInDhis2 = validDhis2DataElementIds.has(dataElementId);\n         let nameMatches = null;\n        let xlsName = null;\n        let dhis2Name = null;\n        \n        if (existsInDhis2) {\n          comparison.validFormDataElements++;\n\n                    // Check name match for existing data elements\n          dhis2Name = dhis2DataElementNames.get(dataElementId);\n          // Find corresponding name from optsMap using \"DHIS2 DE UID\"\n          const optsMapEntry = state.optsMap?.find(opts => opts[\"DHIS2 DE UID\"] === dataElementId);\n          if (optsMapEntry) {\n            xlsName = optsMapEntry[\"DHIS2 DE Name\"];\n            \n            // Compare names (case-insensitive trim comparison)\n            nameMatches = xlsName && xlsName.trim().toLowerCase() === dhis2Name.trim().toLowerCase();\n            \n            if (nameMatches) {\n              comparison.nameMatchedElements++;\n            } else {\n              comparison.nameMismatchedElements++;\n              \n              const nameErrorMessage = `Data Element ${dataElementId} name mismatch: XLS name '${xlsName}' does not match DHIS2 name '${dhis2Name}'.`;\n              state.DENameNotMatched.push(nameErrorMessage);\n            }\n          }\n        } else {\n          comparison.invalidFormDataElements++;\n          \n          // Collect data elements from state that don't exist in DHIS2\n          state.missingDataElements.push({\n            programStageId: programStageId.programStage,\n            formUuid: extractedData.formUuid,\n            dataElementId,\n            value,\n            message: `Data Element ${dataElementId} not found in DHIS2 program stage ${programStageId.programStage}`\n          });\n\n          state.DEIdNotFound.push(`Data Element ${dataElementId} not found in DHIS2 program stage ${programStageId.programStage}`)\n        }\n        \n        comparison.results.push({\n          dataElementId,\n          value,\n          existsInDhis2,\n          xlsName,\n          dhis2Name,\n          nameMatches\n        });\n      });\n      \n      state.comparison.push(comparison);\n    }\n  });\n  \n  return state;\n});\n",
+          "project_credential_id": "448e46cd-482d-4cb5-88f9-b413cdd7ff3f",
+          "adaptor": "@openfn/language-dhis2@5.0.1"
+        },
+        "Add-Errors-to-GoogleSheet": {
+          "id": "33210035-0bcb-41de-8dd9-94c86c89fadd",
+          "name": "Add Errors to GoogleSheet",
+          "body": "const spreadsheetId = '1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg'\n\neach($.sheetsMapping, batchUpdateValues({\n  spreadsheetId,\n  range: $.data.range,\n  values: $.data.values\n}))\n",
+          "project_credential_id": "32131110-f401-443b-b97b-2c9ab0607773",
+          "adaptor": "@openfn/language-googlesheets@4.0.7"
+        },
+        "Prepare-Mapping-Per-Sheet": {
+          "id": "eac03387-cce7-4bc0-83d2-501b8b817e95",
+          "name": "Prepare Mapping Per Sheet",
+          "body": "\nconst baseUrl = \"https://sheets.googleapis.com/v4/spreadsheets\";\nconst gsheetId = \"1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg\";\nconst genSheets = (sourceFile) => {\n  const todayDate = new Date().toISOString().split(\"T\")[0];\n\n  const shortFile = sourceFile\n    .split(\"LIME EMR - Iraq Metadata - Release 1 -\")[1]\n    .replace(/\\s+/g, \"\")\n    .toLowerCase();\n  const sheetAffix = `${shortFile}:runDate:${todayDate}`;\n  return [`WarningErrors:${sheetAffix}`, `FailingErrors:${sheetAffix}`];\n};\nfn((state) => {\n  state.sheets = genSheets(state.sourceFile);\n  return state;\n});\n\nget(`${baseUrl}/${gsheetId}`, {\n  headers: { Authorization: `Bearer ${$.configuration.access_token}` },\n});\n\nfn((state) => {\n  const existingSheets = state.data.sheets.map((s) => s.properties.title);\n  state.newSheets ??= [];\n  state.sheets.forEach((sheet) => {\n    if (!existingSheets.includes(sheet)) {\n      state.newSheets.push(sheet);\n    }\n  });\n  return state;\n});\n\neach(\n  $.newSheets,\n  post(\n    `${baseUrl}/${gsheetId}:batchUpdate`,\n    {\n      requests: [\n        {\n          addSheet: {\n            properties: {\n              title: $.data,\n            },\n          },\n        },\n      ],\n    },\n    {\n      headers: {\n        Authorization: (state) => `Bearer ${state.configuration.access_token}`,\n      },\n    }\n  )\n);\n\nfn((state) => {\n  state.sheetsMapping = state.sheets.map((s) => {\n    if (s.includes(\"WarningErrors:\")) {\n      const warningValues = [[\"Error Type\", \"Error Message\"]];\n      Object.entries(state.warningSummary).forEach(([header, values]) => {\n        const rows = values.map((v) => [header, v]);\n        warningValues.push(...rows);\n      });\n      return {\n        range: `${s}!A:B`,\n        values: warningValues,\n      };\n    }\n    if (s.includes(\"FailingErrors:\")) {\n      const DEIdNotFound = state.DEIdNotFound || [];\n      const OptionUIDNotMatched = state.OptionUIDNotMatched || [];\n      const OptionCodeNotMatched = state.OptionCodeNotMatched || [];\n      const OptionSetUIDNotMatched = state.OptionSetUIDNotMatched || [];\n\n      const errorSummary = {\n        DEIdNotMatched: DEIdNotFound,\n        OptionUIDNotMatched,\n        OptionCodeNotMatched,\n        OptionSetUIDNotMatched,\n        // optionSetNotDefinedInOptionSetsSheet,\n      };\n      const errorsValues = [[\"Error Type\", \"Error Message\"]];\n      Object.entries(errorSummary).forEach(([header, values]) => {\n        const rows = values.map((v) => [header, v]);\n        errorsValues.push(...rows);\n      });\n      return {\n        range: `${s}!A:B`,\n        values: errorsValues,\n      };\n    }\n  });\n\n  return state;\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@7.2.6"
+        },
+        "Save-option-set-json-to-github": {
+          "id": "71c25d6f-df52-4017-8872-4b171a3391f5",
+          "name": "Save option-set json to github",
+          "body": "const metadataPath =\n  'repos/OpenFn/msf-lime-metadata/contents/metadata/collections.json';\n\nget(metadataPath, {\n  headers: {\n    'user-agent': 'OpenFn',\n  },\n  query: {\n    ref: 'collections',\n  },\n});\n\nfn(state => {\n  const {\n    sourceFile,\n    fileDateModified,\n    syncedAt,\n    formMaps,\n    formMetadata,\n    optsMap,\n    data,\n    identifiers,\n    optionSetKey,\n    placeOflivingMap,\n  } = state;\n\n  state.body = {\n    message: 'Update metadata content',\n    committer: {\n      name: 'Emmanuel Evance',\n      email: 'mtuchidev@gmail.com',\n    },\n    content: util.encode(\n      JSON.stringify({\n        sourceFile,\n        fileDateModified,\n        syncedAt,\n        optionSetKey,\n        optsMap,\n        formMaps,\n        identifiers,\n        formMetadata,\n        placeOflivingMap,\n      })\n    ),\n    sha: data.sha,\n    branch: 'collections',\n  };\n\n  return state;\n});\n\nput(\n  metadataPath,\n  {\n    body: $.body,\n    headers: {\n      Accept: 'application/vnd.github+json',\n      'X-GitHub-Api-Version': '2022-11-28',\n      'user-agent': 'OpenFn',\n    },\n  },\n  ({ body, data, references, response, ...state }) => state\n);\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@6.5.4"
+        },
+        "Get-metadata-file-from-Sharepoint": {
+          "id": "549961de-11dd-42a2-88ec-7f9d141e413b",
+          "name": "Get metadata file from Sharepoint",
+          "body": "const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));\n\ncursor($.lastSync, { defaultValue: 'now', key: 'syncedAt' });\ncursor('now', { key: 'lastSync' });\n\nfn(state => {\n  state.siteName = 'GRP-GVA-LIME Project';\n  state.sheets = ['OptionSets', 'identifiers', 'Places of living'];\n  state.folderPath = '/General/Phase II/Metadata/Shared/ready-for-test';\n  return state;\n});\n\nget('sites', { search: $.siteName }).then(state => {\n  const site = state.data.value.find(i => i.displayName === state.siteName);\n  if (!site) {\n    throw new Error(`Could not find sharepoint site: ${state.siteName}`);\n  }\n  state.siteId = site.id;\n\n  return state;\n});\n\ngetDrive({ id: $.siteId, owner: 'sites' });\n\ngetFolder($.folderPath);\n\nfn(state => {\n  let targetFile;\n\n  // Filter for .xlsx files only\n  const xlsxFiles = state.data.value.filter(file =>\n    file.name.toLowerCase().endsWith('.xlsx')\n  );\n\n  if (xlsxFiles.length === 0) {\n    throw new Error('No Excel (.xlsx) files found in the specified folder.');\n  }\n\n  if (state.fileName) {\n    // If a specific fileName is provided, find that file among the xlsx files\n    targetFile = xlsxFiles.find(file => file.name === state.fileName);\n\n    if (!targetFile) {\n      console.log(\n        `Excel file \"${state.fileName}\" not found. Falling back to most recent Excel file.`\n      );\n    }\n  }\n\n  if (!targetFile) {\n    // If no fileName was provided or the specified file wasn't found,\n    // sort the xlsx files by the date extracted from the filename and get the most recent\n    const sortedFiles = xlsxFiles.sort((a, b) => {\n      const dateA = a.lastModifiedDateTime;\n      const dateB = b.lastModifiedDateTime;\n      if (dateA && dateB) {\n        return dateB - dateA; // Sort in descending order (most recent first)\n      }\n      return 0; // If dates can't be extracted, maintain original order\n    });\n    targetFile = sortedFiles[0];\n  }\n\n  if (!targetFile) {\n    throw new Error('No suitable Excel file found in the specified folder.');\n  }\n\n  console.log('Target Excel file:', targetFile.name);\n  console.log('File date:', targetFile.lastModifiedDateTime);\n\n  // Store the target file information in state for further use\n  state.targetFile = targetFile;\n\n  // Construct the workbookBase URL\n  state.workbookBase = `sites/${state.siteId}/drives/${state.drives.default.id}/items/${targetFile.id}/workbook`;\n\n  return state;\n});\n\nget(`${$.workbookBase}/worksheets('omrs-form-metadata')/usedRange`).then(\n  state => {\n    const [headers, ...rows] = state.data.values;\n    state.formMetadata = rows\n      .map(row =>\n        row.reduce((obj, value, index) => {\n          if (value) {\n            obj[headers[index]] = value;\n          }\n          return obj;\n        }, {})\n      )\n      .filter(obj => Object.keys(obj).length > 0 && (obj['Active'] || obj['Testing']));\n\n    state.sheets.push(\n      ...state.formMetadata.map(obj => obj['OMRS form sheet name'])\n    );\n    return state;\n  }\n);\n\neach(\n  $.sheets,\n  get(`${$.workbookBase}/worksheets('${$.data}')/usedRange`).then(state => {\n    const sheetName = state.references.at(-1);\n    console.log('Fetched sheet: ', sheetName);\n    state[sheetName] = state.data.values;\n    return state;\n  }).then(async (state) => {\n    await delay(2000);\n    return state;\n  })\n);\n\nfn(state => {\n  delete state.data;\n  delete state.response;\n  delete state.references;\n  return state;\n});\n",
+          "project_credential_id": "0435d46d-1cb1-4411-a8d2-05df39ef695a",
+          "adaptor": "@openfn/language-msgraph@0.7.11"
+        },
+        "Map-metadata-file-to-option-set-Json-format": {
+          "id": "3884c422-d198-4ef7-843b-b525516523c2",
+          "name": "Map metadata file to option-set Json format",
+          "body": "const isValidValue = value => value !== '' && value !== 'NA';\n\nconst mapArrayToObject = (item, keys) => {\n  return item.reduce((acc, value, idx) => {\n    acc[keys[idx]] = value;\n    return acc;\n  }, {});\n};\n\nconst safeKeyValuePairs = arr => {\n  if (arr === null || arr === undefined) {\n    return arr;\n  }\n  const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));\n  try {\n    return mappedArr\n      .filter(\n        o => isValidValue(o['External ID']) && isValidValue(o['DHIS2 DE UID'])\n      )\n      .reduce((acc, value) => {\n        const key = `${value['External ID']}::${value['DHIS2 type'].toLowerCase()}`;\n        acc[value['DHIS2 DE UID']] = value['Question ID']\n          ? `${key}::${value['Question ID']}`\n          : key;\n        return acc;\n      }, {});\n  } catch (error) {\n    console.error(`Error processing ${arr}:`, error);\n    return arr; // Return original value if processing fails\n  }\n};\n\nconst extractMultiQns = arr => {\n  if (arr === null || arr === undefined) {\n    return arr;\n  }\n  const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));\n  try {\n    const multiSelectQuestions = mappedArr\n      .filter(o => isValidValue(o['Question #']))\n      .reduce((acc, value) => {\n        if (value['Multi-Select Answer External IDs']) {\n          if (!acc[value['Question #']]) {\n            acc[value['Question #']] = {\n              extId: value['External ID'],\n              qid: value['Question ID'],\n              qns: [\n                {\n                  clde: value['CL DHIS2 DE UID'],\n                  type: value['DHIS2 type'],\n                  multiAns: value['Multi-Select Answer External IDs'],\n                },\n              ],\n            };\n          } else {\n            acc[value['Question #']].qns.push({\n              clde: value['CL DHIS2 DE UID'],\n              type: value['DHIS2 type'],\n              multiAns: value['Multi-Select Answer External IDs'],\n            });\n          }\n        }\n\n        return acc;\n      }, {});\n    return Object.values(multiSelectQuestions);\n  } catch (error) {\n    console.error(`Error processing ${arr}:`, error);\n    return arr; // Return original value if processing fails\n  }\n};\n\n//New OptionSet Mappping\nconst questionKeyValuePairs = arr => {\n  if (arr === null || arr === undefined) {\n    return arr;\n  }\n  const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));\n  try {\n    return mappedArr\n      .filter(\n        o =>\n          isValidValue(o['External ID']) &&\n          isValidValue(o['DHIS2 Option Set UID'])\n      )\n      .map(value => ({\n        [value['DHIS2 Option Set UID']]: value['Question ID']\n          ? `${value['External ID']}-${value['Question ID']}`\n          : value['External ID'],\n      }));\n  } catch (error) {\n    console.error(`Error processing ${arr}:`, error);\n    return arr; // Return original value if processing fails\n  }\n};\n\nfn(state => {\n  state.placeOflivingMap = state['Places of living']\n    .slice(2)\n    .map(item => mapArrayToObject(item, state['Places of living'][1]))\n    .filter(\n      o =>\n        (isValidValue(o['External ID']) &&\n          isValidValue(o['DHIS2 DE full name'])) ||\n        (isValidValue(o['value.display - Answers']) &&\n          isValidValue(o['DHIS2 Option code']))\n    )\n    .reduce((acc, value) => {\n      acc[value['Answers']] = value['DHIS2 Option code'];\n      return acc;\n    }, {});\n\n  return state;\n});\n\nfn(state => {\n  const { OptionSets, identifiers } = state;\n  const keys = OptionSets[1];\n\n  state.optsMap = OptionSets.slice(2)\n    .map(item => mapArrayToObject(item, keys))\n    .filter(\n      o =>\n        (isValidValue(o['External ID']) &&\n          isValidValue(o['DHIS2 DE full name'])) ||\n        (isValidValue(o['value.display - Answers']) &&\n          isValidValue(o['DHIS2 Option code']))\n    )\n    .map(o => {\n      return {\n        'DHIS2 Option Set UID': o['DHIS2 Option Set UID'],\n        'DHIS2 Option name': o['DHIS2 Option name'],\n        'DHIS2 Option UID': o['DHIS2 Option UID'],\n        'DHIS2 Option Code': o['DHIS2 Option code'],\n        'value.display - Answers': o['Answers'],\n        'value.uuid - External ID': o['External ID'].trim(),\n        'DHIS2 DE UID': o['DHIS2 DE UID'],\n      };\n    });\n\n  const [iheaders, ...irows] = identifiers;\n  state.identifiers = irows\n    .map(row =>\n      row.reduce((obj, value, index) => {\n        if (value != null && value !== '') {\n          obj[iheaders[index]] = value;\n        }\n        return obj;\n      }, {})\n    )\n    .filter(obj => Object.keys(obj).length > 0);\n  return state;\n});\n\nfn(state => {\n  const {\n    optsMap,\n    syncedAt,\n    lastSync,\n    targetFile,\n    identifiers,\n    formMetadata,\n    placeOflivingMap,\n  } = state;\n\n  const sourceFile = targetFile.name;\n  const fileDateModified = targetFile.lastModifiedDateTime;\n\n  const formMaps = formMetadata.reduce((acc, form) => {\n    const formName = form['OMRS form sheet name'];\n    acc[form['OMRS form.uuid']] = {\n      formName,\n      syncType: form['Sync Type'],\n      orgUnit: form['DHIS2 orgUnit ID'],\n      programId: form['DHIS2 program ID'],\n      programStage: form['DHIS2 programStage ID'],\n      dataValueMap: safeKeyValuePairs(state[formName]),\n      optionSetMap: questionKeyValuePairs(state[formName]),\n      workflow: form['Workflow'],\n      relationshipId: form['DHIS2 TEI Relationship Id'],\n      orgUnit: form['DHIS2 Org Unit ID'],\n      multiSelectQns: extractMultiQns(state[formName]),\n    };\n\n    return acc;\n  }, {});\n\n  const optionSetKey = Object.entries(formMaps).reduce(\n    (acc, [formKey, formValue]) => {\n      formValue.optionSetMap.forEach(item => {\n        const [originalKey, originalValue] = Object.entries(item)[0];\n        acc[`${formKey}-${originalValue}`] = originalKey;\n      });\n      return acc;\n    },\n    {}\n  );\n\n  return {\n    lastSync,\n    syncedAt,\n    formMaps,\n    optsMap,\n    sourceFile,\n    identifiers,\n    formMetadata,\n    optionSetKey,\n    fileDateModified,\n    placeOflivingMap,\n  };\n});\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-common@2.3.1"
+        },
+        "Save-option-set-json-to-collections": {
+          "id": "60947199-88be-4c98-8d5d-8c8e14c5d419",
+          "name": "Save option-set json to collections",
+          "body": "// Cleanup: remove all collections data\ncollections.remove('mosul-metadata-mappings-staging', '*');\n\ncollections.set('mosul-metadata-mappings-staging', 'syncedAt', $.syncedAt);\ncollections.set('mosul-metadata-mappings-staging', 'sourceFile', $.sourceFile);\ncollections.set(\n  'mosul-metadata-mappings-staging',\n  'formMetadata',\n  $.formMetadata\n);\ncollections.set(\n  'mosul-metadata-mappings-staging',\n  'fileDateModified',\n  $.fileDateModified\n);\n\ncollections.set(\n  'mosul-metadata-mappings-staging',\n  'optionSetKey',\n  $.optionSetKey\n);\n\ncollections.set('mosul-metadata-mappings-staging', 'formMaps', $.formMaps);\n\ncollections.set(\n  'mosul-metadata-mappings-staging',\n  'placeOflivingMap',\n  $.placeOflivingMap\n);\n\nlet itemCount = 0;\ncollections.set(\n  'mosul-metadata-mappings-staging',\n  i => `optsMap-value-${++itemCount}`,\n  $.optsMap\n);\n\nitemCount = 0;\ncollections.set(\n  'mosul-metadata-mappings-staging',\n  i => `identifiers-value-${++itemCount}`,\n  $.identifiers\n);\n",
+          "project_credential_id": null,
+          "adaptor": "@openfn/language-http@7.2.7"
+        }
+      },
+      "edges": {
+        "Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet": {
+          "enabled": true,
+          "id": "fb4648b0-dd83-4477-84d5-9343396b75bd",
+          "target_job_id": "33210035-0bcb-41de-8dd9-94c86c89fadd",
+          "source_job_id": "eac03387-cce7-4bc0-83d2-501b8b817e95",
+          "condition_type": "on_job_success"
+        },
+        "Warn-admin-of-errors->Prepare-Mapping-Per-Sheet": {
+          "enabled": true,
+          "id": "d87b12eb-02bf-40de-8264-a7c1ae4817f8",
+          "target_job_id": "eac03387-cce7-4bc0-83d2-501b8b817e95",
+          "source_job_id": "17590c98-a41e-4a22-873c-416a4d133f03",
+          "condition_type": "on_job_success"
+        },
+        "webhook->Get-metadata-file-from-Sharepoint": {
+          "enabled": true,
+          "id": "226f8c21-c9ad-46e1-89bf-7b6adc6ca250",
+          "target_job_id": "549961de-11dd-42a2-88ec-7f9d141e413b",
+          "source_trigger_id": "34509286-032a-48c2-8b2f-222cb3046189",
+          "condition_type": "always"
+        },
+        "Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format": {
+          "enabled": true,
+          "id": "04e46617-42e4-4e2e-8cbf-edd29ce02c8d",
+          "target_job_id": "3884c422-d198-4ef7-843b-b525516523c2",
+          "source_job_id": "549961de-11dd-42a2-88ec-7f9d141e413b",
+          "condition_type": "on_job_success"
+        },
+        "Map-metadata-file-to-option-set-Json-format->Save-option-set-json-to-github": {
+          "enabled": false,
+          "id": "0b56f346-fa03-4535-8ac3-a5abcc4e9505",
+          "target_job_id": "71c25d6f-df52-4017-8872-4b171a3391f5",
+          "source_job_id": "3884c422-d198-4ef7-843b-b525516523c2",
+          "condition_type": "on_job_success"
+        },
+        "Throw-Errors->Save-option-set-json-to-collections-main": {
+          "enabled": true,
+          "id": "d47e17ca-5b47-4e46-8529-0b518a283c8c",
+          "target_job_id": "af5756aa-170e-46cd-828e-42fbbb7f0d35",
+          "source_job_id": "960ea99d-0e39-45a0-8ac2-7a3aa5d2688f",
+          "condition_type": "always",
+          "condition_label": "main-collection"
+        },
+        "Check-if-Data-Elements-Exist-in-DHIS2->Check-if-Option-Set-and-options-UID-matches": {
+          "enabled": true,
+          "id": "799d744f-510a-424c-810d-65ed52fb2fd0",
+          "target_job_id": "83124485-a9e8-4b10-8bb1-da37e63b814e",
+          "source_job_id": "56a0e300-8b32-45f5-8962-ba456e4e3051",
+          "condition_type": "on_job_success"
+        },
+        "Map-metadata-file-to-option-set-Json-format->Check-if-Data-Elements-Exist-in-DHIS2": {
+          "enabled": true,
+          "id": "04651f97-730e-4d0f-840c-63e31d968c4c",
+          "target_job_id": "56a0e300-8b32-45f5-8962-ba456e4e3051",
+          "source_job_id": "3884c422-d198-4ef7-843b-b525516523c2",
+          "condition_type": "on_job_success"
+        },
+        "Check-if-Option-Set-and-options-UID-matches->Warn-admin-of-errors": {
+          "enabled": true,
+          "id": "36712b23-43d5-4655-8f0d-38bb2fda7dc9",
+          "target_job_id": "17590c98-a41e-4a22-873c-416a4d133f03",
+          "source_job_id": "83124485-a9e8-4b10-8bb1-da37e63b814e",
+          "condition_type": "on_job_success"
+        },
+        "Warn-admin-of-errors->Throw-Errors": {
+          "enabled": true,
+          "id": "778f8936-9601-47a3-8bbf-d05de7fe7d0d",
+          "target_job_id": "960ea99d-0e39-45a0-8ac2-7a3aa5d2688f",
+          "source_job_id": "17590c98-a41e-4a22-873c-416a4d133f03",
+          "condition_type": "on_job_success"
+        },
+        "Throw-Errors->Save-option-set-json-to-collections": {
+          "enabled": false,
+          "id": "3a77d959-806a-4366-8153-c09ad601ad93",
+          "target_job_id": "60947199-88be-4c98-8d5d-8c8e14c5d419",
+          "source_job_id": "960ea99d-0e39-45a0-8ac2-7a3aa5d2688f",
+          "condition_type": "always",
+          "condition_label": "staging-collection"
         }
       }
     }
