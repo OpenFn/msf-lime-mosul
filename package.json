@@ -6,5 +6,6 @@
     "wf3": "openfn wf3-omrs-dhis2 -o .projects/wf3-omrs-dhis2/output.json --credentials credentials.yaml",
     "wf3:state": "openfn wf3-omrs-dhis2 -s .projects/wf3-omrs-dhis2/state.json -o .projects/wf3-omrs-dhis2/output.json --credentials credentials.yaml",
     "wf3:cache": "pnpm wf3:state --cache-steps"
-  }
+  },
+  "type": "module"
 }
