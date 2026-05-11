@@ -42,7 +42,7 @@ steps:
         label: has-encounters
   - id: get-mappings-from-collection
     name: Get Mappings from Collection
-    adaptor: "@openfn/language-common@2.3.0"
+    adaptor: "@openfn/language-common@3.3.1"
     configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./get-mappings-from-collection.js
     next:

@@ -29,7 +29,6 @@ steps:
   - id: get-metadata-file-from-sharepoint
     name: Get metadata file from Sharepoint
     adaptor: "@openfn/language-msgraph@0.7.11"
-    configuration: mtuchi@openfn.org|OpenFnSharepoint
     expression: ./get-metadata-file-from-sharepoint.js
     next:
       map-metadata-file-to-option-set-json-format:
