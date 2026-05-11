@@ -2,7 +2,9 @@ name: staging-sandbox
 description: |
   staging project for main MSF workflows
 
-collections: null
+collections:
+  mosul-metadata-mappings:
+    name: mosul-metadata-mappings
 credentials:
   aisha@openfn.org-MSF-OMRS-admin:
     name: MSF OMRS admin
@@ -13,6 +15,9 @@ credentials:
   justin@openfn.org-Justin-OpenFn:
     name: Justin-OpenFn
     owner: justin@openfn.org
+  ludovic.rossel@geneva.msf.org-LIME-OpenFn-Credential:
+    name: LIME OpenFn Credential
+    owner: ludovic.rossel@geneva.msf.org
   mtuchi@openfn.org-MSF-DHIS2-UAT:
     name: MSF DHIS2 UAT
     owner: mtuchi@openfn.org
@@ -137,45 +142,45 @@ workflows:
           // Check out the Job Writing Guide for help getting started:
           // https://docs.openfn.org/documentation/jobs/job-writing-guide
           // Cleanup: remove all collections data
-          collections.remove('mosul-metadata-mappings-main', '*');
+          collections.remove('mosul-metadata-mappings', '*');
 
-          collections.set('mosul-metadata-mappings-main', 'syncedAt', $.syncedAt);
-          collections.set('mosul-metadata-mappings-main', 'sourceFile', $.sourceFile);
+          collections.set('mosul-metadata-mappings', 'syncedAt', $.syncedAt);
+          collections.set('mosul-metadata-mappings', 'sourceFile', $.sourceFile);
           collections.set(
-            'mosul-metadata-mappings-main',
+            'mosul-metadata-mappings',
             'formMetadata',
             $.formMetadata
           );
           collections.set(
-            'mosul-metadata-mappings-main',
+            'mosul-metadata-mappings',
             'fileDateModified',
             $.fileDateModified
           );
 
           collections.set(
-            'mosul-metadata-mappings-main',
+            'mosul-metadata-mappings',
             'optionSetKey',
             $.optionSetKey
           );
 
-          collections.set('mosul-metadata-mappings-main', 'formMaps', $.formMaps);
+          collections.set('mosul-metadata-mappings', 'formMaps', $.formMaps);
 
           collections.set(
-            'mosul-metadata-mappings-main',
+            'mosul-metadata-mappings',
             'placeOflivingMap',
             $.placeOflivingMap
           );
 
           let itemCount = 0;
           collections.set(
-            'mosul-metadata-mappings-main',
+            'mosul-metadata-mappings',
             i => `optsMap-value-${++itemCount}`,
             $.optsMap
           );
 
           itemCount = 0;
           collections.set(
-            'mosul-metadata-mappings-main',
+            'mosul-metadata-mappings',
             i => `identifiers-value-${++itemCount}`,
             $.identifiers
           );
@@ -11238,7 +11243,7 @@ workflows:
               CeQKylwVj7u: dhis2Map.attr.nationality, // Travel Medicine - Nationality
               vqMs7hmPtFT: dhis2Map.attr.placeOfliving, // Travel Medicine - Place of living
             };
-            const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+            const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
             return [
               ...attributeMapping,
@@ -11339,7 +11344,7 @@ workflows:
 
             const resolveOptionCode = (optionUid) =>
               state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-                "DHIS2 Option Code"
+              "DHIS2 Option Code"
               ];
 
             // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
@@ -11434,7 +11439,7 @@ workflows:
               j5tAuXutbsp: dhis2Map.attr.sex, // Cholera - Sex
               EX28AP1WI0B: dhis2Map.attr.placeOfliving, // Cholera - Place of living
             };
-            const mapping = mapAttribute(tei.attributes, attributeMap);
+            const mapping = mapAttribute(tei?.attributes, attributeMap);
 
             // Conditional age mapping based on patient age
             if (ageInMonths !== null) {
@@ -11556,7 +11561,7 @@ workflows:
                   FsL5BjQocuo: dhis2Map.attr.nationality,
                   Pi1zytYdq6l: dhis2Map.attr.patientNumber,
                 };
-                const f09Mapping = mapAttribute(tei.attributes, attributeMap);
+                const f09Mapping = mapAttribute(tei?.attributes, attributeMap);
                 formMapping.push(...f09Mapping);
               }
               if (f61Uuid === encounter.form.uuid) {
@@ -11572,7 +11577,7 @@ workflows:
                   yE0dIWW0TXP: dhis2Map.attr.placeOfliving, // Place of living
                   fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
                 };
-                const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+                const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
                 // Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
                 const dob = tei?.attributes?.find(
@@ -11611,7 +11616,7 @@ workflows:
                   Nd43pz1Oo62: dhis2Map.attr.placeOfliving,
                   kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
                 };
-                const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+                const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
                 // Custom mapping for sex and legalStatus (f26 only)
                 // Sex: leave blank if value is "unknown" or "other"
@@ -11674,7 +11679,7 @@ workflows:
                   sCKCNreiqEA: dhis2Map.attr.nationality,
                   ci9C72RjN8Z: dhis2Map.attr.patientNumber,
                 };
-                const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+                const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
                 const f28Mapping = [
                   {
@@ -11708,7 +11713,7 @@ workflows:
                   KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
                   fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
                 };
-                const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+                const f43AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
                 // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
                 const { dataValues: f43DataValues, eventDate: f43EventDate } = f43(
                   encounter,
@@ -11750,7 +11755,7 @@ workflows:
                   OI2H3dEQLdQ: dhis2Map.attr.placeOfliving, // ICU - Place of living
                   QiVXQ2eAtpN: dhis2Map.attr.nationality, // ICU - Nationality
                 };
-                const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+                const f64AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
                 if (sex) {
                   const value = sex === "unknown" ? "others" : sex;
@@ -11832,7 +11837,7 @@ workflows:
                   ZlONTbktjvX: dhis2Map.attr.sex, // Snakebites - Sex
                   XK6Wnp4aBvi: dhis2Map.attr.placeOfliving, // Snakebites - Place of living
                 };
-                const f66AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+                const f66AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
                 // Conditional age mapping based on patient age
                 if (ageInMonths !== null) {
@@ -11879,6 +11884,21 @@ workflows:
             return { dataValues: combinedMapping, eventDate };
           };
 
+          const handleMissingRecord = (patientKey, state) => {
+            const [orgUnit, program, programStage, patientUuid, visitUuid] =
+              patientKey.split(":");
+            console.log("Missing trackedEntity for patient", {
+              patientUuid,
+              orgUnit,
+              program,
+              programStage,
+              visitUuid,
+            });
+
+            state.missingRecords ??= {};
+            state.missingRecords[patientKey] = state.pairedEncounters[patientKey];
+          };
+
           fn((state) => {
             state.missingOptsets ??= [];
 
@@ -11895,12 +11915,17 @@ workflows:
             }, {});
 
             state.pairedEncounters = pairedEncounters;
-            state.eventsMapping = Object.entries(pairedEncounters).map(
-              ([patientKey, patientEncounters]) => {
+            state.eventsMapping = Object.entries(pairedEncounters)
+              .map(([patientKey, patientEncounters]) => {
                 const [orgUnit, program, programStage, patientUuid] =
                   patientKey.split(":");
 
                 const tei = state.TEIs[patientUuid];
+
+                if (!tei?.trackedEntity || !tei?.enrollment) {
+                  handleMissingRecord(patientKey, state);
+                  return null;
+                }
 
                 const { dataValues, eventDate: customEventDate } = buildDataValues(
                   patientEncounters,
@@ -11942,8 +11967,10 @@ workflows:
                   dataValues,
                   trackedEntity: tei?.trackedEntity,
                 };
-              }
-            );
+              })
+              .flat()
+              .filter(Boolean);
+            console.log("Final eventsMapping length:", state.eventsMapping.length);
 
             return state;
           });
@@ -12412,7 +12439,7 @@ workflows:
           });
       Get-Mappings-from-Collection:
         name: Get Mappings from Collection
-        adaptor: '@openfn/language-common@2.3.0'
+        adaptor: '@openfn/language-common@3.3.1'
         credential: mtuchi@openfn.org-mtuchi-collections-config
         body: |
           const dhis2Map = {
@@ -12442,7 +12469,7 @@ workflows:
             return UUID_PATTERN.test(id);
           };
 
-          collections.get("mosul-metadata-mappings-staging").then((state) => {
+          collections.get("mosul-metadata-mappings").then((state) => {
             state.optsMap = state.data
               .filter((i) => i.key.includes("optsMap-value-"))
               .map((i) => i.value);
