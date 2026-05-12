@@ -5,7 +5,7 @@ const logEventUrl = (baseUrl, objectReports) => {
 };
 
 const buildEventsUrl = (baseUrl, { program, orgUnit }) => {
-  return `${baseUrl}/dhis-web-capture/index.html#/?orgUnitId=${orgUnit}&programId=${program}`;
+  return `${baseUrl}/dhis-web-capture/index.html#/?orgUnitId=${orgUnit}&programId=${program}&selectedTemplateId=${program}-default`;
 };
 // Create or update events for each encounter
 create(
@@ -24,7 +24,7 @@ create(
         return acc;
       }, {});
       Object.entries(groupedEvents).forEach(([key, events]) => {
-        const [program, orgUnit] = key.split("-");
+        const [trackedEntity, program, orgUnit] = key.split("-");
 
         const eventsUrl = buildEventsUrl(baseUrl, { program, orgUnit });
 
