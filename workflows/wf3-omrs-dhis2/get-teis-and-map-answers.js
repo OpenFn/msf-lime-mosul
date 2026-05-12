@@ -1,5 +1,3 @@
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const teiByPatientUuid = (patientUuid, teis) => {
   return teis.find((tei) => {
     const omrsPatientUuid = tei.attributes.find(
@@ -76,12 +74,19 @@ each(
     const { orgUnit, program, patientNumbers } = state.references.at(-1);
     state.eventsByPatient ??= {};
     const grouped = state.data.instances?.reduce((acc, event) => {
-      const patientNumber = event.dataValues.find(
-        (dv) =>
-          dv.dataElement === "Pi1zytYdq6l" ||
-          dv.dataElement === "fnH6H3biOkE" ||
-          dv.dataElement === "kcSuQKfU5Zo" ||
-          dv.dataElement === "ci9C72RjN8Z"
+      const PATIENT_NUMBER_DE = new Set([
+        "Pi1zytYdq6l", // F09
+        "fnH6H3biOkE", // F24
+        "kcSuQKfU5Zo", // F26
+        "ci9C72RjN8Z", // F28
+        "gHPt2FCZEE6", // F43
+        "j855dPp9p18", // F64
+        "ipRL5PApBZk", // F66
+        "KVIidg9rDcd", // F67
+      ]);
+
+      const patientNumber = event.dataValues.find((dv) =>
+        PATIENT_NUMBER_DE.has(dv.dataElement)
       )?.value;
       if (!patientNumber || !patientNumbers.includes(patientNumber)) {
         return acc;
