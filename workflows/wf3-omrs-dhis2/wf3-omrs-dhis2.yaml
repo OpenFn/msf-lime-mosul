@@ -20,15 +20,15 @@ steps:
     adaptor: "@openfn/language-common@2.1.1"
     expression: ./custom-logic-for-events.js
     next:
-      missing-optionsets:
-        disabled: true
-        condition: '"!state.errors && state.missingOptsets.length > 0"'
-        label: missing-opts
       create-events:
         disabled: false
         condition: |
           state?.eventsMapping?.length > 0 && !state.errors
         label: has-events
+      missing-optionsets:
+        disabled: true
+        condition: '"!state.errors && state.missingOptsets.length > 0"'
+        label: missing-opts
   - id: get-encounters
     name: Get Encounters
     adaptor: "@openfn/language-openmrs@4.3.0"
