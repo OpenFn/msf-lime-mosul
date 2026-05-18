@@ -7490,7 +7490,7 @@ workflows:
                 if (f27EventDate) eventDate = f27EventDate;
               }
 
-              if (f28Uuid === encounter.form.uuid) {
+              if ([f27Uuid, f28Uuid].includes(encounter.form.uuid)) {
                 // F28 Form Encounter Mapping
                 const attributeMap = {
                   WP5vr8KB2lH: dhis2Map.attr.sex,
