@@ -59,14 +59,12 @@
       "owner": "ludovic.rossel@geneva.msf.org"
     }
   },
-  "allow_support_access": true,
   "collections": {
     "mosul-metadata-mappings": {
       "id": "377435aa-8bab-48f3-889e-850fa4565bbe",
       "name": "mosul-metadata-mappings"
     }
   },
-  "requires_mfa": false,
   "workflows": {
     "wf1-dhis2-omrs-migration": {
       "id": "bd07e9bb-948d-49b9-b3de-014f4bd84b10",
@@ -873,5 +871,7 @@
       }
     }
   },
+  "allow_support_access": true,
+  "requires_mfa": false,
   "channels": {}
 }
