@@ -3214,7 +3214,10 @@ workflows:
               return answer.value;
             }
 
-            if (isStringAnswer || (isNumberAnswer && type === "number")) {
+            if (
+              isStringAnswer ||
+              (isNumberAnswer && ["number", "integer"].includes(type))
+            ) {
               return answer.value;
             }
 
@@ -3297,7 +3300,11 @@ workflows:
             ) {
               return answer.value;
             }
-            if (isStringAnswer || (isNumberAnswer && type === "number")) {
+
+            if (
+              isStringAnswer ||
+              (isNumberAnswer && ["number", "integer"].includes(type))
+            ) {
               return answer.value;
             }
 
@@ -3497,7 +3504,7 @@ workflows:
                   const value = state.optsMap.find(
                     (o) =>
                       o["value.uuid - External ID"] ===
-                        answers[config.index]?.value?.uuid &&
+                      answers[config.index]?.value?.uuid &&
                       o["DHIS2 Option Set UID"] === "lOD0K3UhiN2"
                   )?.["DHIS2 Option Code"];
 
@@ -4247,14 +4254,14 @@ workflows:
             const pregnancyEvent =
               syncType === "latest"
                 ? events?.find(
-                    (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
-                  )?.event
+                  (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+                )?.event
                 : undefined;
             const investigationEvent =
               syncType === "latest"
                 ? events?.find(
-                    (e) => e.programStage === F49_CONFIG.investigationStage.programStage
-                  )?.event
+                  (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+                )?.event
                 : undefined;
 
             // DEFAULT STAGE
@@ -4484,21 +4491,21 @@ workflows:
               },
               ...(pregnancyDataValues.length > 0
                 ? [
-                    {
-                      event: pregnancyEvent,
-                      programStage: F49_CONFIG.pregnancyStage.programStage,
-                      dataValues: pregnancyDataValues,
-                    },
-                  ]
+                  {
+                    event: pregnancyEvent,
+                    programStage: F49_CONFIG.pregnancyStage.programStage,
+                    dataValues: pregnancyDataValues,
+                  },
+                ]
                 : []),
               ...(investigationDataValues.length > 0
                 ? [
-                    {
-                      event: investigationEvent,
-                      programStage: F49_CONFIG.investigationStage.programStage,
-                      dataValues: investigationDataValues,
-                    },
-                  ]
+                  {
+                    event: investigationEvent,
+                    programStage: F49_CONFIG.investigationStage.programStage,
+                    dataValues: investigationDataValues,
+                  },
+                ]
                 : []),
             ];
           }
@@ -4883,8 +4890,8 @@ workflows:
             const pregnancyEvent =
               syncType === "latest"
                 ? events?.find(
-                    (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
-                  )?.event
+                  (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+                )?.event
                 : undefined;
             const pregnancyDataValues = [];
 
@@ -4911,8 +4918,8 @@ workflows:
             const investigationEvent =
               syncType === "latest"
                 ? events?.find(
-                    (e) => e.programStage === F50_CONFIG.investigationStage.programStage
-                  )?.event
+                  (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+                )?.event
                 : undefined;
             const investigationDataValues = [];
 
@@ -4997,46 +5004,46 @@ workflows:
               },
               ...(ifDefaulterSpecify || typeOfExitF50
                 ? [
-                    {
-                      event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
-                      programStage: "ecvF615g1jZ",
-                      dataValues: [
-                        {
-                          // Row 114: Exit date (Date field)
-                          dataElement: dataEl.ncdEventDate,
-                          value: exitDate,
-                        },
-                        {
-                          // Row 115: Type of exit (Coded, option set Gjx599aojCR)
-                          dataElement: dataEl.f50.typeOfExit,
-                          value: typeOfExitF50,
-                        },
-                        {
-                          // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
-                          dataElement: dataEl.f50.ifDefaulterSpecify,
-                          value: ifDefaulterSpecify,
-                        },
-                      ].filter((d) => d?.value != null && d?.value !== ""),
-                    },
-                  ]
+                  {
+                    event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+                    programStage: "ecvF615g1jZ",
+                    dataValues: [
+                      {
+                        // Row 114: Exit date (Date field)
+                        dataElement: dataEl.ncdEventDate,
+                        value: exitDate,
+                      },
+                      {
+                        // Row 115: Type of exit (Coded, option set Gjx599aojCR)
+                        dataElement: dataEl.f50.typeOfExit,
+                        value: typeOfExitF50,
+                      },
+                      {
+                        // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
+                        dataElement: dataEl.f50.ifDefaulterSpecify,
+                        value: ifDefaulterSpecify,
+                      },
+                    ].filter((d) => d?.value != null && d?.value !== ""),
+                  },
+                ]
                 : []),
               ...(pregnancyDataValues.length > 0
                 ? [
-                    {
-                      event: pregnancyEvent,
-                      programStage: F50_CONFIG.pregnancyStage.programStage,
-                      dataValues: pregnancyDataValues,
-                    },
-                  ]
+                  {
+                    event: pregnancyEvent,
+                    programStage: F50_CONFIG.pregnancyStage.programStage,
+                    dataValues: pregnancyDataValues,
+                  },
+                ]
                 : []),
               ...(investigationDataValues.length > 0
                 ? [
-                    {
-                      event: investigationEvent,
-                      programStage: F50_CONFIG.investigationStage.programStage,
-                      dataValues: investigationDataValues,
-                    },
-                  ]
+                  {
+                    event: investigationEvent,
+                    programStage: F50_CONFIG.investigationStage.programStage,
+                    dataValues: investigationDataValues,
+                  },
+                ]
                 : []),
             ];
           }
@@ -5498,9 +5505,9 @@ workflows:
               event:
                 syncType === "latest"
                   ? events?.find(
-                      (e) =>
-                        e.programStage === F62_CONFIG.hospitalisationStage.programStage
-                    )?.event
+                    (e) =>
+                      e.programStage === F62_CONFIG.hospitalisationStage.programStage
+                  )?.event
                   : undefined,
               programStage: F62_CONFIG.hospitalisationStage.programStage,
               occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -5691,9 +5698,9 @@ workflows:
               event:
                 syncType === "latest"
                   ? events?.find(
-                      (e) =>
-                        e.programStage === F63_CONFIG.hospitalisationStage.programStage
-                    )?.event
+                    (e) =>
+                      e.programStage === F63_CONFIG.hospitalisationStage.programStage
+                  )?.event
                   : undefined,
               programStage: F63_CONFIG.hospitalisationStage.programStage,
               occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -6679,7 +6686,10 @@ workflows:
             ) {
               return answer.value;
             }
-            if (isStringAnswer || (isNumberAnswer && type === "number")) {
+            if (
+              isStringAnswer ||
+              (isNumberAnswer && ["number", "integer"].includes(type))
+            ) {
               return answer.value;
             }
 
@@ -6794,7 +6804,10 @@ workflows:
             ) {
               return answer.value;
             }
-            if (isStringAnswer || (isNumberAnswer && type === "number")) {
+            if (
+              isStringAnswer ||
+              (isNumberAnswer && ["number", "integer"].includes(type))
+            ) {
               return answer.value;
             }
 
@@ -6971,7 +6984,7 @@ workflows:
             if (!obsDatetime) return { dataValues: [], eventDate: null };
 
             return {
-              dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime }],
+              dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) }],
               eventDate: obsDatetime.replace("+0000", ""),
             };
           }
@@ -7390,7 +7403,7 @@ workflows:
                 formMapping.push(...f61Mapping);
               }
 
-              if (f24Uuid === encounter.form.uuid) {
+              if ([f23Uuid, f24Uuid].includes(encounter.form.uuid)) {
                 // F24 Form Encounter Mapping
                 // Maps TEI attributes to DHIS2 data elements
                 const attributeMap = {
@@ -7429,7 +7442,7 @@ workflows:
 
                 formMapping.push(...attributeMapping);
               }
-              if (f26Uuid === encounter.form.uuid) {
+              if ([f25Uuid, f26Uuid].includes(encounter.form.uuid)) {
                 const attributeMap = {
                   d7wOfzPBbQD: dhis2Map.attr.ageInYears,
                   y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
@@ -8605,7 +8618,7 @@ workflows:
         condition_label: missing-opts
         condition_expression: |
           "!state.errors && state.missingOptsets.length > 0"
-        enabled: false
+        enabled: true
       Upsert-TEIs->Get-Encounters:
         source_job: Upsert-TEIs
         target_job: Get-Encounters
