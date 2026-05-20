@@ -125,7 +125,10 @@ const dataValueByConcept = (encounter, de, state) => {
     return answer.value;
   }
 
-  if (isStringAnswer || (isNumberAnswer && type === "number")) {
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -208,7 +211,11 @@ const findDataValue = (encounter, dataElement, state) => {
   ) {
     return answer.value;
   }
-  if (isStringAnswer || (isNumberAnswer && type === "number")) {
+
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 

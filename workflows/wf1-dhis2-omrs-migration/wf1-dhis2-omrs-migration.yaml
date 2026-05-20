@@ -1,15 +1,14 @@
 id: wf1-dhis2-omrs-migration
 name: wf1-dhis2-omrs-migration
 start: cron
-options: {}
 steps:
   - id: alert-admin-of-duplicate-teis
     name: Alert Admin of Duplicate TEIs
-    adaptor: "@openfn/language-common@2.1.1"
+    adaptor: '@openfn/language-common@2.1.1'
     expression: ./alert-admin-of-duplicate-teis.js
   - id: create-patients
     name: Create Patients
-    adaptor: "@openfn/language-openmrs@4.2.0"
+    adaptor: '@openfn/language-openmrs@4.2.0'
     configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./create-patients.js
     next:
@@ -19,13 +18,14 @@ steps:
   - id: cron
     type: cron
     enabled: false
+    cron_expression: 0 0 * * *
     next:
       fetch-metadata:
         disabled: false
         condition: always
   - id: fetch-metadata
     name: Fetch Metadata
-    adaptor: "@openfn/language-common@2.1.1"
+    adaptor: '@openfn/language-common@2.1.1'
     expression: ./fetch-metadata.js
     next:
       get-teis-and-locations:
@@ -33,7 +33,7 @@ steps:
         condition: on_job_success
   - id: get-teis-and-locations
     name: Get Teis and Locations
-    adaptor: "@openfn/language-dhis2@5.0.1"
+    adaptor: '@openfn/language-dhis2@5.0.1'
     configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./get-teis-and-locations.js
     next:
@@ -54,11 +54,11 @@ steps:
         label: has-teisWithOMRSID
   - id: update-teis
     name: Update Teis
-    adaptor: "@openfn/language-dhis2@5.0.1"
+    adaptor: '@openfn/language-dhis2@5.0.1'
     configuration: mtuchi@openfn.org|MSF DHIS2 UAT
     expression: ./update-teis.js
   - id: validate-teis-with-omrs-id
     name: Validate TEIs with OMRS Id
-    adaptor: "@openfn/language-openmrs@4.2.0"
+    adaptor: '@openfn/language-openmrs@4.2.0'
     configuration: mtuchi@openfn.org|OpenMRS Demo
     expression: ./validate-teis-with-omrs-id.js

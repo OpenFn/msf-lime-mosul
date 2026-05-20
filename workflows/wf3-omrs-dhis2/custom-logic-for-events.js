@@ -69,7 +69,10 @@ const dataValueByConcept = (encounter, de, state) => {
   ) {
     return answer.value;
   }
-  if (isStringAnswer || (isNumberAnswer && type === "number")) {
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -184,7 +187,10 @@ const findDataValue = (encounter, dataElement, state) => {
   ) {
     return answer.value;
   }
-  if (isStringAnswer || (isNumberAnswer && type === "number")) {
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -361,7 +367,9 @@ function f42(encounter) {
   if (!obsDatetime) return { dataValues: [], eventDate: null };
 
   return {
-    dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime }],
+    dataValues: [
+      { dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) },
+    ],
     eventDate: obsDatetime.replace("+0000", ""),
   };
 }
@@ -555,7 +563,7 @@ function f66(encounter, state) {
 
   const resolveOptionCode = (optionUid) =>
     state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-    "DHIS2 Option Code"
+      "DHIS2 Option Code"
     ];
 
   // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
@@ -760,7 +768,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       formMapping.push(...f8DataValues);
       if (f8EventDate) eventDate = f8EventDate;
     }
-    if (f09Uuid === encounter.form.uuid) {
+    if ([f08Uuid, f09Uuid].includes(encounter.form.uuid)) {
       // F09 Form Encounter Mapping
       const attributeMap = {
         Lg1LrNf9LQR: dhis2Map.attr.sex,
@@ -772,15 +780,15 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         FsL5BjQocuo: dhis2Map.attr.nationality,
         Pi1zytYdq6l: dhis2Map.attr.patientNumber,
       };
-      const f09Mapping = mapAttribute(tei?.attributes, attributeMap);
-      formMapping.push(...f09Mapping);
+      const f0809Mapping = mapAttribute(tei?.attributes, attributeMap);
+      formMapping.push(...f0809Mapping);
     }
     if (f61Uuid === encounter.form.uuid) {
       const f61Mapping = f61(encounter, tei, state);
       formMapping.push(...f61Mapping);
     }
 
-    if (f24Uuid === encounter.form.uuid) {
+    if ([f23Uuid, f24Uuid].includes(encounter.form.uuid)) {
       // F24 Form Encounter Mapping
       // Maps TEI attributes to DHIS2 data elements
       const attributeMap = {
@@ -819,7 +827,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
 
       formMapping.push(...attributeMapping);
     }
-    if (f26Uuid === encounter.form.uuid) {
+    if ([f25Uuid, f26Uuid].includes(encounter.form.uuid)) {
       const attributeMap = {
         d7wOfzPBbQD: dhis2Map.attr.ageInYears,
         y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
@@ -880,7 +888,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       if (f27EventDate) eventDate = f27EventDate;
     }
 
-    if (f28Uuid === encounter.form.uuid) {
+    if ([f27Uuid, f28Uuid].includes(encounter.form.uuid)) {
       // F28 Form Encounter Mapping
       const attributeMap = {
         WP5vr8KB2lH: dhis2Map.attr.sex,
@@ -914,7 +922,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       formMapping.push(...f42DataValues);
       if (f42EventDate) eventDate = f42EventDate;
     }
-    if (f43Uuid === encounter.form.uuid) {
+    if ([f43Uuid, f42Uuid, f41Uuid].includes(encounter.form.uuid)) {
       // F43 Form Encounter Mapping - TEI attributes and custom logic
       const attributeMap = {
         gHPt2FCZEE6: dhis2Map.attr.patientNumber, // Emergency Room - Patient number
