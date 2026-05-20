@@ -6108,7 +6108,7 @@ workflows:
       Missing-OptionSets:
         name: Missing OptionSets
         adaptor: '@openfn/language-googlesheets@4.0.7'
-        credential: mtuchi@openfn.org-mtuchi-gsheet
+        credential: null
         body: |
           // Only run if there are missing option sets to report
           fn((state) => {
@@ -6295,7 +6295,7 @@ workflows:
         condition_label: missing-opts
         condition_expression: |
           !state.errors && state.missingOptsets.length > 0
-        enabled: true
+        enabled: false
       Get-Encounters->Get-Parent-and-Child-TEIs:
         source_job: Get-Encounters
         target_job: Get-Parent-and-Child-TEIs
