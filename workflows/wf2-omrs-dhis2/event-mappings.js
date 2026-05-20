@@ -415,7 +415,7 @@ function mapF13(encounter, state) {
         const value = state.optsMap.find(
           (o) =>
             o["value.uuid - External ID"] ===
-              answers[config.index]?.value?.uuid &&
+            answers[config.index]?.value?.uuid &&
             o["DHIS2 Option Set UID"] === "lOD0K3UhiN2"
         )?.["DHIS2 Option Code"];
 
@@ -1165,14 +1165,14 @@ function mapF49(encounter, events, state) {
   const pregnancyEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
-        )?.event
+        (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+      )?.event
       : undefined;
   const investigationEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F49_CONFIG.investigationStage.programStage
-        )?.event
+        (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+      )?.event
       : undefined;
 
   // DEFAULT STAGE
@@ -1402,21 +1402,21 @@ function mapF49(encounter, events, state) {
     },
     ...(pregnancyDataValues.length > 0
       ? [
-          {
-            event: pregnancyEvent,
-            programStage: F49_CONFIG.pregnancyStage.programStage,
-            dataValues: pregnancyDataValues,
-          },
-        ]
+        {
+          event: pregnancyEvent,
+          programStage: F49_CONFIG.pregnancyStage.programStage,
+          dataValues: pregnancyDataValues,
+        },
+      ]
       : []),
     ...(investigationDataValues.length > 0
       ? [
-          {
-            event: investigationEvent,
-            programStage: F49_CONFIG.investigationStage.programStage,
-            dataValues: investigationDataValues,
-          },
-        ]
+        {
+          event: investigationEvent,
+          programStage: F49_CONFIG.investigationStage.programStage,
+          dataValues: investigationDataValues,
+        },
+      ]
       : []),
   ];
 }
@@ -1801,8 +1801,8 @@ function mapF50(encounter, events, state) {
   const pregnancyEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
-        )?.event
+        (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+      )?.event
       : undefined;
   const pregnancyDataValues = [];
 
@@ -1829,8 +1829,8 @@ function mapF50(encounter, events, state) {
   const investigationEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F50_CONFIG.investigationStage.programStage
-        )?.event
+        (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+      )?.event
       : undefined;
   const investigationDataValues = [];
 
@@ -1915,46 +1915,46 @@ function mapF50(encounter, events, state) {
     },
     ...(ifDefaulterSpecify || typeOfExitF50
       ? [
-          {
-            event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
-            programStage: "ecvF615g1jZ",
-            dataValues: [
-              {
-                // Row 114: Exit date (Date field)
-                dataElement: dataEl.ncdEventDate,
-                value: exitDate,
-              },
-              {
-                // Row 115: Type of exit (Coded, option set Gjx599aojCR)
-                dataElement: dataEl.f50.typeOfExit,
-                value: typeOfExitF50,
-              },
-              {
-                // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
-                dataElement: dataEl.f50.ifDefaulterSpecify,
-                value: ifDefaulterSpecify,
-              },
-            ].filter((d) => d?.value != null && d?.value !== ""),
-          },
-        ]
+        {
+          event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+          programStage: "ecvF615g1jZ",
+          dataValues: [
+            {
+              // Row 114: Exit date (Date field)
+              dataElement: dataEl.ncdEventDate,
+              value: exitDate,
+            },
+            {
+              // Row 115: Type of exit (Coded, option set Gjx599aojCR)
+              dataElement: dataEl.f50.typeOfExit,
+              value: typeOfExitF50,
+            },
+            {
+              // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
+              dataElement: dataEl.f50.ifDefaulterSpecify,
+              value: ifDefaulterSpecify,
+            },
+          ].filter((d) => d?.value != null && d?.value !== ""),
+        },
+      ]
       : []),
     ...(pregnancyDataValues.length > 0
       ? [
-          {
-            event: pregnancyEvent,
-            programStage: F50_CONFIG.pregnancyStage.programStage,
-            dataValues: pregnancyDataValues,
-          },
-        ]
+        {
+          event: pregnancyEvent,
+          programStage: F50_CONFIG.pregnancyStage.programStage,
+          dataValues: pregnancyDataValues,
+        },
+      ]
       : []),
     ...(investigationDataValues.length > 0
       ? [
-          {
-            event: investigationEvent,
-            programStage: F50_CONFIG.investigationStage.programStage,
-            dataValues: investigationDataValues,
-          },
-        ]
+        {
+          event: investigationEvent,
+          programStage: F50_CONFIG.investigationStage.programStage,
+          dataValues: investigationDataValues,
+        },
+      ]
       : []),
   ];
 }
@@ -2416,9 +2416,9 @@ function mapF62(encounter, events, state) {
     event:
       syncType === "latest"
         ? events?.find(
-            (e) =>
-              e.programStage === F62_CONFIG.hospitalisationStage.programStage
-          )?.event
+          (e) =>
+            e.programStage === F62_CONFIG.hospitalisationStage.programStage
+        )?.event
         : undefined,
     programStage: F62_CONFIG.hospitalisationStage.programStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -2609,9 +2609,9 @@ function mapF63(encounter, events, state) {
     event:
       syncType === "latest"
         ? events?.find(
-            (e) =>
-              e.programStage === F63_CONFIG.hospitalisationStage.programStage
-          )?.event
+          (e) =>
+            e.programStage === F63_CONFIG.hospitalisationStage.programStage
+        )?.event
         : undefined,
     programStage: F63_CONFIG.hospitalisationStage.programStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),

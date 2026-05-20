@@ -33,7 +33,7 @@ steps:
         condition: on_job_success
   - id: cron
     type: cron
-    enabled: false
+    enabled: true
     cron_expression: 0 0 * * *
     next:
       get-patients:
@@ -50,7 +50,7 @@ steps:
           state?.eventsMapping?.length > 0 && !state.errors
         label: has-events
       missing-optionsets:
-        disabled: false
+        disabled: true
         condition: '!state.errors && state.missingOptsets.length > 0'
         label: missing-opts
   - id: get-encounters
@@ -94,20 +94,19 @@ steps:
     configuration: mtuchi@openfn.org|mtuchi-collections-config
     expression: ./mappings.js
     next:
-      get-encounters:
-        disabled: false
-        condition: |
-          !state.errors && state.patients.length === 0
-        label: has-no-patients
       upsert-teis:
         disabled: false
         condition: |
           state.patients.length > 0 && !state.errors
         label: has-patients
+      get-encounters:
+        disabled: false
+        condition: |
+          !state.errors && state.patients.length === 0
+        label: has-no-patients
   - id: missing-optionsets
     name: Missing OptionSets
     adaptor: '@openfn/language-googlesheets@4.0.7'
-    configuration: mtuchi@openfn.org|mtuchi-gsheet
     expression: ./missing-optionsets.js
   - id: update-teis
     name: Update TEIs

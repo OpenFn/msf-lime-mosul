@@ -90,7 +90,7 @@ steps:
         condition: on_job_success
   - id: webhook
     type: webhook
-    enabled: true
+    enabled: false
     webhook_reply: before_start
     next:
       get-metadata-file-from-sharepoint:

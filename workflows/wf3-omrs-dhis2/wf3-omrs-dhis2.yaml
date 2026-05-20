@@ -9,7 +9,7 @@ steps:
     expression: ./create-events.js
   - id: cron
     type: cron
-    enabled: false
+    enabled: true
     cron_expression: 0 0 * * *
     next:
       get-patients:
@@ -26,7 +26,7 @@ steps:
           state?.eventsMapping?.length > 0 && !state.errors
         label: has-events
       missing-optionsets:
-        disabled: false
+        disabled: true
         condition: '"!state.errors && state.missingOptsets.length > 0"'
         label: missing-opts
   - id: get-encounters
@@ -79,7 +79,6 @@ steps:
   - id: missing-optionsets
     name: Missing OptionSets
     adaptor: '@openfn/language-googlesheets@4.0.8'
-    configuration: mtuchi@openfn.org|mtuchi-gsheet
     expression: ./missing-optionsets.js
   - id: upsert-teis
     name: Upsert TEIs

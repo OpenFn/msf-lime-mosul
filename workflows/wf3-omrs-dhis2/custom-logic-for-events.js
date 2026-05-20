@@ -367,9 +367,7 @@ function f42(encounter) {
   if (!obsDatetime) return { dataValues: [], eventDate: null };
 
   return {
-    dataValues: [
-      { dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) },
-    ],
+    dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) }],
     eventDate: obsDatetime.replace("+0000", ""),
   };
 }
@@ -563,7 +561,7 @@ function f66(encounter, state) {
 
   const resolveOptionCode = (optionUid) =>
     state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-      "DHIS2 Option Code"
+    "DHIS2 Option Code"
     ];
 
   // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
