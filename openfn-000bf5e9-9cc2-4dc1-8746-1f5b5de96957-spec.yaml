@@ -1036,7 +1036,7 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
       Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
         source_job: Prepare-Mapping-Per-Sheet
@@ -6241,7 +6241,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
-        enabled: false
+        enabled: true
     edges:
       cron->Get-Patients:
         source_trigger: cron
@@ -8554,7 +8554,7 @@ workflows:
       cron:
         type: cron
         cron_expression: '0 0 * * *'
-        enabled: false
+        enabled: true
     edges:
       Get-Mappings-from-Collection->Upsert-TEIs:
         source_job: Get-Mappings-from-Collection
