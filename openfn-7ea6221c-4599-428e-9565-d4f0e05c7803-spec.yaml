@@ -1037,8 +1037,23 @@ workflows:
       webhook:
         type: webhook
         webhook_reply: before_start
-        enabled: true
+        enabled: false
     edges:
+      Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
+        source_job: Prepare-Mapping-Per-Sheet
+        target_job: Add-Errors-to-GoogleSheet
+        condition_type: on_job_success
+        enabled: true
+      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
+        source_job: Warn-admin-of-errors
+        target_job: Prepare-Mapping-Per-Sheet
+        condition_type: on_job_success
+        enabled: true
+      webhook->Get-metadata-file-from-Sharepoint:
+        source_trigger: webhook
+        target_job: Get-metadata-file-from-Sharepoint
+        condition_type: always
+        enabled: true
       Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format:
         source_job: Get-metadata-file-from-Sharepoint
         target_job: Map-metadata-file-to-option-set-Json-format
@@ -1049,11 +1064,6 @@ workflows:
         target_job: Save-option-set-json-to-github
         condition_type: on_job_success
         enabled: false
-      Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
-        source_job: Prepare-Mapping-Per-Sheet
-        target_job: Add-Errors-to-GoogleSheet
-        condition_type: on_job_success
-        enabled: true
       Throw-Errors->Save-option-set-json-to-collections-main:
         source_job: Throw-Errors
         target_job: Save-option-set-json-to-collections-main
@@ -1084,16 +1094,6 @@ workflows:
         target_job: Save-option-set-json-to-collections
         condition_type: always
         enabled: false
-      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
-        source_job: Warn-admin-of-errors
-        target_job: Prepare-Mapping-Per-Sheet
-        condition_type: on_job_success
-        enabled: true
-      webhook->Get-metadata-file-from-Sharepoint:
-        source_trigger: webhook
-        target_job: Get-metadata-file-from-Sharepoint
-        condition_type: always
-        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
