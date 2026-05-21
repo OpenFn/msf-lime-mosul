@@ -1,4 +1,4 @@
-function chunkArray(array, size) {
+export function chunkArray(array, size) {
   const chunks = [];
   for (let i = 0; i < array.length; i += size) {
     chunks.push(array.slice(i, i + size));
@@ -6,7 +6,7 @@ function chunkArray(array, size) {
   return chunks;
 }
 
-function remainderMonths(dob, ageYears, todayDate) {
+export function remainderMonths(dob, ageYears, todayDate) {
   const birth = new Date(dob);
   const today = new Date(todayDate);
 
@@ -29,14 +29,14 @@ function remainderMonths(dob, ageYears, todayDate) {
   return months;
 }
 
-const findIdentifierByUuid = (identifiers, targetUuid) =>
+export const findIdentifierByUuid = (identifiers, targetUuid) =>
   identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
 
-const findAttrValue = (uuid, attributes) => {
+export const findAttrValue = (uuid, attributes) => {
   return attributes.find((a) => a.attributeType.uuid === uuid)?.value;
 };
 
-const findOptCode = (attrValue, optsMap, optionSetKey) => {
+export const findOptCode = (attrValue, optsMap, optionSetKey) => {
   if (typeof attrValue === "string") {
     return attrValue;
   }
@@ -64,7 +64,7 @@ const findOptCode = (attrValue, optsMap, optionSetKey) => {
   }
   return null;
 };
-const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
+export const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
   const genderMap = {
     M: "male",
     O: "unknown",

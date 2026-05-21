@@ -3,10 +3,10 @@ const f64AgeInYearsAttr = "Rv8WM2mTuS5"; //dhis2Map.attr.ageInYears
 const f64AgeInMonthsAttr = "k26cdlS78i9";
 
 const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
-const calculateAge = (dob) =>
+export const calculateAge = (dob) =>
   Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
 
-const teiAge = (tei, attr) => {
+export const teiAge = (tei, attr) => {
   const { ageInYears, birthdate } = attr;
   let age = tei?.attributes?.find(
     (attr) => attr.attribute === ageInYears
@@ -21,37 +21,37 @@ const teiAge = (tei, attr) => {
   return age;
 };
 
-function isPositiveInteger(n) {
+export function isPositiveInteger(n) {
   return Number.isInteger(n) && n > 0;
 }
-const formIdByName = (name, formMaps) => {
+export const formIdByName = (name, formMaps) => {
   const entry = Object.entries(formMaps).find(([formId, form]) =>
     form.formName.includes(name)
   );
   return entry ? entry[0] : null;
 };
 
-const ageInDays = (dob, encounterDate) => {
+export const ageInDays = (dob, encounterDate) => {
   const birth = new Date(dob);
   const encounter = new Date(encounterDate);
   const diffTime = Math.abs(encounter - birth);
   return Math.floor(diffTime / (1000 * 60 * 60 * 24));
 };
 
-const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
+export const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
   return answer ? "true" : "false";
 };
-const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
+export const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
   return answer ? "true" : undefined;
 };
 
-const dataValueByConcept = (encounter, de, state) => {
+export const dataValueByConcept = (encounter, de, state) => {
   const { dataElement, conceptUuid, questionId, type } = de;
 
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -132,7 +132,7 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 };
 
-const findObsByConcept = (encounter, conceptUuid, questionId) => {
+export const findObsByConcept = (encounter, conceptUuid, questionId) => {
   const answer = encounter.obs.find(
     (o) =>
       o.concept.uuid === conceptUuid &&
@@ -142,7 +142,7 @@ const findObsByConcept = (encounter, conceptUuid, questionId) => {
   return answer;
 };
 
-const filterObsByConcept = (encounter, conceptUuid, questionId) => {
+export const filterObsByConcept = (encounter, conceptUuid, questionId) => {
   const answers = encounter.obs.filter(
     (o) =>
       o.concept.uuid === conceptUuid &&
@@ -151,7 +151,7 @@ const filterObsByConcept = (encounter, conceptUuid, questionId) => {
   return answers;
 };
 
-const toTrueOrFalse = (value) => {
+export const toTrueOrFalse = (value) => {
   if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
     return "true";
   }
@@ -161,7 +161,7 @@ const toTrueOrFalse = (value) => {
   return value;
 };
 
-const findDataValue = (encounter, dataElement, state) => {
+export const findDataValue = (encounter, dataElement, state) => {
   if (dataElement === "H9noxo3e7ox") {
     return;
   }
@@ -259,7 +259,7 @@ const findDataValue = (encounter, dataElement, state) => {
   return "";
 };
 
-const multiSelectAns = (encounter, multiSelectQns) => {
+export const multiSelectAns = (encounter, multiSelectQns) => {
   const dataValues = multiSelectQns
     .map((q) =>
       q.qns
@@ -287,7 +287,7 @@ const multiSelectAns = (encounter, multiSelectQns) => {
 
   return dataValues;
 };
-function f8(encounter) {
+export function f8(encounter) {
   const timePart = encounter.encounterDatetime.substring(11, 16);
   return {
     dataValues: [{ dataElement: "iQio7NYSA3m", value: timePart }],
@@ -295,7 +295,7 @@ function f8(encounter) {
   };
 }
 
-function f26(encounter, state) {
+export function f26(encounter, state) {
   const config = {
     concept: "8afa4dfc-b2af-452c-b402-4b96b0f334b4",
     qid: "rfe-forms-antimalariaType",
@@ -326,7 +326,7 @@ function f26(encounter, state) {
   });
 }
 
-function f27(encounter) {
+export function f27(encounter) {
   const admissionDate = findObsByConcept(
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
@@ -340,7 +340,7 @@ function f27(encounter) {
   };
 }
 
-function f41(encounter) {
+export function f41(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "40108bf5-0bbd-42e8-8102-bcbd0550a943"
@@ -359,7 +359,7 @@ function f41(encounter) {
   };
 }
 
-function f42(encounter) {
+export function f42(encounter) {
   const obsDatetime = findObsByConcept(
     encounter,
     "7f00c65d-de60-467a-8964-fe80c7a85ef0"
@@ -367,12 +367,14 @@ function f42(encounter) {
   if (!obsDatetime) return { dataValues: [], eventDate: null };
 
   return {
-    dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) }],
+    dataValues: [
+      { dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) },
+    ],
     eventDate: obsDatetime.replace("+0000", ""),
   };
 }
 
-function f43(encounter, tei, dhis2Attr) {
+export function f43(encounter, tei, dhis2Attr) {
   const mappings = [];
   let eventDate = null;
 
@@ -451,7 +453,7 @@ function f43(encounter, tei, dhis2Attr) {
   return { dataValues: mappings, eventDate };
 }
 
-function f61(encounter, tei, state) {
+export function f61(encounter, tei, state) {
   const { dhis2Map } = state;
   const attributeMap = {
     SRy50Q7NxIO: dhis2Map.attr.ageInYears, // Travel Medicine - Age in years
@@ -497,7 +499,7 @@ function f61(encounter, tei, state) {
   ].filter((d) => d.value);
 }
 
-function f64(encounter) {
+export function f64(encounter) {
   const mappings = [];
 
   mappings.push({
@@ -508,7 +510,7 @@ function f64(encounter) {
   return mappings;
 }
 
-function f65(encounter) {
+export function f65(encounter) {
   const mappings = [];
   // Discharge date and time (Question #1)
   // Concept: d92dd800-b048-4724-86fa-91d006f9caa8
@@ -535,7 +537,7 @@ function f65(encounter) {
   return mappings;
 }
 
-function f66(encounter, state) {
+export function f66(encounter, state) {
   const mappings = [];
 
   const hasObsByQid = (qid, valueUuid) =>
@@ -561,7 +563,7 @@ function f66(encounter, state) {
 
   const resolveOptionCode = (optionUid) =>
     state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-    "DHIS2 Option Code"
+      "DHIS2 Option Code"
     ];
 
   // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
@@ -635,7 +637,7 @@ function f66(encounter, state) {
   return mappings;
 }
 
-function f67(tei, dhis2Map) {
+export function f67(tei, dhis2Map) {
   const birthdate = tei?.attributes?.find(
     (attr) => attr.attribute === dhis2Map.attr.birthdate
   )?.value;
@@ -682,7 +684,7 @@ function f67(tei, dhis2Map) {
   return mapping;
 }
 
-function mapAttribute(attributes, attributeMap) {
+export function mapAttribute(attributes, attributeMap) {
   const attrMapping = Object.entries(attributeMap)
     .map(([dataElement, attributeId]) => {
       const value = attributes?.find(
@@ -696,7 +698,7 @@ function mapAttribute(attributes, attributeMap) {
   return attrMapping;
 }
 
-const buildDataValues = (pairedEncounters, tei, state) => {
+export const buildDataValues = (pairedEncounters, tei, state) => {
   const { dhis2Map } = state;
 
   const f08Uuid = formIdByName("F08-ITFC Admission", state.formMaps);
@@ -1101,7 +1103,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   return { dataValues: combinedMapping, eventDate };
 };
 
-const handleMissingRecord = (patientKey, state) => {
+export const handleMissingRecord = (patientKey, state) => {
   const [orgUnit, program, programStage, patientUuid, visitUuid] =
     patientKey.split(":");
   console.log("Missing trackedEntity for patient", {

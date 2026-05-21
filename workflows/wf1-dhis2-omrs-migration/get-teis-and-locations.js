@@ -1,10 +1,10 @@
-const findDuplicatePatient = teis => {
+export const findDuplicatePatient = (teis) => {
   const seen = new Map();
   const duplicates = new Set();
 
-  teis.forEach(tei => {
+  teis.forEach((tei) => {
     const patientNumber = tei.attributes.find(
-      attr => attr.code === 'patient_number'
+      (attr) => attr.code === "patient_number"
     )?.value;
 
     if (seen.get(patientNumber)) {
@@ -17,41 +17,43 @@ const findDuplicatePatient = teis => {
   return duplicates;
 };
 // Get teis that are "active" in the target program
-get('tracker/trackedEntities', {
+get("tracker/trackedEntities", {
   orgUnit: $.orgUnit,
   program: $.program,
-  programStatus: 'ACTIVE',
+  programStatus: "ACTIVE",
   updatedAfter: $.cursor,
   skipPaging: true,
 });
 
-fn(state => {
-  console.log('# of TEIs found before filter ::', state.data.instances.length);
+fn((state) => {
+  console.log("# of TEIs found before filter ::", state.data.instances.length);
   const uniqueTeis = [];
   const duplicatePatients = [];
   const missingPatientNumber = [];
   const teisWithOMRSID = [];
 
   const filteredTeis = state.data.instances.filter(
-    tei => tei.updatedAt >= state.cursor
+    (tei) => tei.updatedAt >= state.cursor
   );
 
-  console.log('Filtered TEIs ::', filteredTeis.length);
+  console.log("Filtered TEIs ::", filteredTeis.length);
   const duplicateIds = findDuplicatePatient(filteredTeis);
 
-  filteredTeis.forEach(tei => {
+  filteredTeis.forEach((tei) => {
     const patientNumber = tei.attributes.find(
-      attr => attr.code === 'patient_number'
+      (attr) => attr.code === "patient_number"
     )?.value;
     const patientUid = tei.attributes.find(
-      attr => attr.code === 'patient_uid' || attr.displayName === 'OpenMRS patient UID'
+      (attr) =>
+        attr.code === "patient_uid" ||
+        attr.displayName === "OpenMRS patient UID"
     )?.value;
 
     if (patientUid) {
       console.log(
         `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
       );
-      teisWithOMRSID.push(tei)
+      teisWithOMRSID.push(tei);
     }
 
     if (!patientNumber) {
@@ -63,8 +65,8 @@ fn(state => {
     }
   });
 
-  console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
-  console.log('# Duplicate Patients found::', duplicatePatients.length);
+  console.log("# of Unique TEIs to migrate to OMRS ::", uniqueTeis.length);
+  console.log("# Duplicate Patients found::", duplicatePatients.length);
 
   // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
   return {
@@ -78,8 +80,8 @@ fn(state => {
   };
 });
 
-get('optionGroups/kdef7pUey9f', {
-  fields: 'id,displayName,options[id,displayName,code]',
+get("optionGroups/kdef7pUey9f", {
+  fields: "id,displayName,options[id,displayName,code]",
 });
 
 fn(({ data, ...state }) => {

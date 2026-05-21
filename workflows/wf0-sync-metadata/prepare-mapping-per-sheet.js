@@ -1,7 +1,6 @@
-
 const baseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
 const gsheetId = "1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg";
-const genSheets = (sourceFile) => {
+export const genSheets = (sourceFile) => {
   const todayDate = new Date().toISOString().split("T")[0];
 
   const shortFile = sourceFile

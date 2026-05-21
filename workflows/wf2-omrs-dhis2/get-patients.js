@@ -1,4 +1,4 @@
-function removeLinks(data) {
+export function removeLinks(data) {
   if (Array.isArray(data)) {
     return data.map(removeLinks);
   }
@@ -13,7 +13,7 @@ function removeLinks(data) {
   return data;
 }
 
-function removeNulls(data) {
+export function removeNulls(data) {
   if (Array.isArray(data)) {
     return data.filter((item) => item !== null).map(removeNulls);
   }
@@ -55,7 +55,8 @@ fn((state) => {
         removeNulls(p)
       );
       const { dateCreated } = auditInfo;
-      const { age, birthdate, gender, names, preferredAddress, attributes } = person;
+      const { age, birthdate, gender, names, preferredAddress, attributes } =
+        person;
 
       return {
         uuid,

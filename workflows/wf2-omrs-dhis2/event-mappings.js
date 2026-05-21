@@ -2,20 +2,20 @@ const CONCEPTS = {
   OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
   OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
 };
-const extractAnswerValue = (answer) => {
+export const extractAnswerValue = (answer) => {
   if (!answer) return undefined;
   if (typeof answer.value === "string") return answer.value;
   if (typeof answer.value === "object") return answer.value.display;
 };
-function formatTime(time) {
+export function formatTime(time) {
   const match = time.match(/^(\d{2}:\d{2})/);
   return match ? match[1] : null;
 }
 
-function isPositiveInteger(n) {
+export function isPositiveInteger(n) {
   return Number.isInteger(n) && n > 0;
 }
-const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
+export const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
   if (questionId) {
     const answer = encounter.obs.find(
       (o) => o.concept.uuid === conceptUuid && o.formFieldPath === questionId
@@ -29,7 +29,7 @@ const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
 };
 
 // Helper functions for finding observations
-const findObsByConcept = (encounter, conceptUuid) => {
+export const findObsByConcept = (encounter, conceptUuid) => {
   const [conceptId, questionId] = conceptUuid.split("-rfe-");
   const answer = encounter.obs.find(
     (o) =>
@@ -39,20 +39,20 @@ const findObsByConcept = (encounter, conceptUuid) => {
   return answer;
 };
 
-const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
+export const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
   return answer ? "true" : "false";
 };
-const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
+export const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid !== valueUuid
   );
   return answer ? "true" : "false";
 };
 
-const conceptTrueOnly = (encounter, conceptUuid) => {
+export const conceptTrueOnly = (encounter, conceptUuid) => {
   const answer = encounter.obs.find(
     (o) =>
       o.concept.uuid === conceptUuid &&
@@ -61,14 +61,14 @@ const conceptTrueOnly = (encounter, conceptUuid) => {
   return answer ? "true" : undefined;
 };
 
-const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
+export const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
   return answer ? "true" : undefined;
 };
 
-const multiSelectAns = (encounter, multiSelectQns) => {
+export const multiSelectAns = (encounter, multiSelectQns) => {
   const dataValues = multiSelectQns
     .map((q) =>
       q.qns
@@ -96,7 +96,7 @@ const multiSelectAns = (encounter, multiSelectQns) => {
 
   return dataValues;
 };
-const toTrueOrFalse = (value) => {
+export const toTrueOrFalse = (value) => {
   if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
     return "true";
   }
@@ -106,7 +106,7 @@ const toTrueOrFalse = (value) => {
   return value;
 };
 
-const dataValueByConcept = (encounter, de, state) => {
+export const dataValueByConcept = (encounter, de, state) => {
   const { dataElement, conceptUuid, questionId, type } = de || {};
 
   const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -188,7 +188,7 @@ const dataValueByConcept = (encounter, de, state) => {
   }
 };
 
-const findDataValue = (encounter, dataElement, state) => {
+export const findDataValue = (encounter, dataElement, state) => {
   const form = state.formMaps[encounter.form.uuid];
   const [conceptUuid, type, questionId] =
     form.dataValueMap[dataElement]?.split("::") || [];
@@ -305,11 +305,11 @@ const findDataValue = (encounter, dataElement, state) => {
   return "";
 };
 
-const formEncounters = (formDescription, encounters) => {
+export const formEncounters = (formDescription, encounters) => {
   return encounters.filter((e) => e.form.description.includes(formDescription));
 };
 
-const buildExitEvent = (encounter, tei, state) => {
+export const buildExitEvent = (encounter, tei, state) => {
   const { program, orgUnit, trackedEntity, enrollment, events } = tei;
 
   let exitEvents = [];
@@ -394,7 +394,7 @@ const buildExitEvent = (encounter, tei, state) => {
   return exitEvents;
 };
 
-function mapF13(encounter, state) {
+export function mapF13(encounter, state) {
   if (encounter.form.name.includes("F13-PNC")) {
     const answers = encounter.obs.filter(
       (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
@@ -415,7 +415,7 @@ function mapF13(encounter, state) {
         const value = state.optsMap.find(
           (o) =>
             o["value.uuid - External ID"] ===
-            answers[config.index]?.value?.uuid &&
+              answers[config.index]?.value?.uuid &&
             o["DHIS2 Option Set UID"] === "lOD0K3UhiN2"
         )?.["DHIS2 Option Code"];
 
@@ -444,7 +444,7 @@ function mapF13(encounter, state) {
   }
 }
 
-function mapF16(encounter) {
+export function mapF16(encounter) {
   const answers = encounter.obs.filter(
     (o) => o.concept.uuid === "877aa979-c02f-4890-8156-836d52696f09"
   );
@@ -465,7 +465,7 @@ function mapF16(encounter) {
   return;
 }
 
-function mapF17(encounter) {
+export function mapF17(encounter) {
   const mappings = [];
   if (
     encounter.form.name.includes("F17-Surgery Admission") &&
@@ -499,7 +499,7 @@ function mapF17(encounter) {
   return mappings;
 }
 
-function mapF18(encounter, encounters) {
+export function mapF18(encounter, encounters) {
   const isDischarge = findObsByConcept(
     encounter,
     "13cea1c8-e426-411f-95b4-33651fc4325d"
@@ -518,7 +518,7 @@ function mapF18(encounter, encounters) {
   }
 }
 
-function mapF22(encounter) {
+export function mapF22(encounter) {
   if (encounter.form.name.includes("F22-Neonatal Delivery")) {
     return [
       {
@@ -529,7 +529,7 @@ function mapF22(encounter) {
   }
 }
 
-function mapF29(encounter) {
+export function mapF29(encounter) {
   const mappings = [];
   if (encounter.form.name.includes("F29-MHPSS Baseline")) {
     mappings.push({
@@ -617,7 +617,7 @@ function mapF29(encounter) {
   return mappings;
 }
 
-function mapF30F29(encounter, allEncounters) {
+export function mapF30F29(encounter, allEncounters) {
   if (encounter.form.name.includes("F30-MHPSS Follow-up")) {
     const OTHER = "790b41ce-e1e7-11e8-b02f-0242ac130002";
     const MISSED_SESSION_CONCEPT = "54e8c1b6-6397-4822-89a4-cf81fbc68ce9";
@@ -705,7 +705,7 @@ function mapF30F29(encounter, allEncounters) {
   }
 }
 
-function mapF32F31(encounter, allEncounters) {
+export function mapF32F31(encounter, allEncounters) {
   let mapping = [];
   if (encounter.form.name.includes("F31-mhGAP Baseline")) {
     mapping.push({
@@ -813,7 +813,7 @@ function mapF32F31(encounter, allEncounters) {
   return mapping;
 }
 
-function mapF33F34(encounter, allEncounters) {
+export function mapF33F34(encounter, allEncounters) {
   if (
     encounter.form.name.includes("F33-MHPSS Closure") ||
     encounter.form.name.includes("F34-mhGAP Closure")
@@ -845,7 +845,7 @@ function mapF33F34(encounter, allEncounters) {
   }
 }
 
-function mapF37(encounter) {
+export function mapF37(encounter) {
   if (encounter.form.name.includes("F37-Maternity Admission")) {
     return [
       {
@@ -856,7 +856,7 @@ function mapF37(encounter) {
   }
 }
 
-function mapF38(encounter) {
+export function mapF38(encounter) {
   if (encounter.form.name.includes("F38-Maternity Delivery")) {
     let f38Mapping = [
       {
@@ -868,7 +868,7 @@ function mapF38(encounter) {
     return f38Mapping;
   }
 }
-function mapF40(encounter) {
+export function mapF40(encounter) {
   if (encounter.form.name.includes("F40-Referral & Discharge")) {
     return [
       {
@@ -1125,7 +1125,7 @@ const F49_CONFIG = {
     ],
   },
 };
-function mapDiagnosisF49(encounter, mapping, state) {
+export function mapDiagnosisF49(encounter, mapping, state) {
   const diagnosisObs = encounter.obs.find(
     (o) => o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
   );
@@ -1151,7 +1151,7 @@ function mapDiagnosisF49(encounter, mapping, state) {
   return diagnosisAtAdmission ? "unknown" : "no";
 }
 
-function mapF49(encounter, events, state) {
+export function mapF49(encounter, events, state) {
   const { dhis2Map } = state;
   const form = state.formMaps[encounter.form.uuid];
   const programStage = form?.programStage;
@@ -1165,14 +1165,14 @@ function mapF49(encounter, events, state) {
   const pregnancyEvent =
     syncType === "latest"
       ? events?.find(
-        (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
-      )?.event
+          (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+        )?.event
       : undefined;
   const investigationEvent =
     syncType === "latest"
       ? events?.find(
-        (e) => e.programStage === F49_CONFIG.investigationStage.programStage
-      )?.event
+          (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+        )?.event
       : undefined;
 
   // DEFAULT STAGE
@@ -1402,21 +1402,21 @@ function mapF49(encounter, events, state) {
     },
     ...(pregnancyDataValues.length > 0
       ? [
-        {
-          event: pregnancyEvent,
-          programStage: F49_CONFIG.pregnancyStage.programStage,
-          dataValues: pregnancyDataValues,
-        },
-      ]
+          {
+            event: pregnancyEvent,
+            programStage: F49_CONFIG.pregnancyStage.programStage,
+            dataValues: pregnancyDataValues,
+          },
+        ]
       : []),
     ...(investigationDataValues.length > 0
       ? [
-        {
-          event: investigationEvent,
-          programStage: F49_CONFIG.investigationStage.programStage,
-          dataValues: investigationDataValues,
-        },
-      ]
+          {
+            event: investigationEvent,
+            programStage: F49_CONFIG.investigationStage.programStage,
+            dataValues: investigationDataValues,
+          },
+        ]
       : []),
   ];
 }
@@ -1646,7 +1646,7 @@ const F50_CONFIG = {
   },
 };
 
-function mapDiagnosisF50(encounter, mapping) {
+export function mapDiagnosisF50(encounter, mapping) {
   // Check if this diagnosis was selected in "New diagnosis" question
   const newDiagnosisObs = encounter.obs.find(
     (o) =>
@@ -1668,7 +1668,7 @@ function mapDiagnosisF50(encounter, mapping) {
   return diagnosisRemainsObs ? "unknown" : "no";
 }
 
-function mapF50(encounter, events, state) {
+export function mapF50(encounter, events, state) {
   const { dhis2Map } = state;
   const form = state.formMaps[encounter.form.uuid];
   const programStage = form?.programStage;
@@ -1801,8 +1801,8 @@ function mapF50(encounter, events, state) {
   const pregnancyEvent =
     syncType === "latest"
       ? events?.find(
-        (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
-      )?.event
+          (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+        )?.event
       : undefined;
   const pregnancyDataValues = [];
 
@@ -1829,8 +1829,8 @@ function mapF50(encounter, events, state) {
   const investigationEvent =
     syncType === "latest"
       ? events?.find(
-        (e) => e.programStage === F50_CONFIG.investigationStage.programStage
-      )?.event
+          (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+        )?.event
       : undefined;
   const investigationDataValues = [];
 
@@ -1915,51 +1915,51 @@ function mapF50(encounter, events, state) {
     },
     ...(ifDefaulterSpecify || typeOfExitF50
       ? [
-        {
-          event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
-          programStage: "ecvF615g1jZ",
-          dataValues: [
-            {
-              // Row 114: Exit date (Date field)
-              dataElement: dataEl.ncdEventDate,
-              value: exitDate,
-            },
-            {
-              // Row 115: Type of exit (Coded, option set Gjx599aojCR)
-              dataElement: dataEl.f50.typeOfExit,
-              value: typeOfExitF50,
-            },
-            {
-              // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
-              dataElement: dataEl.f50.ifDefaulterSpecify,
-              value: ifDefaulterSpecify,
-            },
-          ].filter((d) => d?.value != null && d?.value !== ""),
-        },
-      ]
+          {
+            event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+            programStage: "ecvF615g1jZ",
+            dataValues: [
+              {
+                // Row 114: Exit date (Date field)
+                dataElement: dataEl.ncdEventDate,
+                value: exitDate,
+              },
+              {
+                // Row 115: Type of exit (Coded, option set Gjx599aojCR)
+                dataElement: dataEl.f50.typeOfExit,
+                value: typeOfExitF50,
+              },
+              {
+                // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
+                dataElement: dataEl.f50.ifDefaulterSpecify,
+                value: ifDefaulterSpecify,
+              },
+            ].filter((d) => d?.value != null && d?.value !== ""),
+          },
+        ]
       : []),
     ...(pregnancyDataValues.length > 0
       ? [
-        {
-          event: pregnancyEvent,
-          programStage: F50_CONFIG.pregnancyStage.programStage,
-          dataValues: pregnancyDataValues,
-        },
-      ]
+          {
+            event: pregnancyEvent,
+            programStage: F50_CONFIG.pregnancyStage.programStage,
+            dataValues: pregnancyDataValues,
+          },
+        ]
       : []),
     ...(investigationDataValues.length > 0
       ? [
-        {
-          event: investigationEvent,
-          programStage: F50_CONFIG.investigationStage.programStage,
-          dataValues: investigationDataValues,
-        },
-      ]
+          {
+            event: investigationEvent,
+            programStage: F50_CONFIG.investigationStage.programStage,
+            dataValues: investigationDataValues,
+          },
+        ]
       : []),
   ];
 }
 
-function mapF55(encounter, events, state) {
+export function mapF55(encounter, events, state) {
   const programStage = state.formMaps[encounter.form.uuid]?.programStage;
   const event = events?.find((e) => e.programStage === programStage)?.event;
 
@@ -1979,7 +1979,7 @@ function mapF55(encounter, events, state) {
   ];
 }
 
-function mapF56(encounter, events, state) {
+export function mapF56(encounter, events, state) {
   const typeOfExit = dataValueByConcept(
     encounter,
     {
@@ -2041,7 +2041,7 @@ function mapF56(encounter, events, state) {
   return [];
 }
 
-function mapF58(encounter, events, state) {
+export function mapF58(encounter, events, state) {
   const typeOfExit = dataValueByConcept(
     encounter,
     {
@@ -2079,7 +2079,7 @@ function mapF58(encounter, events, state) {
   return [];
 }
 
-function mapF59(encounter, events, state) {
+export function mapF59(encounter, events, state) {
   const form = state.formMaps[encounter.form.uuid];
   const defaultProgramStage = form?.programStage;
   const syncType = form?.syncType;
@@ -2195,7 +2195,7 @@ function mapF59(encounter, events, state) {
   return [defaultEvent];
 }
 
-function mapF60(encounter, events, state) {
+export function mapF60(encounter, events, state) {
   const form = state.formMaps[encounter.form.uuid];
   const syncType = form?.syncType;
   const event =
@@ -2333,7 +2333,7 @@ const F62_CONFIG = {
   },
 };
 
-function mapF62(encounter, events, state) {
+export function mapF62(encounter, events, state) {
   const form = state.formMaps[encounter.form.uuid];
   const syncType = form?.syncType;
   const defaultProgramStage = form?.programStage;
@@ -2416,9 +2416,9 @@ function mapF62(encounter, events, state) {
     event:
       syncType === "latest"
         ? events?.find(
-          (e) =>
-            e.programStage === F62_CONFIG.hospitalisationStage.programStage
-        )?.event
+            (e) =>
+              e.programStage === F62_CONFIG.hospitalisationStage.programStage
+          )?.event
         : undefined,
     programStage: F62_CONFIG.hospitalisationStage.programStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -2525,7 +2525,7 @@ const F63_CONFIG = {
   },
 };
 
-function mapF63(encounter, events, state) {
+export function mapF63(encounter, events, state) {
   const form = state.formMaps[encounter.form.uuid];
   const syncType = form?.syncType;
   const defaultProgramStage = form?.programStage;
@@ -2609,9 +2609,9 @@ function mapF63(encounter, events, state) {
     event:
       syncType === "latest"
         ? events?.find(
-          (e) =>
-            e.programStage === F63_CONFIG.hospitalisationStage.programStage
-        )?.event
+            (e) =>
+              e.programStage === F63_CONFIG.hospitalisationStage.programStage
+          )?.event
         : undefined,
     programStage: F63_CONFIG.hospitalisationStage.programStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -2646,7 +2646,7 @@ function mapF63(encounter, events, state) {
   ];
 }
 
-function mapF68(encounter, events, state) {
+export function mapF68(encounter, events, state) {
   const formMap = state.formMaps[encounter.form.uuid];
   if (!formMap) return [];
 
@@ -2695,7 +2695,7 @@ const F69_CONFIG = {
   ],
 };
 
-function mapF69(encounter, events, state) {
+export function mapF69(encounter, events, state) {
   const formMap = state.formMaps[encounter.form.uuid];
   if (!formMap) return [];
 

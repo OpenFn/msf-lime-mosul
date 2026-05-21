@@ -129,7 +129,7 @@ const dhis2Map = {
   },
 };
 
-const isValidUUID = (id) => {
+export const isValidUUID = (id) => {
   if (!id || typeof id !== "string") return false;
 
   const UUID_PATTERN =
