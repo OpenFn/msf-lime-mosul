@@ -472,7 +472,7 @@ workflows:
 
       Prepare-Mapping-Per-Sheet:
         name: Prepare Mapping Per Sheet
-        adaptor: '@openfn/language-http@7.2.10'
+        adaptor: '@openfn/language-http@7.2.6'
         credential: mtuchi@openfn.org-mtuchi-gsheet
         body: |
           
@@ -1039,21 +1039,6 @@ workflows:
         webhook_reply: before_start
         enabled: true
     edges:
-      Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
-        source_job: Prepare-Mapping-Per-Sheet
-        target_job: Add-Errors-to-GoogleSheet
-        condition_type: on_job_success
-        enabled: true
-      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
-        source_job: Warn-admin-of-errors
-        target_job: Prepare-Mapping-Per-Sheet
-        condition_type: on_job_success
-        enabled: true
-      webhook->Get-metadata-file-from-Sharepoint:
-        source_trigger: webhook
-        target_job: Get-metadata-file-from-Sharepoint
-        condition_type: always
-        enabled: true
       Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format:
         source_job: Get-metadata-file-from-Sharepoint
         target_job: Map-metadata-file-to-option-set-Json-format
@@ -1064,6 +1049,11 @@ workflows:
         target_job: Save-option-set-json-to-github
         condition_type: on_job_success
         enabled: false
+      Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
+        source_job: Prepare-Mapping-Per-Sheet
+        target_job: Add-Errors-to-GoogleSheet
+        condition_type: on_job_success
+        enabled: true
       Throw-Errors->Save-option-set-json-to-collections-main:
         source_job: Throw-Errors
         target_job: Save-option-set-json-to-collections-main
@@ -1094,6 +1084,16 @@ workflows:
         target_job: Save-option-set-json-to-collections
         condition_type: always
         enabled: false
+      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
+        source_job: Warn-admin-of-errors
+        target_job: Prepare-Mapping-Per-Sheet
+        condition_type: on_job_success
+        enabled: true
+      webhook->Get-metadata-file-from-Sharepoint:
+        source_trigger: webhook
+        target_job: Get-metadata-file-from-Sharepoint
+        condition_type: always
+        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
@@ -1274,6 +1274,15 @@ workflows:
         cron_cursor_job: Get-Patients
         enabled: true
     edges:
+      Get-Encounters->Get-Parent-and-Child-TEIs:
+        source_job: Get-Encounters
+        target_job: Get-Parent-and-Child-TEIs
+        condition_type: js_expression
+        condition_label: has-encounters
+        condition_expression: |
+          !state.errors && state.encounters?.length > 0
+
+        enabled: true
       Upsert-TEIs->Get-Encounters:
         source_job: Upsert-TEIs
         target_job: Get-Encounters
@@ -1347,15 +1356,6 @@ workflows:
         target_job: Event-Mappings
         condition_type: on_job_success
         enabled: true
-      Get-Encounters->Get-Parent-and-Child-TEIs:
-        source_job: Get-Encounters
-        target_job: Get-Parent-and-Child-TEIs
-        condition_type: js_expression
-        condition_label: has-encounters
-        condition_expression: |
-          !state.errors && state.encounters?.length > 0
-
-        enabled: true
       Get-Parent-and-Child-TEIs->Event-Mappings:
         source_job: Get-Parent-and-Child-TEIs
         target_job: Event-Mappings
@@ -1371,13 +1371,13 @@ workflows:
         condition_label: missing-opts
         condition_expression: |
           !state.errors && state.missingOptsets.length > 0
-        enabled: true
+        enabled: false
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
     jobs:
       Get-Mappings-from-Collection:
         name: Get Mappings from Collection
-        adaptor: '@openfn/language-common@2.3.0'
+        adaptor: '@openfn/language-common@3.3.1'
         credential: mtuchi@openfn.org-mtuchi-collections-config
         body:
           path: workflows/wf3-omrs-dhis2/get-mappings-from-collection.js
@@ -1424,13 +1424,6 @@ workflows:
         body:
           path: workflows/wf3-omrs-dhis2/get-teis-and-map-answers.js
 
-      Get-Tie:
-        name: Get Tie
-        adaptor: '@openfn/language-dhis2@5.0.1'
-        credential: mtuchi@openfn.org-MSF-DHIS2-UAT
-        body:
-          path: workflows/wf3-omrs-dhis2/get-tie.js
-
       Missing-OptionSets:
         name: Missing OptionSets
         adaptor: '@openfn/language-googlesheets@4.0.8'
@@ -1462,20 +1455,6 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
-      Get-Patients->Get-Mappings-from-Collection:
-        source_job: Get-Patients
-        target_job: Get-Mappings-from-Collection
-        condition_type: on_job_success
-        enabled: true
       Get-TEIs-and-Map-Answers->Custom-Logic-for-Events:
         source_job: Get-TEIs-and-Map-Answers
         target_job: Custom-Logic-for-Events
@@ -1485,10 +1464,19 @@ workflows:
           state.TEIs && !state.errors
 
         enabled: true
-      cron->Get-Patients:
-        source_trigger: cron
-        target_job: Get-Patients
-        condition_type: always
+      Get-Patients->Get-Mappings-from-Collection:
+        source_job: Get-Patients
+        target_job: Get-Mappings-from-Collection
+        condition_type: on_job_success
+        enabled: true
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
         enabled: true
       Get-Mappings-from-Collection->Upsert-TEIs:
         source_job: Get-Mappings-from-Collection
@@ -1499,14 +1487,10 @@ workflows:
           state.patients.length > 0 && !state.errors
 
         enabled: true
-      Get-Tie->Custom-Logic-for-Events:
-        source_job: Get-Tie
-        target_job: Custom-Logic-for-Events
-        condition_type: js_expression
-        condition_label: test-mode
-        condition_expression: |
-          state.testMode
-
+      cron->Get-Patients:
+        source_trigger: cron
+        target_job: Get-Patients
+        condition_type: always
         enabled: true
       Get-Encounters->Get-TEIs-and-Map-Answers:
         source_job: Get-Encounters
@@ -1524,4 +1508,4 @@ workflows:
         condition_label: missing-opts
         condition_expression: |
           "!state.errors && state.missingOptsets.length > 0"
-        enabled: true
+        enabled: false

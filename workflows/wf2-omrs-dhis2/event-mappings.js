@@ -1,3 +1,7 @@
+const CONCEPTS = {
+  OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
+  OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
+};
 const extractAnswerValue = (answer) => {
   if (!answer) return undefined;
   if (typeof answer.value === "string") return answer.value;
@@ -8,6 +12,9 @@ function formatTime(time) {
   return match ? match[1] : null;
 }
 
+function isPositiveInteger(n) {
+  return Number.isInteger(n) && n > 0;
+}
 const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
   if (questionId) {
     const answer = encounter.obs.find(
@@ -36,13 +43,13 @@ const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : "FALSE";
+  return answer ? "true" : "false";
 };
 const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid !== valueUuid
   );
-  return answer ? "TRUE" : "FALSE";
+  return answer ? "true" : "false";
 };
 
 const conceptTrueOnly = (encounter, conceptUuid) => {
@@ -51,14 +58,14 @@ const conceptTrueOnly = (encounter, conceptUuid) => {
       o.concept.uuid === conceptUuid &&
       ["yes", "true"].includes(o?.value?.display?.toLowerCase())
   );
-  return answer ? "TRUE" : undefined;
+  return answer ? "true" : undefined;
 };
 
 const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : undefined;
+  return answer ? "true" : undefined;
 };
 
 const multiSelectAns = (encounter, multiSelectQns) => {
@@ -90,10 +97,10 @@ const multiSelectAns = (encounter, multiSelectQns) => {
   return dataValues;
 };
 const toTrueOrFalse = (value) => {
-  if (["true", "yes"].includes(value.toLowerCase())) {
+  if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
     return "true";
   }
-  if (["false", "no"].includes(value.toLowerCase())) {
+  if (["false", "no", "negative"].includes(value?.toLowerCase())) {
     return "false";
   }
   return value;
@@ -110,8 +117,18 @@ const dataValueByConcept = (encounter, de, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
 
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -161,8 +178,11 @@ const dataValueByConcept = (encounter, de, state) => {
       state.missingOptsets.push(optSet);
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -184,7 +204,18 @@ const findDataValue = (encounter, dataElement, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
+
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -229,8 +260,11 @@ const findDataValue = (encounter, dataElement, state) => {
       });
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -306,7 +340,7 @@ const buildExitEvent = (encounter, tei, state) => {
     }
   }
   if (encounter.form.name.includes("F56-HBV Follow-up")) {
-    const eventsMap = mapF56(encounter, events);
+    const eventsMap = mapF56(encounter, events, state);
     for (const event of eventsMap) {
       exitEvents.push({ ...sharedEventMap, ...event });
     }
@@ -381,7 +415,7 @@ function mapF13(encounter, state) {
         const value = state.optsMap.find(
           (o) =>
             o["value.uuid - External ID"] ===
-              answers[config.index]?.value?.uuid &&
+            answers[config.index]?.value?.uuid &&
             o["DHIS2 Option Set UID"] === "lOD0K3UhiN2"
         )?.["DHIS2 Option Code"];
 
@@ -496,10 +530,6 @@ function mapF22(encounter) {
 }
 
 function mapF29(encounter) {
-  const CONCEPTS = {
-    OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
-    OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
-  };
   const mappings = [];
   if (encounter.form.name.includes("F29-MHPSS Baseline")) {
     mappings.push({
@@ -1135,14 +1165,14 @@ function mapF49(encounter, events, state) {
   const pregnancyEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
-        )?.event
+        (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+      )?.event
       : undefined;
   const investigationEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F49_CONFIG.investigationStage.programStage
-        )?.event
+        (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+      )?.event
       : undefined;
 
   // DEFAULT STAGE
@@ -1157,20 +1187,6 @@ function mapF49(encounter, events, state) {
     defaultDataValues.push({
       dataElement: dataEl.ncdEventDate,
       value: consultationDate,
-    });
-  }
-
-  // 2. Is readmission
-  const admissionTypeObs = encounter.obs.find(
-    (o) => o.concept.uuid === "4dae5b12-070f-4153-b1ca-fbec906106e1"
-  );
-
-  if (admissionTypeObs) {
-    const isReadmission =
-      admissionTypeObs.value?.display?.toLowerCase() === "re-admission";
-    defaultDataValues.push({
-      dataElement: "SjNE9mM7Yu4",
-      value: `${isReadmission}`,
     });
   }
 
@@ -1244,8 +1260,8 @@ function mapF49(encounter, events, state) {
         });
       }
       let value = opt?.["DHIS2 Option Code"];
-      if (["FALSE", "No"].includes(value)) value = "false";
-      else if (["TRUE", "Yes"].includes(value)) value = "true";
+      if (["false", "no"].includes(value?.toLowerCase())) value = "false";
+      else if (["true", "yes"].includes(value?.toLowerCase())) value = "true";
       if (value) defaultDataValues.push({ dataElement: slots[i], value });
     });
   };
@@ -1386,21 +1402,21 @@ function mapF49(encounter, events, state) {
     },
     ...(pregnancyDataValues.length > 0
       ? [
-          {
-            event: pregnancyEvent,
-            programStage: F49_CONFIG.pregnancyStage.programStage,
-            dataValues: pregnancyDataValues,
-          },
-        ]
+        {
+          event: pregnancyEvent,
+          programStage: F49_CONFIG.pregnancyStage.programStage,
+          dataValues: pregnancyDataValues,
+        },
+      ]
       : []),
     ...(investigationDataValues.length > 0
       ? [
-          {
-            event: investigationEvent,
-            programStage: F49_CONFIG.investigationStage.programStage,
-            dataValues: investigationDataValues,
-          },
-        ]
+        {
+          event: investigationEvent,
+          programStage: F49_CONFIG.investigationStage.programStage,
+          dataValues: investigationDataValues,
+        },
+      ]
       : []),
   ];
 }
@@ -1696,8 +1712,8 @@ function mapF50(encounter, events, state) {
         });
       }
       let value = opt?.["DHIS2 Option Code"];
-      if (["FALSE", "No"].includes(value)) value = "false";
-      else if (["TRUE", "Yes"].includes(value)) value = "true";
+      if (["false", "no"].includes(value?.toLowerCase())) value = "false";
+      else if (["true", "yes"].includes(value?.toLowerCase())) value = "true";
       if (value) defaultDataValues.push({ dataElement: slots[i], value });
     });
   };
@@ -1768,7 +1784,7 @@ function mapF50(encounter, events, state) {
   const specialistOtherText = findAnswerByConcept(
     encounter,
     "790b41ce-e1e7-11e8-b02f-0242ac130002",
-    "rfe-forms-specialistIfOtherPleaseSpecify"
+    "rfe-forms-ifOtherSpecialistTypeSpecify"
   );
   if (specialistOtherText) {
     const otherSpecialistSlots = ["u68lzJcSaBa", "PO19ZbOBOO1", "OdrZUtuEaUU"];
@@ -1785,8 +1801,8 @@ function mapF50(encounter, events, state) {
   const pregnancyEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
-        )?.event
+        (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+      )?.event
       : undefined;
   const pregnancyDataValues = [];
 
@@ -1813,8 +1829,8 @@ function mapF50(encounter, events, state) {
   const investigationEvent =
     syncType === "latest"
       ? events?.find(
-          (e) => e.programStage === F50_CONFIG.investigationStage.programStage
-        )?.event
+        (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+      )?.event
       : undefined;
   const investigationDataValues = [];
 
@@ -1842,7 +1858,7 @@ function mapF50(encounter, events, state) {
     if (obs && ["yes", "true"].includes(obs?.value?.display?.toLowerCase())) {
       investigationDataValues.push({
         dataElement: mapping.de,
-        value: "TRUE",
+        value: "true",
       });
     }
   });
@@ -1865,70 +1881,80 @@ function mapF50(encounter, events, state) {
       });
     }
   });
+  const exitDate = encounter.obs.find(
+    (o) =>
+      o.concept.uuid === "1f473371-613f-4ef3-b297-49eb779ccd27" &&
+      o.formFieldPath === "rfe-forms-exitDate"
+  )?.value;
+
+  const typeOfExitF50 = dataValueByConcept(
+    encounter,
+    {
+      dataElement: dataEl.f50.typeOfExit,
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
+  );
+
+  const ifDefaulterSpecify = dataValueByConcept(
+    encounter,
+    {
+      dataElement: dataEl.f50.ifDefaulterSpecify,
+      conceptUuid: "f50f7325-53ed-45a5-bb41-f0987b296c5f",
+      questionId: "rfe-forms-ifDefaulterSpecify",
+    },
+    state
+  );
+
   return [
     {
       event: defaultEvent,
       programStage,
-      dataValues: defaultDataValues.filter((d) => d.value),
+      dataValues: defaultDataValues,
     },
-    {
-      event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
-      programStage: "ecvF615g1jZ",
-      dataValues: [
+    ...(ifDefaulterSpecify || typeOfExitF50
+      ? [
         {
-          // Row 114: Exit date (Date field)
-          dataElement: dataEl.ncdEventDate,
-          value: encounter.obs.find(
-            (o) =>
-              o.concept.uuid === "1f473371-613f-4ef3-b297-49eb779ccd27" &&
-              o.formFieldPath === "rfe-forms-exitDate"
-          )?.value,
-        },
-        {
-          // Row 115: Type of exit (Coded, option set Gjx599aojCR)
-          dataElement: dataEl.f50.typeOfExit,
-          value: dataValueByConcept(
-            encounter,
+          event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+          programStage: "ecvF615g1jZ",
+          dataValues: [
             {
+              // Row 114: Exit date (Date field)
+              dataElement: dataEl.ncdEventDate,
+              value: exitDate,
+            },
+            {
+              // Row 115: Type of exit (Coded, option set Gjx599aojCR)
               dataElement: dataEl.f50.typeOfExit,
-              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
-              questionId: "rfe-forms-typeOfExit",
+              value: typeOfExitF50,
             },
-            state
-          ),
-        },
-        {
-          // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
-          dataElement: dataEl.f50.ifDefaulterSpecify,
-          value: dataValueByConcept(
-            encounter,
             {
+              // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
               dataElement: dataEl.f50.ifDefaulterSpecify,
-              conceptUuid: "f50f7325-53ed-45a5-bb41-f0987b296c5f",
-              questionId: "rfe-forms-ifDefaulterSpecify",
+              value: ifDefaulterSpecify,
             },
-            state
-          ),
+          ].filter((d) => d?.value != null && d?.value !== ""),
         },
-      ].filter((d) => d.value),
-    },
+      ]
+      : []),
     ...(pregnancyDataValues.length > 0
       ? [
-          {
-            event: pregnancyEvent,
-            programStage: F50_CONFIG.pregnancyStage.programStage,
-            dataValues: pregnancyDataValues,
-          },
-        ]
+        {
+          event: pregnancyEvent,
+          programStage: F50_CONFIG.pregnancyStage.programStage,
+          dataValues: pregnancyDataValues,
+        },
+      ]
       : []),
     ...(investigationDataValues.length > 0
       ? [
-          {
-            event: investigationEvent,
-            programStage: F50_CONFIG.investigationStage.programStage,
-            dataValues: investigationDataValues,
-          },
-        ]
+        {
+          event: investigationEvent,
+          programStage: F50_CONFIG.investigationStage.programStage,
+          dataValues: investigationDataValues,
+        },
+      ]
       : []),
   ];
 }
@@ -1938,6 +1964,7 @@ function mapF55(encounter, events, state) {
   const event = events?.find((e) => e.programStage === programStage)?.event;
 
   const encounterDate = encounter.encounterDatetime.replace("+0000", "");
+
   return [
     {
       event,
@@ -1952,79 +1979,104 @@ function mapF55(encounter, events, state) {
   ];
 }
 
-function mapF56(encounter, events) {
+function mapF56(encounter, events, state) {
+  const typeOfExit = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "WaPztwF7kGN",
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
+  );
+
+  const ifDiscontinuation = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "Gl1axYBX5gV",
+      conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
+      questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
+    },
+    state
+  );
+
+  const ifReferred = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "psbKn33o6yi",
+      conceptUuid: "ef0b1e26-411e-40d5-bd98-8762f92c22d0",
+      questionId: "rfe-forms-ifReferredProvideTheReason",
+    },
+    state
+  );
+
   const event = events?.find((e) => e.programStage === "d5sMByjqQFm")?.event;
 
-  return [
-    {
-      event,
-      programStage: "d5sMByjqQFm",
-      dataValues: [
-        {
-          dataElement: "W450u7KdzUz",
-          value: encounter.encounterDatetime.replace("+0000", ""),
-        },
-        {
-          dataElement: "WaPztwF7kGN",
-          value: findAnswerByConcept(
-            encounter,
-            "4f4c6be4-1e1a-4770-a73b-bcc69c171748"
-          ),
-        },
-        {
-          dataElement: "Gl1axYBX5gV",
-          value: findAnswerByConcept(
-            encounter,
-            "0f478fde-1219-4815-9481-f507e8457c38"
-          ),
-        },
-        {
-          dataElement: "psbKn33o6yi",
-          value: findAnswerByConcept(
-            encounter,
-            "ef0b1e26-411e-40d5-bd98-8762f92c22d0"
-          ),
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  if (typeOfExit || ifDiscontinuation || ifReferred) {
+    return [
+      {
+        event,
+        programStage: "d5sMByjqQFm",
+        dataValues: [
+          {
+            dataElement: "W450u7KdzUz",
+            value: encounter.encounterDatetime.replace("+0000", ""),
+          },
+          {
+            dataElement: "WaPztwF7kGN",
+            value: typeOfExit,
+          },
+          {
+            dataElement: "Gl1axYBX5gV",
+            value: ifDiscontinuation,
+          },
+          {
+            dataElement: "psbKn33o6yi",
+            value: ifReferred,
+          },
+        ].filter((d) => d?.value != null && d?.value !== ""),
+      },
+    ];
+  }
+  return [];
 }
 
 function mapF58(encounter, events, state) {
+  const typeOfExit = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "gn40F7cEQTI",
+      conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
+      questionId: "rfe-forms-typeOfExit",
+    },
+    state
+  );
+
+  const ifDiscontinuation = dataValueByConcept(
+    encounter,
+    {
+      dataElement: "rmYRcxE5I5G",
+      conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
+      questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
+    },
+    state
+  );
+
   const event = events?.find((e) => e.programStage === "Rd73a6zlYEy")?.event;
 
-  return [
-    {
-      event,
-      programStage: "Rd73a6zlYEy",
-      dataValues: [
-        {
-          dataElement: "gn40F7cEQTI",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "gn40F7cEQTI",
-              conceptUuid: "4f4c6be4-1e1a-4770-a73b-bcc69c171748",
-              questionId: "rfe-forms-typeOfExit",
-            },
-            state
-          ),
-        },
-        {
-          dataElement: "rmYRcxE5I5G",
-          value: dataValueByConcept(
-            encounter,
-            {
-              dataElement: "rmYRcxE5I5G",
-              conceptUuid: "0f478fde-1219-4815-9481-f507e8457c38",
-              questionId: "rfe-forms-ifDiscontinuationProvideTheReason",
-            },
-            state
-          ),
-        },
-      ].filter((d) => d.value),
-    },
-  ];
+  if (typeOfExit || ifDiscontinuation) {
+    return [
+      {
+        event,
+        programStage: "Rd73a6zlYEy",
+        dataValues: [
+          { dataElement: "gn40F7cEQTI", value: typeOfExit },
+          { dataElement: "rmYRcxE5I5G", value: ifDiscontinuation },
+        ].filter((d) => d?.value != null && d?.value !== ""),
+      },
+    ];
+  }
+  return [];
 }
 
 function mapF59(encounter, events, state) {
@@ -2055,15 +2107,15 @@ function mapF59(encounter, events, state) {
 
   // Apply custom logic for Type of Income
   // Fill DHIS2 with 'Employment' if the answer is 'Full time job' or 'Part time job'
-  const typeOfIncomeValue = ["full time", "part time"].some((keyword) =>
+  const typeOfIncomeValue = ["full_time", "part_time"].some((keyword) =>
     typeOfIncomeRaw?.toLowerCase()?.includes(keyword)
   )
     ? "Employment"
-    : null;
+    : typeOfIncomeRaw;
 
   // Apply custom logic for Drug Use
   // Fill DHIS2 with 'Yes' if the answer is 'Yes, in the past' or 'Yes, currently'
-  const usedDrugValue = ["in the past", "currently"].some((keyword) =>
+  const usedDrugValue = ["yes_in_the_past", "yes_currently"].some((keyword) =>
     usedDrugRaw?.toLowerCase()?.includes(keyword)
   )
     ? "Yes"
@@ -2084,7 +2136,7 @@ function mapF59(encounter, events, state) {
         dataElement: "Ir0qLWsNv4n",
         value: usedDrugValue,
       },
-    ].filter((d) => d.value),
+    ].filter((d) => d?.value != null && d?.value !== ""),
   };
 
   // Discharge event mappings
@@ -2113,32 +2165,34 @@ function mapF59(encounter, events, state) {
     encounter,
     {
       dataElement: "k64e6bcyPtH",
-      conceptUuid: CONCEPTS.OTHER,
+      conceptUuid: "790b41ce-e1e7-11e8-b02f-0242ac130002",
       questionId: "rfe-forms-typeOfExitIfOtherSpecify",
     },
     state
   );
-
-  const exitEvent = {
-    event,
-    programStage: "sBepdVG2c9O",
-    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-    dataValues: [
-      {
-        dataElement: "JvgfNjNklmI",
-        value: dischargeDate,
-      },
-      {
-        dataElement: "LhgHv4gjW18",
-        value: typeOfExit,
-      },
-      {
-        dataElement: "k64e6bcyPtH",
-        value: typeOfExitOther,
-      },
-    ].filter((d) => d.value),
-  };
-  return [defaultEvent, exitEvent];
+  if (typeOfExitOther || typeOfExit) {
+    const exitEvent = {
+      event,
+      programStage: "sBepdVG2c9O",
+      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+      dataValues: [
+        {
+          dataElement: "JvgfNjNklmI",
+          value: dischargeDate,
+        },
+        {
+          dataElement: "LhgHv4gjW18",
+          value: typeOfExit,
+        },
+        {
+          dataElement: "k64e6bcyPtH",
+          value: typeOfExitOther,
+        },
+      ].filter((d) => d?.value != null && d?.value !== ""),
+    };
+    return [defaultEvent, exitEvent];
+  }
+  return [defaultEvent];
 }
 
 function mapF60(encounter, events, state) {
@@ -2150,11 +2204,7 @@ function mapF60(encounter, events, state) {
       : undefined;
   const defaultProgramStage = form?.programStage;
 
-  const dischargeDate = encounter.obs.find(
-    (o) =>
-      o.concept.uuid === "13cea1c8-e426-411f-95b4-33651fc4325d" &&
-      o.formFieldPath === "rfe-forms-dateOfDischarge"
-  )?.value;
+  const dischargeDate = encounter.encounterDatetime.split("T")[0];
 
   const typeOfExit = dataValueByConcept(
     encounter,
@@ -2186,27 +2236,29 @@ function mapF60(encounter, events, state) {
     dataValues: [],
   };
 
-  const exitEvent = {
-    event,
-    programStage: "sBepdVG2c9O",
-    occurredAt: encounter.encounterDatetime.replace("+0000", ""),
-    dataValues: [
-      {
-        dataElement: "JvgfNjNklmI",
-        value: dischargeDate,
-      },
-      {
-        dataElement: "LhgHv4gjW18",
-        value: typeOfExit,
-      },
-      {
-        dataElement: "k64e6bcyPtH",
-        value: typeOfExitOther,
-      },
-    ].filter((d) => d.value),
-  };
-
-  return [defaultEvent, exitEvent];
+  if (typeOfExit || typeOfExitOther) {
+    const exitEvent = {
+      event,
+      programStage: "sBepdVG2c9O",
+      occurredAt: encounter.encounterDatetime.replace("+0000", ""),
+      dataValues: [
+        {
+          dataElement: "JvgfNjNklmI",
+          value: dischargeDate,
+        },
+        {
+          dataElement: "LhgHv4gjW18",
+          value: typeOfExit,
+        },
+        {
+          dataElement: "k64e6bcyPtH",
+          value: typeOfExitOther,
+        },
+      ].filter((d) => d?.value != null && d?.value !== ""),
+    };
+    return [defaultEvent, exitEvent];
+  }
+  return [defaultEvent];
 }
 
 // F62 Configuration
@@ -2321,18 +2373,9 @@ function mapF62(encounter, events, state) {
     dataValues: defaultDataValues,
   };
 
-  // HOSPITALISATION STAGE
+  // HOSPITALISATION STAGE — collect obs-based values first
   const hospitalisationDataValues = [];
 
-  // Add time data element
-  if (encounter.encounterDatetime) {
-    hospitalisationDataValues.push({
-      dataElement: F62_CONFIG.hospitalisationStage.timeDataElement,
-      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
-    });
-  }
-
-  // Add simple values
   F62_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
     const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
@@ -2361,13 +2404,21 @@ function mapF62(encounter, events, state) {
     }
   });
 
+  // Add time data element only when obs-based values exist
+  if (hospitalisationDataValues.length > 0 && encounter.encounterDatetime) {
+    hospitalisationDataValues.unshift({
+      dataElement: F62_CONFIG.hospitalisationStage.timeDataElement,
+      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
+    });
+  }
+
   const hospitalisationEvent = {
     event:
       syncType === "latest"
         ? events?.find(
-            (e) =>
-              e.programStage === F62_CONFIG.hospitalisationStage.programStage
-          )?.event
+          (e) =>
+            e.programStage === F62_CONFIG.hospitalisationStage.programStage
+        )?.event
         : undefined,
     programStage: F62_CONFIG.hospitalisationStage.programStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -2395,7 +2446,11 @@ function mapF62(encounter, events, state) {
     dataValues: exitDataValues,
   };
 
-  return [defaultEvent, hospitalisationEvent, exitEvent];
+  return [
+    defaultEvent,
+    ...(hospitalisationDataValues.length > 0 ? [hospitalisationEvent] : []),
+    ...(exitDataValues.length > 0 ? [exitEvent] : []),
+  ];
 }
 
 // F63 Configuration
@@ -2510,18 +2565,9 @@ function mapF63(encounter, events, state) {
     dataValues: defaultDataValues,
   };
 
-  // HOSPITALISATION STAGE
+  // HOSPITALISATION STAGE — collect obs-based values first
   const hospitalisationDataValues = [];
 
-  // Add time data element
-  if (encounter.encounterDatetime) {
-    hospitalisationDataValues.push({
-      dataElement: F63_CONFIG.hospitalisationStage.timeDataElement,
-      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
-    });
-  }
-
-  // Add simple values
   F63_CONFIG.hospitalisationStage.simpleValues.forEach((mapping) => {
     const value = findAnswerByConcept(encounter, mapping.concept, mapping.qid);
     if (value) {
@@ -2551,13 +2597,21 @@ function mapF63(encounter, events, state) {
     }
   });
 
+  // Add time data element only when obs-based values exist
+  if (hospitalisationDataValues.length > 0 && encounter.encounterDatetime) {
+    hospitalisationDataValues.unshift({
+      dataElement: F63_CONFIG.hospitalisationStage.timeDataElement,
+      value: encounter.encounterDatetime.replace("+0000", "").substring(11, 19),
+    });
+  }
+
   const hospitalisationEvent = {
     event:
       syncType === "latest"
         ? events?.find(
-            (e) =>
-              e.programStage === F63_CONFIG.hospitalisationStage.programStage
-          )?.event
+          (e) =>
+            e.programStage === F63_CONFIG.hospitalisationStage.programStage
+        )?.event
         : undefined,
     programStage: F63_CONFIG.hospitalisationStage.programStage,
     occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -2585,13 +2639,116 @@ function mapF63(encounter, events, state) {
     dataValues: exitDataValues,
   };
 
-  return [defaultEvent, hospitalisationEvent, exitEvent];
+  return [
+    defaultEvent,
+    ...(hospitalisationDataValues.length > 0 ? [hospitalisationEvent] : []),
+    ...(exitDataValues.length > 0 ? [exitEvent] : []),
+  ];
+}
+
+function mapF68(encounter, events, state) {
+  const formMap = state.formMaps[encounter.form.uuid];
+  if (!formMap) return [];
+
+  const { programStage } = formMap;
+  const existingEvent = events?.find((e) => e.programStage === programStage);
+
+  const dataValues = [];
+
+  // Warning signs parent (I4ftnXcPClh):
+  // TRUE if any specific warning sign is selected (any answer other than 'None of the above')
+  const warningSignsObs = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === "bb939282-3ca7-4c26-9f52-79c01719c276" &&
+      o.formFieldPath === "rfe-forms-warningSigns" &&
+      o.value.uuid !== "68297667-f4d1-4e5d-9cb3-5c95f283f762" // None of the above
+  );
+
+  if (warningSignsObs.length > 0) {
+    dataValues.push({ dataElement: "I4ftnXcPClh", value: "true" });
+  }
+
+  const hasTreatmentObs = encounter.obs.filter(
+    (o) =>
+      o.concept.uuid === "7f490435-ed9e-4de1-85e8-0e52e5ef7318" &&
+      o.formFieldPath === "rfe-forms-treatment"
+  );
+  if (hasTreatmentObs.length > 0) {
+    dataValues.push({ dataElement: "SLnsGkj2o4h", value: "true" });
+  }
+  return [
+    {
+      programStage,
+      event: existingEvent?.event,
+      dataValues,
+    },
+  ];
+}
+
+const F69_CONFIG = {
+  treatmentConcept: "d6081b93-291a-4349-a1c7-8a11e7326de1",
+  noneAnswer: "68297667-f4d1-4e5d-9cb3-5c95f283f762",
+  otherTreatmentAnswers: [
+    "309ded30-b62e-4c5e-b55f-5b2a44c56e68", // Other antibiotics
+    "94c7cc7e-8279-48e7-86c3-597f47405cb5", // Antifungal
+    "6551dc1e-f8db-469c-9929-93c334178390", // Other treatments
+  ],
+};
+
+function mapF69(encounter, events, state) {
+  const formMap = state.formMaps[encounter.form.uuid];
+  if (!formMap) return [];
+
+  const { programStage } = formMap;
+  const existingEvent = events?.find((e) => e.programStage === programStage);
+
+  const dataValues = [];
+
+  // Always TRUE — "Are there data to record" (Zd2WqtxnDI9)
+  dataValues.push({ dataElement: "Zd2WqtxnDI9", value: "true" });
+
+  // Treatment parent (RZ6xnHzHH5J):
+  //   TRUE  if any non-None answer selected
+  //   FALSE if only None selected
+  const treatmentAnswers = encounter.obs.filter(
+    (o) => o.concept.uuid === F69_CONFIG.treatmentConcept
+  );
+  const hasNonNone = treatmentAnswers.some(
+    (o) => o.value.uuid !== F69_CONFIG.noneAnswer
+  );
+  const hasNone = treatmentAnswers.some(
+    (o) => o.value.uuid === F69_CONFIG.noneAnswer
+  );
+  if (hasNonNone || hasNone) {
+    dataValues.push({
+      dataElement: "RZ6xnHzHH5J",
+      value: hasNonNone ? "true" : "false",
+    });
+  }
+
+  // Other treatment required (L003PVb0q56):
+  //   TRUE if Other antibiotics OR Antifungal OR Other treatments selected
+  const hasOtherTreatment = F69_CONFIG.otherTreatmentAnswers.some((uuid) =>
+    treatmentAnswers.some((o) => o.value.uuid === uuid)
+  );
+  if (hasOtherTreatment) {
+    dataValues.push({ dataElement: "L003PVb0q56", value: "true" });
+  }
+
+  return [
+    {
+      programStage,
+      event: existingEvent?.event,
+      dataValues,
+    },
+  ];
 }
 
 const EXIT_EVENT_STAGE_IDS = [
   "sBepdVG2c9O", // Social Work exit stage (F59, F60)
   "Otoff7Cj8JQ", // Palliative Care exit stage (F62, F63)
   "ecvF615g1jZ", // NCD exit stage (F50)
+  "zqmLGzSPv3T", // NCDs investigation results stage (F50)
   "tGfMHhweXBX", // HIV exit stage (F52)
   "lhoIy2xFovz", // TB DSTB exit stage (F54)
   "fcgrvRF4OqI", // TB DRTB exit stage (F54)
@@ -2648,13 +2805,15 @@ fn((state) => {
       let formDataValues = formDataElements
         .map((dataElement) => {
           const value = findDataValue(encounter, dataElement, state);
+
           if (value !== null && value !== undefined && value !== "") {
             return { dataElement, value };
           }
         })
         .filter((dv) => {
           return (
-            dv?.value &&
+            dv?.value != null &&
+            dv?.value !== "" &&
             !["pj5hIE6iyAR", "KjgDauY9v4J", "DYTLOoEKRas"].includes(
               dv?.dataElement
             )
@@ -2703,7 +2862,7 @@ fn((state) => {
           ...formDataValues,
           ...customMapping,
           ...multiSelectDvs,
-        ].filter((d) => d?.value),
+        ].filter((d) => d?.value != null && d?.value !== ""),
       };
 
       const exitFormEvents = buildExitEvent(
@@ -2718,12 +2877,7 @@ fn((state) => {
         state
       );
 
-      const mappings = [
-        formEvent,
-        ...exitFormEvents.map((e) => {
-          return { ...e, dataValues: e.dataValues.filter((d) => d.value) };
-        }),
-      ];
+      const mappings = [formEvent, ...exitFormEvents];
 
       return mappings;
     })
@@ -2779,7 +2933,6 @@ const mergeEvents = (events) => {
   const eventMap = new Map();
 
   events.forEach((event) => {
-    // Create a unique key based on all properties except dataValues
     const key = JSON.stringify({
       program: event.program,
       orgUnit: event.orgUnit,
@@ -2790,119 +2943,32 @@ const mergeEvents = (events) => {
     });
 
     if (eventMap.has(key)) {
-      // Merge dataValues if event already exists
       const existing = eventMap.get(key);
-      existing.dataValues = [...existing.dataValues, ...event.dataValues];
+
+      // Prefer a real event UID over undefined
+      existing.event = existing.event ?? event.event;
+
+      // Merge dataValues, skipping any dataElement already present
+      const existingDEs = new Set(
+        existing.dataValues.map((dv) => dv.dataElement)
+      );
+      const newDVs = event.dataValues.filter(
+        (dv) => !existingDEs.has(dv.dataElement)
+      );
+
+      if (newDVs.length > 0) {
+        existing.dataValues = [...existing.dataValues, ...newDVs];
+        console.log(
+          `mergeEvents: merged ${newDVs.length} dataValue(s) into programStage ${event.programStage}`
+        );
+      }
     } else {
-      // Add new event to map
-      eventMap.set(key, { ...event });
+      eventMap.set(key, { ...event, dataValues: [...event.dataValues] });
     }
   });
 
   return Array.from(eventMap.values());
 };
-
-const F68_CONFIG = {
-  warningSignsConcept: "bb939282-3ca7-4c26-9f52-79c01719c276",
-  warningSignsAnswers: [
-    "2442b56b-4c2a-4855-ba0a-c30153c28793", // Petechiae
-    "b19d153f-4dde-4eb0-92fa-3434d82a5943", // Agitation or lethargy
-    "56ea8f6e-07a7-44b3-a422-046ca7617a39", // Mucosal bleeding
-    "b2583e99-7b07-48c8-a8ca-691f70031a41", // Persistent vomiting
-    "1f168818-b2da-489b-9113-a0a1108436d0", // Severe abdominal pain
-    "15a5c6b0-d535-4e53-9a30-54469822d291", // Fluid accumulation (lungs or abdomen)
-  ],
-};
-
-function mapF68(encounter, events, state) {
-  const formMap = state.formMaps[encounter.form.uuid];
-  if (!formMap) return [];
-
-  const { programStage } = formMap;
-  const existingEvent = events?.find((e) => e.programStage === programStage);
-
-  const dataValues = [];
-
-  // Warning signs parent (I4ftnXcPClh):
-  //   TRUE if any specific warning sign is selected (any answer other than 'None of the above')
-  const warningSignsObs = encounter.obs.filter(
-    (o) => o.concept.uuid === F68_CONFIG.warningSignsConcept
-  );
-  const hasWarningSign = warningSignsObs.some((o) =>
-    F68_CONFIG.warningSignsAnswers.includes(o.value.uuid)
-  );
-  if (hasWarningSign) {
-    dataValues.push({ dataElement: "I4ftnXcPClh", value: "true" });
-  }
-
-  return [
-    {
-      programStage,
-      event: existingEvent?.event,
-      dataValues,
-    },
-  ];
-}
-
-const F69_CONFIG = {
-  treatmentConcept: "d6081b93-291a-4349-a1c7-8a11e7326de1",
-  noneAnswer: "68297667-f4d1-4e5d-9cb3-5c95f283f762",
-  otherTreatmentAnswers: [
-    "309ded30-b62e-4c5e-b55f-5b2a44c56e68", // Other antibiotics
-    "94c7cc7e-8279-48e7-86c3-597f47405cb5", // Antifungal
-    "6551dc1e-f8db-469c-9929-93c334178390", // Other treatments
-  ],
-};
-
-function mapF69(encounter, events, state) {
-  const formMap = state.formMaps[encounter.form.uuid];
-  if (!formMap) return [];
-
-  const { programStage } = formMap;
-  const existingEvent = events?.find((e) => e.programStage === programStage);
-
-  const dataValues = [];
-
-  // Always TRUE — "Are there data to record" (Zd2WqtxnDI9)
-  dataValues.push({ dataElement: "Zd2WqtxnDI9", value: "TRUE" });
-
-  // Treatment parent (RZ6xnHzHH5J):
-  //   TRUE  if any non-None answer selected
-  //   FALSE if only None selected
-  const treatmentAnswers = encounter.obs.filter(
-    (o) => o.concept.uuid === F69_CONFIG.treatmentConcept
-  );
-  const hasNonNone = treatmentAnswers.some(
-    (o) => o.value.uuid !== F69_CONFIG.noneAnswer
-  );
-  const hasNone = treatmentAnswers.some(
-    (o) => o.value.uuid === F69_CONFIG.noneAnswer
-  );
-  if (hasNonNone || hasNone) {
-    dataValues.push({
-      dataElement: "RZ6xnHzHH5J",
-      value: hasNonNone ? "TRUE" : "FALSE",
-    });
-  }
-
-  // Other treatment required (L003PVb0q56):
-  //   TRUE if Other antibiotics OR Antifungal OR Other treatments selected
-  const hasOtherTreatment = F69_CONFIG.otherTreatmentAnswers.some((uuid) =>
-    treatmentAnswers.some((o) => o.value.uuid === uuid)
-  );
-  if (hasOtherTreatment) {
-    dataValues.push({ dataElement: "L003PVb0q56", value: "TRUE" });
-  }
-
-  return [
-    {
-      programStage,
-      event: existingEvent?.event,
-      dataValues,
-    },
-  ];
-}
-
 // Combining events and exit events
 fn((state) => {
   const { data, references, response, ...rest } = state;

@@ -21,6 +21,9 @@ const teiAge = (tei, attr) => {
   return age;
 };
 
+function isPositiveInteger(n) {
+  return Number.isInteger(n) && n > 0;
+}
 const formIdByName = (name, formMaps) => {
   const entry = Object.entries(formMaps).find(([formId, form]) =>
     form.formName.includes(name)
@@ -39,13 +42,13 @@ const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : "FALSE";
+  return answer ? "true" : "false";
 };
 const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
   const answer = encounter.obs.find(
     (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
   );
-  return answer ? "TRUE" : undefined;
+  return answer ? "true" : undefined;
 };
 
 const dataValueByConcept = (encounter, de, state) => {
@@ -59,7 +62,17 @@ const dataValueByConcept = (encounter, de, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -109,8 +122,11 @@ const dataValueByConcept = (encounter, de, state) => {
       state.missingOptsets.push(optSet);
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -136,14 +152,15 @@ const filterObsByConcept = (encounter, conceptUuid, questionId) => {
 };
 
 const toTrueOrFalse = (value) => {
-  if (["true", "yes"].includes(value.toLowerCase())) {
+  if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
     return "true";
   }
-  if (["false", "no"].includes(value.toLowerCase())) {
+  if (["false", "no", "negative"].includes(value?.toLowerCase())) {
     return "false";
   }
   return value;
 };
+
 const findDataValue = (encounter, dataElement, state) => {
   if (dataElement === "H9noxo3e7ox") {
     return;
@@ -163,7 +180,17 @@ const findDataValue = (encounter, dataElement, state) => {
   if (isStringAnswer && type === "time") {
     return answer.value.substring(11, 16);
   }
-  if (isStringAnswer || isNumberAnswer) {
+  if (
+    isNumberAnswer &&
+    type === "integer_positive" &&
+    isPositiveInteger(answer.value)
+  ) {
+    return answer.value;
+  }
+  if (
+    isStringAnswer ||
+    (isNumberAnswer && ["number", "integer", "text"].includes(type))
+  ) {
     return answer.value;
   }
 
@@ -208,8 +235,11 @@ const findDataValue = (encounter, dataElement, state) => {
       });
     }
 
-    if (["FALSE", "No"].includes(matchingOption)) return "false";
-    if (["TRUE", "Yes"].includes(matchingOption)) return "true";
+    if (matchingOption && type === "boolean") {
+      if (["false", "no"].includes(matchingOption.toLowerCase()))
+        return "false";
+      if (["true", "yes"].includes(matchingOption.toLowerCase())) return "true";
+    }
 
     return matchingOption;
   }
@@ -337,7 +367,7 @@ function f42(encounter) {
   if (!obsDatetime) return { dataValues: [], eventDate: null };
 
   return {
-    dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime }],
+    dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) }],
     eventDate: obsDatetime.replace("+0000", ""),
   };
 }
@@ -430,7 +460,7 @@ function f61(encounter, tei, state) {
     CeQKylwVj7u: dhis2Map.attr.nationality, // Travel Medicine - Nationality
     vqMs7hmPtFT: dhis2Map.attr.placeOfliving, // Travel Medicine - Place of living
   };
-  const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+  const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
   return [
     ...attributeMapping,
@@ -439,20 +469,30 @@ function f61(encounter, tei, state) {
       value: encounter.obs.some(
         (o) => o.concept.uuid === "2ff0d1ad-df05-4128-b2d2-d72307a6aa3f"
       )
-        ? "TRUE"
-        : "FALSE",
+        ? "true"
+        : "false",
     },
     {
       dataElement: "wiOCvUUHUEr",
-      value: encounter.obs.find((o) => {
-        return (
-          o.concept.uuid === "d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c" &&
-          o.formFieldPath === "rfe-forms-howDoYouPlanToTravel" &&
-          o.value.uuid === "1eff97cc-bec8-4bdf-9022-dc0f2132c260"
-        );
-      })?.value?.display
-        ? "road"
-        : undefined,
+      value: (() => {
+        const hasTravel = (valueUuid) =>
+          encounter.obs.some(
+            (o) =>
+              o.concept.uuid === "d0e31c9b-fb6b-4d8b-9c54-c8410c719f1c" &&
+              o.formFieldPath === "rfe-forms-howDoYouPlanToTravel" &&
+              o.value?.uuid === valueUuid
+          );
+        const road = hasTravel("1eff97cc-bec8-4bdf-9022-dc0f2132c260");
+        const boat = hasTravel("a31cd4a6-a02b-490b-b913-59cbc8f305f8");
+        const plane = hasTravel("8c5d6c46-1712-483f-91db-c6a9db213c50");
+        if (road && boat && plane) return "road_boat_plane";
+        if (road && boat) return "road_boat";
+        if (road && plane) return "road_plane";
+        if (boat && plane) return "boat_plane";
+        if (road) return "road";
+        if (plane) return "plane";
+        return undefined;
+      })(),
     },
   ].filter((d) => d.value);
 }
@@ -460,20 +500,10 @@ function f61(encounter, tei, state) {
 function f64(encounter) {
   const mappings = [];
 
-  // Admission date and time (Question #1)
-  // Concept: 7f00c65d-de60-467a-8964-fe80c7a85ef0
-  const admissionTime = findObsByConcept(
-    encounter,
-    "7f00c65d-de60-467a-8964-fe80c7a85ef0"
-  )?.value;
-
-  if (admissionTime) {
-    const timePart = admissionTime.substring(11, 16);
-    mappings.push({
-      dataElement: "KDZguOxdsZk", // ICU - Admission time
-      value: timePart,
-    });
-  }
+  mappings.push({
+    dataElement: "KDZguOxdsZk", // ICU - Admission time
+    value: encounter.encounterDatetime.substring(11, 16),
+  });
 
   return mappings;
 }
@@ -531,7 +561,7 @@ function f66(encounter, state) {
 
   const resolveOptionCode = (optionUid) =>
     state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-      "DHIS2 Option Code"
+    "DHIS2 Option Code"
     ];
 
   // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
@@ -626,7 +656,7 @@ function f67(tei, dhis2Map) {
     j5tAuXutbsp: dhis2Map.attr.sex, // Cholera - Sex
     EX28AP1WI0B: dhis2Map.attr.placeOfliving, // Cholera - Place of living
   };
-  const mapping = mapAttribute(tei.attributes, attributeMap);
+  const mapping = mapAttribute(tei?.attributes, attributeMap);
 
   // Conditional age mapping based on patient age
   if (ageInMonths !== null) {
@@ -736,7 +766,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       formMapping.push(...f8DataValues);
       if (f8EventDate) eventDate = f8EventDate;
     }
-    if (f09Uuid === encounter.form.uuid) {
+    if ([f08Uuid, f09Uuid].includes(encounter.form.uuid)) {
       // F09 Form Encounter Mapping
       const attributeMap = {
         Lg1LrNf9LQR: dhis2Map.attr.sex,
@@ -748,15 +778,15 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         FsL5BjQocuo: dhis2Map.attr.nationality,
         Pi1zytYdq6l: dhis2Map.attr.patientNumber,
       };
-      const f09Mapping = mapAttribute(tei.attributes, attributeMap);
-      formMapping.push(...f09Mapping);
+      const f0809Mapping = mapAttribute(tei?.attributes, attributeMap);
+      formMapping.push(...f0809Mapping);
     }
     if (f61Uuid === encounter.form.uuid) {
       const f61Mapping = f61(encounter, tei, state);
       formMapping.push(...f61Mapping);
     }
 
-    if (f24Uuid === encounter.form.uuid) {
+    if ([f23Uuid, f24Uuid].includes(encounter.form.uuid)) {
       // F24 Form Encounter Mapping
       // Maps TEI attributes to DHIS2 data elements
       const attributeMap = {
@@ -764,7 +794,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         yE0dIWW0TXP: dhis2Map.attr.placeOfliving, // Place of living
         fnH6H3biOkE: dhis2Map.attr.patientNumber, // Patient number (MSF ID)
       };
-      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       // Age in days (Z7vMFdnQxpE) - calculated from birthdate if available
       const dob = tei?.attributes?.find(
@@ -795,7 +825,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
 
       formMapping.push(...attributeMapping);
     }
-    if (f26Uuid === encounter.form.uuid) {
+    if ([f25Uuid, f26Uuid].includes(encounter.form.uuid)) {
       const attributeMap = {
         d7wOfzPBbQD: dhis2Map.attr.ageInYears,
         y9pK9sVcbU9: dhis2Map.attr.ageInMonth,
@@ -803,7 +833,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         Nd43pz1Oo62: dhis2Map.attr.placeOfliving,
         kcSuQKfU5Zo: dhis2Map.attr.patientNumber,
       };
-      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       // Custom mapping for sex and legalStatus (f26 only)
       // Sex: leave blank if value is "unknown" or "other"
@@ -856,7 +886,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       if (f27EventDate) eventDate = f27EventDate;
     }
 
-    if (f28Uuid === encounter.form.uuid) {
+    if ([f27Uuid, f28Uuid].includes(encounter.form.uuid)) {
       // F28 Form Encounter Mapping
       const attributeMap = {
         WP5vr8KB2lH: dhis2Map.attr.sex,
@@ -866,7 +896,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         sCKCNreiqEA: dhis2Map.attr.nationality,
         ci9C72RjN8Z: dhis2Map.attr.patientNumber,
       };
-      const attributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const attributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       const f28Mapping = [
         {
@@ -890,7 +920,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
       formMapping.push(...f42DataValues);
       if (f42EventDate) eventDate = f42EventDate;
     }
-    if (f43Uuid === encounter.form.uuid) {
+    if ([f43Uuid, f42Uuid, f41Uuid].includes(encounter.form.uuid)) {
       // F43 Form Encounter Mapping - TEI attributes and custom logic
       const attributeMap = {
         gHPt2FCZEE6: dhis2Map.attr.patientNumber, // Emergency Room - Patient number
@@ -900,7 +930,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         KRNhyZHeGGM: dhis2Map.attr.currentStatus, // Emergency Room - Current status
         fUxvDvbPKlU: dhis2Map.attr.legalStatus, // Emergency Room - Legal status
       };
-      const f43AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const f43AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
       // Note: Age fields (years, months, days) are now handled in f43() with fallback logic
       const { dataValues: f43DataValues, eventDate: f43EventDate } = f43(
         encounter,
@@ -942,7 +972,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         OI2H3dEQLdQ: dhis2Map.attr.placeOfliving, // ICU - Place of living
         QiVXQ2eAtpN: dhis2Map.attr.nationality, // ICU - Nationality
       };
-      const f64AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const f64AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       if (sex) {
         const value = sex === "unknown" ? "others" : sex;
@@ -1024,7 +1054,7 @@ const buildDataValues = (pairedEncounters, tei, state) => {
         ZlONTbktjvX: dhis2Map.attr.sex, // Snakebites - Sex
         XK6Wnp4aBvi: dhis2Map.attr.placeOfliving, // Snakebites - Place of living
       };
-      const f66AttributeMapping = mapAttribute(tei.attributes, attributeMap);
+      const f66AttributeMapping = mapAttribute(tei?.attributes, attributeMap);
 
       // Conditional age mapping based on patient age
       if (ageInMonths !== null) {
@@ -1064,9 +1094,26 @@ const buildDataValues = (pairedEncounters, tei, state) => {
   });
 
   //setting the visitUuid here as a data element
-  const combinedMapping = formMapping.filter(Boolean);
+  const combinedMapping = formMapping.filter(
+    (dv) => dv.value !== undefined && dv.value !== null
+  );
 
   return { dataValues: combinedMapping, eventDate };
+};
+
+const handleMissingRecord = (patientKey, state) => {
+  const [orgUnit, program, programStage, patientUuid, visitUuid] =
+    patientKey.split(":");
+  console.log("Missing trackedEntity for patient", {
+    patientUuid,
+    orgUnit,
+    program,
+    programStage,
+    visitUuid,
+  });
+
+  state.missingRecords ??= {};
+  state.missingRecords[patientKey] = state.pairedEncounters[patientKey];
 };
 
 fn((state) => {
@@ -1085,12 +1132,17 @@ fn((state) => {
   }, {});
 
   state.pairedEncounters = pairedEncounters;
-  state.eventsMapping = Object.entries(pairedEncounters).map(
-    ([patientKey, patientEncounters]) => {
+  state.eventsMapping = Object.entries(pairedEncounters)
+    .map(([patientKey, patientEncounters]) => {
       const [orgUnit, program, programStage, patientUuid] =
         patientKey.split(":");
 
       const tei = state.TEIs[patientUuid];
+
+      if (!tei?.trackedEntity || !tei?.enrollment) {
+        handleMissingRecord(patientKey, state);
+        return null;
+      }
 
       const { dataValues, eventDate: customEventDate } = buildDataValues(
         patientEncounters,
@@ -1108,7 +1160,7 @@ fn((state) => {
 
       const patientNumber = tei?.attributes?.find(
         (a) => a.code === "patient_number"
-      ).value;
+      )?.value;
 
       const visitUuid = latestEncounter.visit.uuid;
       const event = state.eventsByPatient[`${orgUnit}-${program}`]?.[
@@ -1130,10 +1182,12 @@ fn((state) => {
         occurredAt: eventDate,
         programStage,
         dataValues,
-        trackedEntity: tei.trackedEntity,
+        trackedEntity: tei?.trackedEntity,
       };
-    }
-  );
+    })
+    .flat()
+    .filter(Boolean);
+  console.log("Final eventsMapping length:", state.eventsMapping.length);
 
   return state;
 });
