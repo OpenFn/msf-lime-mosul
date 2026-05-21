@@ -5,6 +5,7 @@ description: |
 collections:
   mosul-metadata-mappings:
     name: mosul-metadata-mappings
+channels: null
 credentials:
   aisha@openfn.org-MSF-OMRS-admin:
     name: MSF OMRS admin
@@ -34,6 +35,92 @@ credentials:
     name: mtuchi-gsheet
     owner: mtuchi@openfn.org
 workflows:
+  manual-sync-metadata:
+    name: manual-sync-metadata
+    jobs:
+      fetch-latest-collections:
+        name: fetch-latest collections
+        adaptor: '@openfn/language-http@7.2.8'
+        credential: null
+        body: |
+          
+          // const metadataPath =
+          //   'repos/OpenFn/msf-lime-metadata/contents/metadata/collections.json';
+
+          // get(metadataPath, {
+          //   headers: {
+          //     'user-agent': 'OpenFn',
+          //   },
+          //   query: {
+          //     ref: 'collections',
+          //   },
+          // });
+
+      update-metadata-collections:
+        name: update metadata collections
+        adaptor: '@openfn/language-common@3.2.3'
+        credential: null
+        body: |
+          // Cleanup: remove all collections data
+          collections.remove('mosul-metadata-mappings', '*');
+
+          collections.set('mosul-metadata-mappings', 'syncedAt', $.syncedAt);
+          collections.set('mosul-metadata-mappings', 'sourceFile', $.sourceFile);
+          collections.set(
+            'mosul-metadata-mappings',
+            'formMetadata',
+            $.formMetadata
+          );
+          collections.set(
+            'mosul-metadata-mappings',
+            'fileDateModified',
+            $.fileDateModified
+          );
+
+          collections.set(
+            'mosul-metadata-mappings',
+            'optionSetKey',
+            $.optionSetKey
+          );
+
+          collections.set('mosul-metadata-mappings', 'formMaps', $.formMaps);
+
+          collections.set(
+            'mosul-metadata-mappings',
+            'placeOflivingMap',
+            $.placeOflivingMap
+          );
+
+          let itemCount = 0;
+          collections.set(
+            'mosul-metadata-mappings',
+            i => `optsMap-value-${++itemCount}`,
+            $.optsMap
+          );
+
+          itemCount = 0;
+          collections.set(
+            'mosul-metadata-mappings',
+            i => `identifiers-value-${++itemCount}`,
+            $.identifiers
+          );
+
+    triggers:
+      webhook:
+        type: webhook
+        webhook_reply: before_start
+        enabled: false
+    edges:
+      webhook->fetch-latest-collections:
+        source_trigger: webhook
+        target_job: fetch-latest-collections
+        condition_type: always
+        enabled: true
+      fetch-latest-collections->update-metadata-collections:
+        source_job: fetch-latest-collections
+        target_job: update-metadata-collections
+        condition_type: on_job_success
+        enabled: true
   wf0-sync-metadata:
     name: wf0-sync-metadata
     jobs:
@@ -461,23 +548,25 @@ workflows:
         adaptor: '@openfn/language-googlesheets@4.0.7'
         credential: mtuchi@openfn.org-mtuchi-gsheet
         body: |
-          const spreadsheetId = '1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg'
+          const spreadsheetId = "1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg";
 
-          each($.sheetsMapping, batchUpdateValues({
-            spreadsheetId,
-            range: $.data.range,
-            values: $.data.values
-          }))
+          each(
+            $.sheetsMapping,
+            batchUpdateValues({
+              spreadsheetId,
+              range: $.data.range,
+              values: $.data.values,
+            })
+          );
 
       Prepare-Mapping-Per-Sheet:
         name: Prepare Mapping Per Sheet
         adaptor: '@openfn/language-http@7.2.6'
         credential: null
         body: |
-          
           const baseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
           const gsheetId = "1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg";
-          const genSheets = (sourceFile) => {
+          export const genSheets = (sourceFile) => {
             const todayDate = new Date().toISOString().split("T")[0];
 
             const shortFile = sourceFile
@@ -771,29 +860,29 @@ workflows:
         adaptor: '@openfn/language-common@2.3.1'
         credential: null
         body: |
-          const isValidValue = value => value !== '' && value !== 'NA';
+          export const isValidValue = (value) => value !== "" && value !== "NA";
 
-          const mapArrayToObject = (item, keys) => {
+          export const mapArrayToObject = (item, keys) => {
             return item.reduce((acc, value, idx) => {
               acc[keys[idx]] = value;
               return acc;
             }, {});
           };
 
-          const safeKeyValuePairs = arr => {
+          export const safeKeyValuePairs = (arr) => {
             if (arr === null || arr === undefined) {
               return arr;
             }
-            const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));
+            const mappedArr = arr.slice(2).map((item) => mapArrayToObject(item, arr[1]));
             try {
               return mappedArr
                 .filter(
-                  o => isValidValue(o['External ID']) && isValidValue(o['DHIS2 DE UID'])
+                  (o) => isValidValue(o["External ID"]) && isValidValue(o["DHIS2 DE UID"])
                 )
                 .reduce((acc, value) => {
-                  const key = `${value['External ID']}::${value['DHIS2 type'].toLowerCase()}`;
-                  acc[value['DHIS2 DE UID']] = value['Question ID']
-                    ? `${key}::${value['Question ID']}`
+                  const key = `${value["External ID"]}::${value["DHIS2 type"].toLowerCase()}`;
+                  acc[value["DHIS2 DE UID"]] = value["Question ID"]
+                    ? `${key}::${value["Question ID"]}`
                     : key;
                   return acc;
                 }, {});
@@ -803,33 +892,33 @@ workflows:
             }
           };
 
-          const extractMultiQns = arr => {
+          export const extractMultiQns = (arr) => {
             if (arr === null || arr === undefined) {
               return arr;
             }
-            const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));
+            const mappedArr = arr.slice(2).map((item) => mapArrayToObject(item, arr[1]));
             try {
               const multiSelectQuestions = mappedArr
-                .filter(o => isValidValue(o['Question #']))
+                .filter((o) => isValidValue(o["Question #"]))
                 .reduce((acc, value) => {
-                  if (value['Multi-Select Answer External IDs']) {
-                    if (!acc[value['Question #']]) {
-                      acc[value['Question #']] = {
-                        extId: value['External ID'],
-                        qid: value['Question ID'],
+                  if (value["Multi-Select Answer External IDs"]) {
+                    if (!acc[value["Question #"]]) {
+                      acc[value["Question #"]] = {
+                        extId: value["External ID"],
+                        qid: value["Question ID"],
                         qns: [
                           {
-                            clde: value['CL DHIS2 DE UID'],
-                            type: value['DHIS2 type'],
-                            multiAns: value['Multi-Select Answer External IDs'],
+                            clde: value["CL DHIS2 DE UID"],
+                            type: value["DHIS2 type"],
+                            multiAns: value["Multi-Select Answer External IDs"],
                           },
                         ],
                       };
                     } else {
-                      acc[value['Question #']].qns.push({
-                        clde: value['CL DHIS2 DE UID'],
-                        type: value['DHIS2 type'],
-                        multiAns: value['Multi-Select Answer External IDs'],
+                      acc[value["Question #"]].qns.push({
+                        clde: value["CL DHIS2 DE UID"],
+                        type: value["DHIS2 type"],
+                        multiAns: value["Multi-Select Answer External IDs"],
                       });
                     }
                   }
@@ -844,22 +933,22 @@ workflows:
           };
 
           //New OptionSet Mappping
-          const questionKeyValuePairs = arr => {
+          export const questionKeyValuePairs = (arr) => {
             if (arr === null || arr === undefined) {
               return arr;
             }
-            const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));
+            const mappedArr = arr.slice(2).map((item) => mapArrayToObject(item, arr[1]));
             try {
               return mappedArr
                 .filter(
-                  o =>
-                    isValidValue(o['External ID']) &&
-                    isValidValue(o['DHIS2 Option Set UID'])
+                  (o) =>
+                    isValidValue(o["External ID"]) &&
+                    isValidValue(o["DHIS2 Option Set UID"])
                 )
-                .map(value => ({
-                  [value['DHIS2 Option Set UID']]: value['Question ID']
-                    ? `${value['External ID']}-${value['Question ID']}`
-                    : value['External ID'],
+                .map((value) => ({
+                  [value["DHIS2 Option Set UID"]]: value["Question ID"]
+                    ? `${value["External ID"]}-${value["Question ID"]}`
+                    : value["External ID"],
                 }));
             } catch (error) {
               console.error(`Error processing ${arr}:`, error);
@@ -867,65 +956,65 @@ workflows:
             }
           };
 
-          fn(state => {
-            state.placeOflivingMap = state['Places of living']
+          fn((state) => {
+            state.placeOflivingMap = state["Places of living"]
               .slice(2)
-              .map(item => mapArrayToObject(item, state['Places of living'][1]))
+              .map((item) => mapArrayToObject(item, state["Places of living"][1]))
               .filter(
-                o =>
-                  (isValidValue(o['External ID']) &&
-                    isValidValue(o['DHIS2 DE full name'])) ||
-                  (isValidValue(o['value.display - Answers']) &&
-                    isValidValue(o['DHIS2 Option code']))
+                (o) =>
+                  (isValidValue(o["External ID"]) &&
+                    isValidValue(o["DHIS2 DE full name"])) ||
+                  (isValidValue(o["value.display - Answers"]) &&
+                    isValidValue(o["DHIS2 Option code"]))
               )
               .reduce((acc, value) => {
-                acc[value['Answers']] = value['DHIS2 Option code'];
+                acc[value["Answers"]] = value["DHIS2 Option code"];
                 return acc;
               }, {});
 
             return state;
           });
 
-          fn(state => {
+          fn((state) => {
             const { OptionSets, identifiers } = state;
             const keys = OptionSets[1];
 
             state.optsMap = OptionSets.slice(2)
-              .map(item => mapArrayToObject(item, keys))
+              .map((item) => mapArrayToObject(item, keys))
               .filter(
-                o =>
-                  (isValidValue(o['External ID']) &&
-                    isValidValue(o['DHIS2 DE full name'])) ||
-                  (isValidValue(o['value.display - Answers']) &&
-                    isValidValue(o['DHIS2 Option code']))
+                (o) =>
+                  (isValidValue(o["External ID"]) &&
+                    isValidValue(o["DHIS2 DE full name"])) ||
+                  (isValidValue(o["value.display - Answers"]) &&
+                    isValidValue(o["DHIS2 Option code"]))
               )
-              .map(o => {
+              .map((o) => {
                 return {
-                  'DHIS2 Option Set UID': o['DHIS2 Option Set UID'],
-                  'DHIS2 Option name': o['DHIS2 Option name'],
-                  'DHIS2 Option UID': o['DHIS2 Option UID'],
-                  'DHIS2 Option Code': o['DHIS2 Option code'],
-                  'value.display - Answers': o['Answers'],
-                  'value.uuid - External ID': o['External ID'].trim(),
-                  'DHIS2 DE UID': o['DHIS2 DE UID'],
+                  "DHIS2 Option Set UID": o["DHIS2 Option Set UID"],
+                  "DHIS2 Option name": o["DHIS2 Option name"],
+                  "DHIS2 Option UID": o["DHIS2 Option UID"],
+                  "DHIS2 Option Code": o["DHIS2 Option code"],
+                  "value.display - Answers": o["Answers"],
+                  "value.uuid - External ID": o["External ID"].trim(),
+                  "DHIS2 DE UID": o["DHIS2 DE UID"],
                 };
               });
 
             const [iheaders, ...irows] = identifiers;
             state.identifiers = irows
-              .map(row =>
+              .map((row) =>
                 row.reduce((obj, value, index) => {
-                  if (value != null && value !== '') {
+                  if (value != null && value !== "") {
                     obj[iheaders[index]] = value;
                   }
                   return obj;
                 }, {})
               )
-              .filter(obj => Object.keys(obj).length > 0);
+              .filter((obj) => Object.keys(obj).length > 0);
             return state;
           });
 
-          fn(state => {
+          fn((state) => {
             const {
               optsMap,
               syncedAt,
@@ -940,18 +1029,18 @@ workflows:
             const fileDateModified = targetFile.lastModifiedDateTime;
 
             const formMaps = formMetadata.reduce((acc, form) => {
-              const formName = form['OMRS form sheet name'];
-              acc[form['OMRS form.uuid']] = {
+              const formName = form["OMRS form sheet name"];
+              acc[form["OMRS form.uuid"]] = {
                 formName,
-                syncType: form['Sync Type'],
-                orgUnit: form['DHIS2 orgUnit ID'],
-                programId: form['DHIS2 program ID'],
-                programStage: form['DHIS2 programStage ID'],
+                syncType: form["Sync Type"],
+                orgUnit: form["DHIS2 orgUnit ID"],
+                programId: form["DHIS2 program ID"],
+                programStage: form["DHIS2 programStage ID"],
                 dataValueMap: safeKeyValuePairs(state[formName]),
                 optionSetMap: questionKeyValuePairs(state[formName]),
-                workflow: form['Workflow'],
-                relationshipId: form['DHIS2 TEI Relationship Id'],
-                orgUnit: form['DHIS2 Org Unit ID'],
+                workflow: form["Workflow"],
+                relationshipId: form["DHIS2 TEI Relationship Id"],
+                orgUnit: form["DHIS2 Org Unit ID"],
                 multiSelectQns: extractMultiQns(state[formName]),
               };
 
@@ -960,7 +1049,7 @@ workflows:
 
             const optionSetKey = Object.entries(formMaps).reduce(
               (acc, [formKey, formValue]) => {
-                formValue.optionSetMap.forEach(item => {
+                formValue.optionSetMap.forEach((item) => {
                   const [originalKey, originalValue] = Object.entries(item)[0];
                   acc[`${formKey}-${originalValue}`] = originalKey;
                 });
@@ -1043,39 +1132,14 @@ workflows:
         target_job: Add-Errors-to-GoogleSheet
         condition_type: on_job_success
         enabled: true
-      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
-        source_job: Warn-admin-of-errors
-        target_job: Prepare-Mapping-Per-Sheet
-        condition_type: on_job_success
-        enabled: true
-      webhook->Get-metadata-file-from-Sharepoint:
-        source_trigger: webhook
-        target_job: Get-metadata-file-from-Sharepoint
-        condition_type: always
-        enabled: true
-      Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format:
-        source_job: Get-metadata-file-from-Sharepoint
-        target_job: Map-metadata-file-to-option-set-Json-format
-        condition_type: on_job_success
-        enabled: true
-      Map-metadata-file-to-option-set-Json-format->Save-option-set-json-to-github:
-        source_job: Map-metadata-file-to-option-set-Json-format
-        target_job: Save-option-set-json-to-github
-        condition_type: on_job_success
-        enabled: false
-      Throw-Errors->Save-option-set-json-to-collections-main:
+      Throw-Errors->Save-option-set-json-to-collections:
         source_job: Throw-Errors
-        target_job: Save-option-set-json-to-collections-main
+        target_job: Save-option-set-json-to-collections
         condition_type: always
-        enabled: true
-      Check-if-Data-Elements-Exist-in-DHIS2->Check-if-Option-Set-and-options-UID-matches:
-        source_job: Check-if-Data-Elements-Exist-in-DHIS2
-        target_job: Check-if-Option-Set-and-options-UID-matches
-        condition_type: on_job_success
-        enabled: true
-      Map-metadata-file-to-option-set-Json-format->Check-if-Data-Elements-Exist-in-DHIS2:
-        source_job: Map-metadata-file-to-option-set-Json-format
-        target_job: Check-if-Data-Elements-Exist-in-DHIS2
+        enabled: false
+      Warn-admin-of-errors->Throw-Errors:
+        source_job: Warn-admin-of-errors
+        target_job: Throw-Errors
         condition_type: on_job_success
         enabled: true
       Check-if-Option-Set-and-options-UID-matches->Warn-admin-of-errors:
@@ -1083,16 +1147,41 @@ workflows:
         target_job: Warn-admin-of-errors
         condition_type: on_job_success
         enabled: true
-      Warn-admin-of-errors->Throw-Errors:
-        source_job: Warn-admin-of-errors
-        target_job: Throw-Errors
+      Map-metadata-file-to-option-set-Json-format->Check-if-Data-Elements-Exist-in-DHIS2:
+        source_job: Map-metadata-file-to-option-set-Json-format
+        target_job: Check-if-Data-Elements-Exist-in-DHIS2
         condition_type: on_job_success
         enabled: true
-      Throw-Errors->Save-option-set-json-to-collections:
+      Check-if-Data-Elements-Exist-in-DHIS2->Check-if-Option-Set-and-options-UID-matches:
+        source_job: Check-if-Data-Elements-Exist-in-DHIS2
+        target_job: Check-if-Option-Set-and-options-UID-matches
+        condition_type: on_job_success
+        enabled: true
+      Throw-Errors->Save-option-set-json-to-collections-main:
         source_job: Throw-Errors
-        target_job: Save-option-set-json-to-collections
+        target_job: Save-option-set-json-to-collections-main
         condition_type: always
+        enabled: true
+      Map-metadata-file-to-option-set-Json-format->Save-option-set-json-to-github:
+        source_job: Map-metadata-file-to-option-set-Json-format
+        target_job: Save-option-set-json-to-github
+        condition_type: on_job_success
         enabled: false
+      Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format:
+        source_job: Get-metadata-file-from-Sharepoint
+        target_job: Map-metadata-file-to-option-set-Json-format
+        condition_type: on_job_success
+        enabled: true
+      webhook->Get-metadata-file-from-Sharepoint:
+        source_trigger: webhook
+        target_job: Get-metadata-file-from-Sharepoint
+        condition_type: always
+        enabled: true
+      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
+        source_job: Warn-admin-of-errors
+        target_job: Prepare-Mapping-Per-Sheet
+        condition_type: on_job_success
+        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
@@ -1421,13 +1510,13 @@ workflows:
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
-          const findDuplicatePatient = teis => {
+          export const findDuplicatePatient = (teis) => {
             const seen = new Map();
             const duplicates = new Set();
 
-            teis.forEach(tei => {
+            teis.forEach((tei) => {
               const patientNumber = tei.attributes.find(
-                attr => attr.code === 'patient_number'
+                (attr) => attr.code === "patient_number"
               )?.value;
 
               if (seen.get(patientNumber)) {
@@ -1440,41 +1529,43 @@ workflows:
             return duplicates;
           };
           // Get teis that are "active" in the target program
-          get('tracker/trackedEntities', {
+          get("tracker/trackedEntities", {
             orgUnit: $.orgUnit,
             program: $.program,
-            programStatus: 'ACTIVE',
+            programStatus: "ACTIVE",
             updatedAfter: $.cursor,
             skipPaging: true,
           });
 
-          fn(state => {
-            console.log('# of TEIs found before filter ::', state.data.instances.length);
+          fn((state) => {
+            console.log("# of TEIs found before filter ::", state.data.instances.length);
             const uniqueTeis = [];
             const duplicatePatients = [];
             const missingPatientNumber = [];
             const teisWithOMRSID = [];
 
             const filteredTeis = state.data.instances.filter(
-              tei => tei.updatedAt >= state.cursor
+              (tei) => tei.updatedAt >= state.cursor
             );
 
-            console.log('Filtered TEIs ::', filteredTeis.length);
+            console.log("Filtered TEIs ::", filteredTeis.length);
             const duplicateIds = findDuplicatePatient(filteredTeis);
 
-            filteredTeis.forEach(tei => {
+            filteredTeis.forEach((tei) => {
               const patientNumber = tei.attributes.find(
-                attr => attr.code === 'patient_number'
+                (attr) => attr.code === "patient_number"
               )?.value;
               const patientUid = tei.attributes.find(
-                attr => attr.code === 'patient_uid' || attr.displayName === 'OpenMRS patient UID'
+                (attr) =>
+                  attr.code === "patient_uid" ||
+                  attr.displayName === "OpenMRS patient UID"
               )?.value;
 
               if (patientUid) {
                 console.log(
                   `Skipping TEI:: ${tei.trackedEntity}. Found existing patient uid.`
                 );
-                teisWithOMRSID.push(tei)
+                teisWithOMRSID.push(tei);
               }
 
               if (!patientNumber) {
@@ -1486,8 +1577,8 @@ workflows:
               }
             });
 
-            console.log('# of Unique TEIs to migrate to OMRS ::', uniqueTeis.length);
-            console.log('# Duplicate Patients found::', duplicatePatients.length);
+            console.log("# of Unique TEIs to migrate to OMRS ::", uniqueTeis.length);
+            console.log("# Duplicate Patients found::", duplicatePatients.length);
 
             // return { uniqueTeis, duplicatePatients, filteredTeis, missingPatientNumber };
             return {
@@ -1501,8 +1592,8 @@ workflows:
             };
           });
 
-          get('optionGroups/kdef7pUey9f', {
-            fields: 'id,displayName,options[id,displayName,code]',
+          get("optionGroups/kdef7pUey9f", {
+            fields: "id,displayName,options[id,displayName,code]",
           });
 
           fn(({ data, ...state }) => {
@@ -1625,23 +1716,9 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: false
     edges:
-      Get-Teis-and-Locations->Alert-Admin-of-Duplicate-TEIs:
-        source_job: Get-Teis-and-Locations
-        target_job: Alert-Admin-of-Duplicate-TEIs
-        condition_type: js_expression
-        condition_label: has-duplicate-patients
-        condition_expression: |
-          state.duplicatePatients.length > 0 && !state.errors
-
-        enabled: true
-      cron->Fetch-Metadata:
-        source_trigger: cron
-        target_job: Fetch-Metadata
-        condition_type: always
-        enabled: true
-      Fetch-Metadata->Get-Teis-and-Locations:
-        source_job: Fetch-Metadata
-        target_job: Get-Teis-and-Locations
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
         condition_type: on_job_success
         enabled: true
       Get-Teis-and-Locations->Create-Patients:
@@ -1653,10 +1730,24 @@ workflows:
           state.uniqueTeis.length > 0 && !state.errors
 
         enabled: true
-      Create-Patients->Update-Teis:
-        source_job: Create-Patients
-        target_job: Update-Teis
+      Fetch-Metadata->Get-Teis-and-Locations:
+        source_job: Fetch-Metadata
+        target_job: Get-Teis-and-Locations
         condition_type: on_job_success
+        enabled: true
+      cron->Fetch-Metadata:
+        source_trigger: cron
+        target_job: Fetch-Metadata
+        condition_type: always
+        enabled: true
+      Get-Teis-and-Locations->Alert-Admin-of-Duplicate-TEIs:
+        source_job: Get-Teis-and-Locations
+        target_job: Alert-Admin-of-Duplicate-TEIs
+        condition_type: js_expression
+        condition_label: has-duplicate-patients
+        condition_expression: |
+          state.duplicatePatients.length > 0 && !state.errors
+
         enabled: true
       Get-Teis-and-Locations->Validate-TEIs-with-OMRS-Id:
         source_job: Get-Teis-and-Locations
@@ -1675,7 +1766,7 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
-          function removeLinks(data) {
+          export function removeLinks(data) {
             if (Array.isArray(data)) {
               return data.map(removeLinks);
             }
@@ -1690,7 +1781,7 @@ workflows:
             return data;
           }
 
-          function removeNulls(data) {
+          export function removeNulls(data) {
             if (Array.isArray(data)) {
               return data.filter((item) => item !== null).map(removeNulls);
             }
@@ -1808,7 +1899,10 @@ workflows:
                   encounterDatetime,
                 };
               });
-              console.log(next.encounters?.length, "# of new encounters to sync to dhis2");
+              console.log(
+                next.encounters?.length,
+                "# of new encounters to sync to dhis2"
+              );
             } else {
               console.log("No encounters found for cursor: ", next.cursor);
             }
@@ -1930,7 +2024,7 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
-          function removeLinks(data) {
+          export function removeLinks(data) {
             if (Array.isArray(data)) {
               return data.map(removeLinks);
             }
@@ -1945,7 +2039,7 @@ workflows:
             return data;
           }
 
-          function removeNulls(data) {
+          export function removeNulls(data) {
             if (Array.isArray(data)) {
               return data.filter((item) => item !== null).map(removeNulls);
             }
@@ -1987,7 +2081,8 @@ workflows:
                   removeNulls(p)
                 );
                 const { dateCreated } = auditInfo;
-                const { age, birthdate, gender, names, preferredAddress, attributes } = person;
+                const { age, birthdate, gender, names, preferredAddress, attributes } =
+                  person;
 
                 return {
                   uuid,
@@ -2328,7 +2423,7 @@ workflows:
             },
           };
 
-          const isValidUUID = (id) => {
+          export const isValidUUID = (id) => {
             if (!id || typeof id !== "string") return false;
 
             const UUID_PATTERN =
@@ -2817,7 +2912,7 @@ workflows:
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
-          function chunkArray(array, size) {
+          export function chunkArray(array, size) {
             const chunks = [];
             for (let i = 0; i < array.length; i += size) {
               chunks.push(array.slice(i, i + size));
@@ -2825,7 +2920,7 @@ workflows:
             return chunks;
           }
 
-          function remainderMonths(dob, ageYears, todayDate) {
+          export function remainderMonths(dob, ageYears, todayDate) {
             const birth = new Date(dob);
             const today = new Date(todayDate);
 
@@ -2848,14 +2943,14 @@ workflows:
             return months;
           }
 
-          const findIdentifierByUuid = (identifiers, targetUuid) =>
+          export const findIdentifierByUuid = (identifiers, targetUuid) =>
             identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
 
-          const findAttrValue = (uuid, attributes) => {
+          export const findAttrValue = (uuid, attributes) => {
             return attributes.find((a) => a.attributeType.uuid === uuid)?.value;
           };
 
-          const findOptCode = (attrValue, optsMap, optionSetKey) => {
+          export const findOptCode = (attrValue, optsMap, optionSetKey) => {
             if (typeof attrValue === "string") {
               return attrValue;
             }
@@ -2883,7 +2978,7 @@ workflows:
             }
             return null;
           };
-          const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
+          export const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
             const genderMap = {
               M: "male",
               O: "unknown",
@@ -3091,20 +3186,20 @@ workflows:
             OTHER_SPECIFY: "e08d532b-e56c-43dc-b831-af705654d2dc",
             OTHER: "790b41ce-e1e7-11e8-b02f-0242ac130002",
           };
-          const extractAnswerValue = (answer) => {
+          export const extractAnswerValue = (answer) => {
             if (!answer) return undefined;
             if (typeof answer.value === "string") return answer.value;
             if (typeof answer.value === "object") return answer.value.display;
           };
-          function formatTime(time) {
+          export function formatTime(time) {
             const match = time.match(/^(\d{2}:\d{2})/);
             return match ? match[1] : null;
           }
 
-          function isPositiveInteger(n) {
+          export function isPositiveInteger(n) {
             return Number.isInteger(n) && n > 0;
           }
-          const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
+          export const findAnswerByConcept = (encounter, conceptUuid, questionId) => {
             if (questionId) {
               const answer = encounter.obs.find(
                 (o) => o.concept.uuid === conceptUuid && o.formFieldPath === questionId
@@ -3118,7 +3213,7 @@ workflows:
           };
 
           // Helper functions for finding observations
-          const findObsByConcept = (encounter, conceptUuid) => {
+          export const findObsByConcept = (encounter, conceptUuid) => {
             const [conceptId, questionId] = conceptUuid.split("-rfe-");
             const answer = encounter.obs.find(
               (o) =>
@@ -3128,20 +3223,20 @@ workflows:
             return answer;
           };
 
-          const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
+          export const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
             const answer = encounter.obs.find(
               (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
             );
             return answer ? "true" : "false";
           };
-          const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
+          export const conceptNotValue = (encounter, conceptUuid, valueUuid) => {
             const answer = encounter.obs.find(
               (o) => o.concept.uuid === conceptUuid && o.value.uuid !== valueUuid
             );
             return answer ? "true" : "false";
           };
 
-          const conceptTrueOnly = (encounter, conceptUuid) => {
+          export const conceptTrueOnly = (encounter, conceptUuid) => {
             const answer = encounter.obs.find(
               (o) =>
                 o.concept.uuid === conceptUuid &&
@@ -3150,14 +3245,14 @@ workflows:
             return answer ? "true" : undefined;
           };
 
-          const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
+          export const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
             const answer = encounter.obs.find(
               (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
             );
             return answer ? "true" : undefined;
           };
 
-          const multiSelectAns = (encounter, multiSelectQns) => {
+          export const multiSelectAns = (encounter, multiSelectQns) => {
             const dataValues = multiSelectQns
               .map((q) =>
                 q.qns
@@ -3185,7 +3280,7 @@ workflows:
 
             return dataValues;
           };
-          const toTrueOrFalse = (value) => {
+          export const toTrueOrFalse = (value) => {
             if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
               return "true";
             }
@@ -3195,7 +3290,7 @@ workflows:
             return value;
           };
 
-          const dataValueByConcept = (encounter, de, state) => {
+          export const dataValueByConcept = (encounter, de, state) => {
             const { dataElement, conceptUuid, questionId, type } = de || {};
 
             const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -3277,7 +3372,7 @@ workflows:
             }
           };
 
-          const findDataValue = (encounter, dataElement, state) => {
+          export const findDataValue = (encounter, dataElement, state) => {
             const form = state.formMaps[encounter.form.uuid];
             const [conceptUuid, type, questionId] =
               form.dataValueMap[dataElement]?.split("::") || [];
@@ -3394,11 +3489,11 @@ workflows:
             return "";
           };
 
-          const formEncounters = (formDescription, encounters) => {
+          export const formEncounters = (formDescription, encounters) => {
             return encounters.filter((e) => e.form.description.includes(formDescription));
           };
 
-          const buildExitEvent = (encounter, tei, state) => {
+          export const buildExitEvent = (encounter, tei, state) => {
             const { program, orgUnit, trackedEntity, enrollment, events } = tei;
 
             let exitEvents = [];
@@ -3483,7 +3578,7 @@ workflows:
             return exitEvents;
           };
 
-          function mapF13(encounter, state) {
+          export function mapF13(encounter, state) {
             if (encounter.form.name.includes("F13-PNC")) {
               const answers = encounter.obs.filter(
                 (o) => o.concept.uuid === "22809b19-54ca-4d88-8d26-9577637c184e"
@@ -3504,7 +3599,7 @@ workflows:
                   const value = state.optsMap.find(
                     (o) =>
                       o["value.uuid - External ID"] ===
-                      answers[config.index]?.value?.uuid &&
+                        answers[config.index]?.value?.uuid &&
                       o["DHIS2 Option Set UID"] === "lOD0K3UhiN2"
                   )?.["DHIS2 Option Code"];
 
@@ -3533,7 +3628,7 @@ workflows:
             }
           }
 
-          function mapF16(encounter) {
+          export function mapF16(encounter) {
             const answers = encounter.obs.filter(
               (o) => o.concept.uuid === "877aa979-c02f-4890-8156-836d52696f09"
             );
@@ -3554,7 +3649,7 @@ workflows:
             return;
           }
 
-          function mapF17(encounter) {
+          export function mapF17(encounter) {
             const mappings = [];
             if (
               encounter.form.name.includes("F17-Surgery Admission") &&
@@ -3588,7 +3683,7 @@ workflows:
             return mappings;
           }
 
-          function mapF18(encounter, encounters) {
+          export function mapF18(encounter, encounters) {
             const isDischarge = findObsByConcept(
               encounter,
               "13cea1c8-e426-411f-95b4-33651fc4325d"
@@ -3607,7 +3702,7 @@ workflows:
             }
           }
 
-          function mapF22(encounter) {
+          export function mapF22(encounter) {
             if (encounter.form.name.includes("F22-Neonatal Delivery")) {
               return [
                 {
@@ -3618,7 +3713,7 @@ workflows:
             }
           }
 
-          function mapF29(encounter) {
+          export function mapF29(encounter) {
             const mappings = [];
             if (encounter.form.name.includes("F29-MHPSS Baseline")) {
               mappings.push({
@@ -3706,7 +3801,7 @@ workflows:
             return mappings;
           }
 
-          function mapF30F29(encounter, allEncounters) {
+          export function mapF30F29(encounter, allEncounters) {
             if (encounter.form.name.includes("F30-MHPSS Follow-up")) {
               const OTHER = "790b41ce-e1e7-11e8-b02f-0242ac130002";
               const MISSED_SESSION_CONCEPT = "54e8c1b6-6397-4822-89a4-cf81fbc68ce9";
@@ -3794,7 +3889,7 @@ workflows:
             }
           }
 
-          function mapF32F31(encounter, allEncounters) {
+          export function mapF32F31(encounter, allEncounters) {
             let mapping = [];
             if (encounter.form.name.includes("F31-mhGAP Baseline")) {
               mapping.push({
@@ -3902,7 +3997,7 @@ workflows:
             return mapping;
           }
 
-          function mapF33F34(encounter, allEncounters) {
+          export function mapF33F34(encounter, allEncounters) {
             if (
               encounter.form.name.includes("F33-MHPSS Closure") ||
               encounter.form.name.includes("F34-mhGAP Closure")
@@ -3934,7 +4029,7 @@ workflows:
             }
           }
 
-          function mapF37(encounter) {
+          export function mapF37(encounter) {
             if (encounter.form.name.includes("F37-Maternity Admission")) {
               return [
                 {
@@ -3945,7 +4040,7 @@ workflows:
             }
           }
 
-          function mapF38(encounter) {
+          export function mapF38(encounter) {
             if (encounter.form.name.includes("F38-Maternity Delivery")) {
               let f38Mapping = [
                 {
@@ -3957,7 +4052,7 @@ workflows:
               return f38Mapping;
             }
           }
-          function mapF40(encounter) {
+          export function mapF40(encounter) {
             if (encounter.form.name.includes("F40-Referral & Discharge")) {
               return [
                 {
@@ -4214,7 +4309,7 @@ workflows:
               ],
             },
           };
-          function mapDiagnosisF49(encounter, mapping, state) {
+          export function mapDiagnosisF49(encounter, mapping, state) {
             const diagnosisObs = encounter.obs.find(
               (o) => o.concept.uuid === mapping.concept && o.formFieldPath === mapping.qid
             );
@@ -4240,7 +4335,7 @@ workflows:
             return diagnosisAtAdmission ? "unknown" : "no";
           }
 
-          function mapF49(encounter, events, state) {
+          export function mapF49(encounter, events, state) {
             const { dhis2Map } = state;
             const form = state.formMaps[encounter.form.uuid];
             const programStage = form?.programStage;
@@ -4254,14 +4349,14 @@ workflows:
             const pregnancyEvent =
               syncType === "latest"
                 ? events?.find(
-                  (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
-                )?.event
+                    (e) => e.programStage === F49_CONFIG.pregnancyStage.programStage
+                  )?.event
                 : undefined;
             const investigationEvent =
               syncType === "latest"
                 ? events?.find(
-                  (e) => e.programStage === F49_CONFIG.investigationStage.programStage
-                )?.event
+                    (e) => e.programStage === F49_CONFIG.investigationStage.programStage
+                  )?.event
                 : undefined;
 
             // DEFAULT STAGE
@@ -4491,21 +4586,21 @@ workflows:
               },
               ...(pregnancyDataValues.length > 0
                 ? [
-                  {
-                    event: pregnancyEvent,
-                    programStage: F49_CONFIG.pregnancyStage.programStage,
-                    dataValues: pregnancyDataValues,
-                  },
-                ]
+                    {
+                      event: pregnancyEvent,
+                      programStage: F49_CONFIG.pregnancyStage.programStage,
+                      dataValues: pregnancyDataValues,
+                    },
+                  ]
                 : []),
               ...(investigationDataValues.length > 0
                 ? [
-                  {
-                    event: investigationEvent,
-                    programStage: F49_CONFIG.investigationStage.programStage,
-                    dataValues: investigationDataValues,
-                  },
-                ]
+                    {
+                      event: investigationEvent,
+                      programStage: F49_CONFIG.investigationStage.programStage,
+                      dataValues: investigationDataValues,
+                    },
+                  ]
                 : []),
             ];
           }
@@ -4735,7 +4830,7 @@ workflows:
             },
           };
 
-          function mapDiagnosisF50(encounter, mapping) {
+          export function mapDiagnosisF50(encounter, mapping) {
             // Check if this diagnosis was selected in "New diagnosis" question
             const newDiagnosisObs = encounter.obs.find(
               (o) =>
@@ -4757,7 +4852,7 @@ workflows:
             return diagnosisRemainsObs ? "unknown" : "no";
           }
 
-          function mapF50(encounter, events, state) {
+          export function mapF50(encounter, events, state) {
             const { dhis2Map } = state;
             const form = state.formMaps[encounter.form.uuid];
             const programStage = form?.programStage;
@@ -4890,8 +4985,8 @@ workflows:
             const pregnancyEvent =
               syncType === "latest"
                 ? events?.find(
-                  (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
-                )?.event
+                    (e) => e.programStage === F50_CONFIG.pregnancyStage.programStage
+                  )?.event
                 : undefined;
             const pregnancyDataValues = [];
 
@@ -4918,8 +5013,8 @@ workflows:
             const investigationEvent =
               syncType === "latest"
                 ? events?.find(
-                  (e) => e.programStage === F50_CONFIG.investigationStage.programStage
-                )?.event
+                    (e) => e.programStage === F50_CONFIG.investigationStage.programStage
+                  )?.event
                 : undefined;
             const investigationDataValues = [];
 
@@ -5004,51 +5099,51 @@ workflows:
               },
               ...(ifDefaulterSpecify || typeOfExitF50
                 ? [
-                  {
-                    event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
-                    programStage: "ecvF615g1jZ",
-                    dataValues: [
-                      {
-                        // Row 114: Exit date (Date field)
-                        dataElement: dataEl.ncdEventDate,
-                        value: exitDate,
-                      },
-                      {
-                        // Row 115: Type of exit (Coded, option set Gjx599aojCR)
-                        dataElement: dataEl.f50.typeOfExit,
-                        value: typeOfExitF50,
-                      },
-                      {
-                        // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
-                        dataElement: dataEl.f50.ifDefaulterSpecify,
-                        value: ifDefaulterSpecify,
-                      },
-                    ].filter((d) => d?.value != null && d?.value !== ""),
-                  },
-                ]
+                    {
+                      event: events?.find((e) => e.programStage === "ecvF615g1jZ")?.event,
+                      programStage: "ecvF615g1jZ",
+                      dataValues: [
+                        {
+                          // Row 114: Exit date (Date field)
+                          dataElement: dataEl.ncdEventDate,
+                          value: exitDate,
+                        },
+                        {
+                          // Row 115: Type of exit (Coded, option set Gjx599aojCR)
+                          dataElement: dataEl.f50.typeOfExit,
+                          value: typeOfExitF50,
+                        },
+                        {
+                          // Row 116: If defaulter, specify (Coded, option set BDfd1V0bwSH)
+                          dataElement: dataEl.f50.ifDefaulterSpecify,
+                          value: ifDefaulterSpecify,
+                        },
+                      ].filter((d) => d?.value != null && d?.value !== ""),
+                    },
+                  ]
                 : []),
               ...(pregnancyDataValues.length > 0
                 ? [
-                  {
-                    event: pregnancyEvent,
-                    programStage: F50_CONFIG.pregnancyStage.programStage,
-                    dataValues: pregnancyDataValues,
-                  },
-                ]
+                    {
+                      event: pregnancyEvent,
+                      programStage: F50_CONFIG.pregnancyStage.programStage,
+                      dataValues: pregnancyDataValues,
+                    },
+                  ]
                 : []),
               ...(investigationDataValues.length > 0
                 ? [
-                  {
-                    event: investigationEvent,
-                    programStage: F50_CONFIG.investigationStage.programStage,
-                    dataValues: investigationDataValues,
-                  },
-                ]
+                    {
+                      event: investigationEvent,
+                      programStage: F50_CONFIG.investigationStage.programStage,
+                      dataValues: investigationDataValues,
+                    },
+                  ]
                 : []),
             ];
           }
 
-          function mapF55(encounter, events, state) {
+          export function mapF55(encounter, events, state) {
             const programStage = state.formMaps[encounter.form.uuid]?.programStage;
             const event = events?.find((e) => e.programStage === programStage)?.event;
 
@@ -5068,7 +5163,7 @@ workflows:
             ];
           }
 
-          function mapF56(encounter, events, state) {
+          export function mapF56(encounter, events, state) {
             const typeOfExit = dataValueByConcept(
               encounter,
               {
@@ -5130,7 +5225,7 @@ workflows:
             return [];
           }
 
-          function mapF58(encounter, events, state) {
+          export function mapF58(encounter, events, state) {
             const typeOfExit = dataValueByConcept(
               encounter,
               {
@@ -5168,7 +5263,7 @@ workflows:
             return [];
           }
 
-          function mapF59(encounter, events, state) {
+          export function mapF59(encounter, events, state) {
             const form = state.formMaps[encounter.form.uuid];
             const defaultProgramStage = form?.programStage;
             const syncType = form?.syncType;
@@ -5284,7 +5379,7 @@ workflows:
             return [defaultEvent];
           }
 
-          function mapF60(encounter, events, state) {
+          export function mapF60(encounter, events, state) {
             const form = state.formMaps[encounter.form.uuid];
             const syncType = form?.syncType;
             const event =
@@ -5422,7 +5517,7 @@ workflows:
             },
           };
 
-          function mapF62(encounter, events, state) {
+          export function mapF62(encounter, events, state) {
             const form = state.formMaps[encounter.form.uuid];
             const syncType = form?.syncType;
             const defaultProgramStage = form?.programStage;
@@ -5505,9 +5600,9 @@ workflows:
               event:
                 syncType === "latest"
                   ? events?.find(
-                    (e) =>
-                      e.programStage === F62_CONFIG.hospitalisationStage.programStage
-                  )?.event
+                      (e) =>
+                        e.programStage === F62_CONFIG.hospitalisationStage.programStage
+                    )?.event
                   : undefined,
               programStage: F62_CONFIG.hospitalisationStage.programStage,
               occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -5614,7 +5709,7 @@ workflows:
             },
           };
 
-          function mapF63(encounter, events, state) {
+          export function mapF63(encounter, events, state) {
             const form = state.formMaps[encounter.form.uuid];
             const syncType = form?.syncType;
             const defaultProgramStage = form?.programStage;
@@ -5698,9 +5793,9 @@ workflows:
               event:
                 syncType === "latest"
                   ? events?.find(
-                    (e) =>
-                      e.programStage === F63_CONFIG.hospitalisationStage.programStage
-                  )?.event
+                      (e) =>
+                        e.programStage === F63_CONFIG.hospitalisationStage.programStage
+                    )?.event
                   : undefined,
               programStage: F63_CONFIG.hospitalisationStage.programStage,
               occurredAt: encounter.encounterDatetime.replace("+0000", ""),
@@ -5735,7 +5830,7 @@ workflows:
             ];
           }
 
-          function mapF68(encounter, events, state) {
+          export function mapF68(encounter, events, state) {
             const formMap = state.formMaps[encounter.form.uuid];
             if (!formMap) return [];
 
@@ -5784,7 +5879,7 @@ workflows:
             ],
           };
 
-          function mapF69(encounter, events, state) {
+          export function mapF69(encounter, events, state) {
             const formMap = state.formMaps[encounter.form.uuid];
             if (!formMap) return [];
 
@@ -6243,6 +6338,15 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: true
     edges:
+      Mappings->Upsert-TEIs:
+        source_job: Mappings
+        target_job: Upsert-TEIs
+        condition_type: js_expression
+        condition_label: has-patients
+        condition_expression: |
+          state.patients.length > 0 && !state.errors
+
+        enabled: true
       cron->Get-Patients:
         source_trigger: cron
         target_job: Get-Patients
@@ -6288,14 +6392,6 @@ workflows:
           state?.teisToUpdate?.length > 0
 
         enabled: true
-      Event-Mappings->Missing-OptionSets:
-        source_job: Event-Mappings
-        target_job: Missing-OptionSets
-        condition_type: js_expression
-        condition_label: missing-opts
-        condition_expression: |
-          !state.errors && state.missingOptsets.length > 0
-        enabled: false
       Get-Encounters->Get-Parent-and-Child-TEIs:
         source_job: Get-Encounters
         target_job: Get-Parent-and-Child-TEIs
@@ -6310,19 +6406,6 @@ workflows:
         target_job: Create-TEIs-Relationship
         condition_type: on_job_success
         enabled: true
-      Create-TEIs-Relationship->Event-Mappings:
-        source_job: Create-TEIs-Relationship
-        target_job: Event-Mappings
-        condition_type: on_job_success
-        enabled: true
-      Get-Parent-and-Child-TEIs->Create-Child-TEIs:
-        source_job: Get-Parent-and-Child-TEIs
-        target_job: Create-Child-TEIs
-        condition_type: js_expression
-        condition_label: has-child-teis-to-create
-        condition_expression: |
-          !state.errors && Object.keys(state?.childTeisToCreate).length > 0
-        enabled: true
       Mappings->Get-Encounters:
         source_job: Mappings
         target_job: Get-Encounters
@@ -6332,14 +6415,26 @@ workflows:
           !state.errors && state.patients.length === 0
 
         enabled: true
-      Mappings->Upsert-TEIs:
-        source_job: Mappings
-        target_job: Upsert-TEIs
+      Get-Parent-and-Child-TEIs->Create-Child-TEIs:
+        source_job: Get-Parent-and-Child-TEIs
+        target_job: Create-Child-TEIs
         condition_type: js_expression
-        condition_label: has-patients
+        condition_label: has-child-teis-to-create
         condition_expression: |
-          state.patients.length > 0 && !state.errors
-
+          !state.errors && Object.keys(state?.childTeisToCreate).length > 0
+        enabled: true
+      Event-Mappings->Missing-OptionSets:
+        source_job: Event-Mappings
+        target_job: Missing-OptionSets
+        condition_type: js_expression
+        condition_label: missing-opts
+        condition_expression: |
+          !state.errors && state.missingOptsets.length > 0
+        enabled: false
+      Create-TEIs-Relationship->Event-Mappings:
+        source_job: Create-TEIs-Relationship
+        target_job: Event-Mappings
+        condition_type: on_job_success
         enabled: true
   wf3-omrs-dhis2:
     name: wf3-omrs-dhis2
@@ -6349,7 +6444,7 @@ workflows:
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
-          const teiByPatientUuid = (patientUuid, teis) => {
+          export const teiByPatientUuid = (patientUuid, teis) => {
             return teis.find((tei) => {
               const omrsPatientUuid = tei.attributes.find(
                 ({ attribute }) => attribute === "AYbfTPYMNJH"
@@ -6474,7 +6569,7 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
-          function removeLinks(data) {
+          export function removeLinks(data) {
             if (Array.isArray(data)) {
               return data.map(removeLinks);
             }
@@ -6489,7 +6584,7 @@ workflows:
             return data;
           }
 
-          function removeNulls(data) {
+          export function removeNulls(data) {
             if (Array.isArray(data)) {
               return data.filter((item) => item !== null).map(removeNulls);
             }
@@ -6620,10 +6715,10 @@ workflows:
           const f64AgeInMonthsAttr = "k26cdlS78i9";
 
           const MILLISECONDS_PER_YEAR = 365.25 * 24 * 60 * 60 * 1000;
-          const calculateAge = (dob) =>
+          export const calculateAge = (dob) =>
             Math.floor((new Date() - new Date(dob)) / MILLISECONDS_PER_YEAR);
 
-          const teiAge = (tei, attr) => {
+          export const teiAge = (tei, attr) => {
             const { ageInYears, birthdate } = attr;
             let age = tei?.attributes?.find(
               (attr) => attr.attribute === ageInYears
@@ -6638,37 +6733,37 @@ workflows:
             return age;
           };
 
-          function isPositiveInteger(n) {
+          export function isPositiveInteger(n) {
             return Number.isInteger(n) && n > 0;
           }
-          const formIdByName = (name, formMaps) => {
+          export const formIdByName = (name, formMaps) => {
             const entry = Object.entries(formMaps).find(([formId, form]) =>
               form.formName.includes(name)
             );
             return entry ? entry[0] : null;
           };
 
-          const ageInDays = (dob, encounterDate) => {
+          export const ageInDays = (dob, encounterDate) => {
             const birth = new Date(dob);
             const encounter = new Date(encounterDate);
             const diffTime = Math.abs(encounter - birth);
             return Math.floor(diffTime / (1000 * 60 * 60 * 24));
           };
 
-          const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
+          export const conceptAndValue = (encounter, conceptUuid, valueUuid) => {
             const answer = encounter.obs.find(
               (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
             );
             return answer ? "true" : "false";
           };
-          const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
+          export const conceptAndValueTrueOnly = (encounter, conceptUuid, valueUuid) => {
             const answer = encounter.obs.find(
               (o) => o.concept.uuid === conceptUuid && o.value.uuid === valueUuid
             );
             return answer ? "true" : undefined;
           };
 
-          const dataValueByConcept = (encounter, de, state) => {
+          export const dataValueByConcept = (encounter, de, state) => {
             const { dataElement, conceptUuid, questionId, type } = de;
 
             const answer = encounter.obs.find((o) => o.concept.uuid === conceptUuid);
@@ -6749,7 +6844,7 @@ workflows:
             }
           };
 
-          const findObsByConcept = (encounter, conceptUuid, questionId) => {
+          export const findObsByConcept = (encounter, conceptUuid, questionId) => {
             const answer = encounter.obs.find(
               (o) =>
                 o.concept.uuid === conceptUuid &&
@@ -6759,7 +6854,7 @@ workflows:
             return answer;
           };
 
-          const filterObsByConcept = (encounter, conceptUuid, questionId) => {
+          export const filterObsByConcept = (encounter, conceptUuid, questionId) => {
             const answers = encounter.obs.filter(
               (o) =>
                 o.concept.uuid === conceptUuid &&
@@ -6768,7 +6863,7 @@ workflows:
             return answers;
           };
 
-          const toTrueOrFalse = (value) => {
+          export const toTrueOrFalse = (value) => {
             if (["true", "yes", "positive"].includes(value?.toLowerCase())) {
               return "true";
             }
@@ -6778,7 +6873,7 @@ workflows:
             return value;
           };
 
-          const findDataValue = (encounter, dataElement, state) => {
+          export const findDataValue = (encounter, dataElement, state) => {
             if (dataElement === "H9noxo3e7ox") {
               return;
             }
@@ -6876,7 +6971,7 @@ workflows:
             return "";
           };
 
-          const multiSelectAns = (encounter, multiSelectQns) => {
+          export const multiSelectAns = (encounter, multiSelectQns) => {
             const dataValues = multiSelectQns
               .map((q) =>
                 q.qns
@@ -6904,7 +6999,7 @@ workflows:
 
             return dataValues;
           };
-          function f8(encounter) {
+          export function f8(encounter) {
             const timePart = encounter.encounterDatetime.substring(11, 16);
             return {
               dataValues: [{ dataElement: "iQio7NYSA3m", value: timePart }],
@@ -6912,7 +7007,7 @@ workflows:
             };
           }
 
-          function f26(encounter, state) {
+          export function f26(encounter, state) {
             const config = {
               concept: "8afa4dfc-b2af-452c-b402-4b96b0f334b4",
               qid: "rfe-forms-antimalariaType",
@@ -6943,7 +7038,7 @@ workflows:
             });
           }
 
-          function f27(encounter) {
+          export function f27(encounter) {
             const admissionDate = findObsByConcept(
               encounter,
               "7f00c65d-de60-467a-8964-fe80c7a85ef0"
@@ -6957,7 +7052,7 @@ workflows:
             };
           }
 
-          function f41(encounter) {
+          export function f41(encounter) {
             const obsDatetime = findObsByConcept(
               encounter,
               "40108bf5-0bbd-42e8-8102-bcbd0550a943"
@@ -6976,7 +7071,7 @@ workflows:
             };
           }
 
-          function f42(encounter) {
+          export function f42(encounter) {
             const obsDatetime = findObsByConcept(
               encounter,
               "7f00c65d-de60-467a-8964-fe80c7a85ef0"
@@ -6984,12 +7079,14 @@ workflows:
             if (!obsDatetime) return { dataValues: [], eventDate: null };
 
             return {
-              dataValues: [{ dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) }],
+              dataValues: [
+                { dataElement: "xr2Dqw14DGX", value: obsDatetime.substring(11, 16) },
+              ],
               eventDate: obsDatetime.replace("+0000", ""),
             };
           }
 
-          function f43(encounter, tei, dhis2Attr) {
+          export function f43(encounter, tei, dhis2Attr) {
             const mappings = [];
             let eventDate = null;
 
@@ -7068,7 +7165,7 @@ workflows:
             return { dataValues: mappings, eventDate };
           }
 
-          function f61(encounter, tei, state) {
+          export function f61(encounter, tei, state) {
             const { dhis2Map } = state;
             const attributeMap = {
               SRy50Q7NxIO: dhis2Map.attr.ageInYears, // Travel Medicine - Age in years
@@ -7114,7 +7211,7 @@ workflows:
             ].filter((d) => d.value);
           }
 
-          function f64(encounter) {
+          export function f64(encounter) {
             const mappings = [];
 
             mappings.push({
@@ -7125,7 +7222,7 @@ workflows:
             return mappings;
           }
 
-          function f65(encounter) {
+          export function f65(encounter) {
             const mappings = [];
             // Discharge date and time (Question #1)
             // Concept: d92dd800-b048-4724-86fa-91d006f9caa8
@@ -7152,7 +7249,7 @@ workflows:
             return mappings;
           }
 
-          function f66(encounter, state) {
+          export function f66(encounter, state) {
             const mappings = [];
 
             const hasObsByQid = (qid, valueUuid) =>
@@ -7178,7 +7275,7 @@ workflows:
 
             const resolveOptionCode = (optionUid) =>
               state.optsMap.find((o) => o["DHIS2 Option UID"] === optionUid)?.[
-              "DHIS2 Option Code"
+                "DHIS2 Option Code"
               ];
 
             // Snakebites - Cytotoxic (bRpRhiyU9om) — sourced from 'Signs and symptoms' (rfe-forms-signsAndSymptoms)
@@ -7252,7 +7349,7 @@ workflows:
             return mappings;
           }
 
-          function f67(tei, dhis2Map) {
+          export function f67(tei, dhis2Map) {
             const birthdate = tei?.attributes?.find(
               (attr) => attr.attribute === dhis2Map.attr.birthdate
             )?.value;
@@ -7299,7 +7396,7 @@ workflows:
             return mapping;
           }
 
-          function mapAttribute(attributes, attributeMap) {
+          export function mapAttribute(attributes, attributeMap) {
             const attrMapping = Object.entries(attributeMap)
               .map(([dataElement, attributeId]) => {
                 const value = attributes?.find(
@@ -7313,7 +7410,7 @@ workflows:
             return attrMapping;
           }
 
-          const buildDataValues = (pairedEncounters, tei, state) => {
+          export const buildDataValues = (pairedEncounters, tei, state) => {
             const { dhis2Map } = state;
 
             const f08Uuid = formIdByName("F08-ITFC Admission", state.formMaps);
@@ -7718,7 +7815,7 @@ workflows:
             return { dataValues: combinedMapping, eventDate };
           };
 
-          const handleMissingRecord = (patientKey, state) => {
+          export const handleMissingRecord = (patientKey, state) => {
             const [orgUnit, program, programStage, patientUuid, visitUuid] =
               patientKey.split(":");
             console.log("Missing trackedEntity for patient", {
@@ -7814,7 +7911,7 @@ workflows:
         adaptor: '@openfn/language-dhis2@5.0.1'
         credential: mtuchi@openfn.org-MSF-DHIS2-UAT
         body: |
-          function chunkArray(array, size) {
+          export function chunkArray(array, size) {
             const chunks = [];
             for (let i = 0; i < array.length; i += size) {
               chunks.push(array.slice(i, i + size));
@@ -7822,7 +7919,7 @@ workflows:
             return chunks;
           }
 
-          function remainderMonths(dob, ageYears, todayDate) {
+          export function remainderMonths(dob, ageYears, todayDate) {
             const birth = new Date(dob);
             const today = new Date(todayDate);
 
@@ -7845,14 +7942,14 @@ workflows:
             return months;
           }
 
-          const findIdentifierByUuid = (identifiers, targetUuid) =>
+          export const findIdentifierByUuid = (identifiers, targetUuid) =>
             identifiers.find((i) => i.identifierType.uuid === targetUuid)?.identifier;
 
-          const findAttrValue = (uuid, attributes) => {
+          export const findAttrValue = (uuid, attributes) => {
             return attributes.find((a) => a.attributeType.uuid === uuid)?.value;
           };
 
-          const findOptCode = (attrValue, optsMap, optionSetKey) => {
+          export const findOptCode = (attrValue, optsMap, optionSetKey) => {
             if (typeof attrValue === "string") {
               return attrValue;
             }
@@ -7880,7 +7977,7 @@ workflows:
             }
             return null;
           };
-          const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
+          export const buildTeiMapping = (omrsPatient, patientTei, mapConfig) => {
             const genderMap = {
               M: "male",
               O: "unknown",
@@ -8017,7 +8114,7 @@ workflows:
             })
           );
 
-          const findTeiByUuid = (patientUuid, teis, omrsPatientUuid) => {
+          export const findTeiByUuid = (patientUuid, teis, omrsPatientUuid) => {
             return teis.find((tei) => {
               return (
                 tei.attributes.find(
@@ -8379,7 +8476,7 @@ workflows:
         adaptor: '@openfn/language-openmrs@4.3.0'
         credential: mtuchi@openfn.org-OpenMRS-Demo
         body: |
-          function removeLinks(data) {
+          export function removeLinks(data) {
             if (Array.isArray(data)) {
               return data.map(removeLinks);
             }
@@ -8394,7 +8491,7 @@ workflows:
             return data;
           }
 
-          function removeNulls(data) {
+          export function removeNulls(data) {
             if (Array.isArray(data)) {
               return data.filter((item) => item !== null).map(removeNulls);
             }
@@ -8556,6 +8653,15 @@ workflows:
         cron_expression: '0 0 * * *'
         enabled: true
     edges:
+      Upsert-TEIs->Get-Encounters:
+        source_job: Upsert-TEIs
+        target_job: Get-Encounters
+        condition_type: js_expression
+        condition_label: has-patient-uuids
+        condition_expression: |
+          state.patientUuids.length > 0 && !state.errors
+
+        enabled: true
       Get-Mappings-from-Collection->Upsert-TEIs:
         source_job: Get-Mappings-from-Collection
         target_job: Upsert-TEIs
@@ -8619,12 +8725,3 @@ workflows:
         condition_expression: |
           "!state.errors && state.missingOptsets.length > 0"
         enabled: false
-      Upsert-TEIs->Get-Encounters:
-        source_job: Upsert-TEIs
-        target_job: Get-Encounters
-        condition_type: js_expression
-        condition_label: has-patient-uuids
-        condition_expression: |
-          state.patientUuids.length > 0 && !state.errors
-
-        enabled: true
