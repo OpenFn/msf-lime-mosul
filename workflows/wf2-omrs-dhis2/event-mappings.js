@@ -211,6 +211,55 @@ fn((state) => {
       const customMapping = [];
 
       if (encounter.form.description.includes("F29-MHPSS Baseline v2")) {
+        const doesThePatientHaveACurrentSuicidalRisk = findAnswerByConcept(
+          encounter,
+          "3dceead1-70d5-4030-b8f3-bda3938af08d-rfe-forms-doesThePatientHaveACurrentSuicidalRisk"
+        );
+        customMapping.push({
+          dataElement: "EkZqB9eL0W5",
+          value: !!doesThePatientHaveACurrentSuicidalRisk,
+        });
+
+        const doesThePatientPresentARiskOfHarmingOthers = findAnswerByConcept(
+          encounter,
+          "ccc4f06c-b76a-440d-9b7e-c48ba2c4a0ab-rfe-forms-doesThePatientPresentARiskOfHarmingOthers"
+        );
+
+        customMapping.push({
+          dataElement: "TWuCY5r2wx7",
+          value: !!doesThePatientPresentARiskOfHarmingOthers,
+        });
+
+        const cgiSScoreHowMentallyIllIsThePatientAtThisTime =
+          findAnswerByConcept(
+            encounter,
+            "a1a75011-0fef-460a-b666-dda2d171f39b-rfe-forms-cgiSScoreHowMentallyIllIsThePatientAtThisTime"
+          );
+
+        customMapping.push({
+          dataElement: "qacGXlyyQOS",
+          value: cgiSScoreHowMentallyIllIsThePatientAtThisTime || 0,
+        });
+
+        const referralDone = findAnswerByConcept(
+          encounter,
+          "6d3876be-0a27-466d-ad58-92edcc8c31fb-rfe-forms-referralDone"
+        );
+        customMapping.push({
+          dataElement: "RiiH9A53rvG",
+          value: !!referralDone,
+        });
+
+        const patientReferredTo = findAnswerByConcept(
+          encounter,
+          "8fb3bb7d-c935-4b57-8444-1b953470e109-rfe-forms-patientReferredTo"
+        );
+
+        customMapping.push({
+          dataElement: "DlqJSA5VApl",
+          value: patientReferredTo || "other",
+        });
+
         customMapping.push({
           dataElement: DATA_ELEMENTS.BASELINE,
           value: findAnswerByConcept(encounter, CONCEPTS.BASELINE_CONCEPT)
@@ -342,6 +391,16 @@ fn((state) => {
         ];
         customMapping.push(...mapping);
       }
+      if (encounter.form.description.includes("F31-mhGAP Baseline v2")) {
+        const cgiS = findAnswerByConcept(
+          encounter,
+          "a1a75011-0fef-460a-b666-dda2d171f39b-rfe-forms-cgiS"
+        );
+        customMapping.push({
+          dataElement: "qacGXlyyQOS",
+          value: cgiS || "0",
+        });
+      }
       if (encounter.form.description.includes("F32-mhGAP Follow-up v2")) {
         const missedSession = (encounter) => {
           if (
@@ -423,10 +482,44 @@ fn((state) => {
         ];
         customMapping.push(...mapping);
       }
+
       if (
         encounter.form.description.includes("F33-MHPSS Closure v2") ||
         encounter.form.description.includes("F34-mhGAP Closure v2")
       ) {
+        const totalNumberOfSessions = findAnswerByConcept(
+          encounter,
+          "1bf47398-7786-4f3e-8cae-b84a21f53eba-rfe-forms-totalNumberOfSessions"
+        );
+        if (encounter.form.description.includes("F33-MHPSS Closure v2")) {
+          customMapping.push({
+            dataElement: "QJxbUPjoIoo",
+            value: totalNumberOfSessions || "1",
+          });
+        }
+        if (encounter.form.description.includes("F34-mhGAP Closure v2")) {
+          customMapping.push({
+            dataElement: "Di6tE3HKIuz",
+            value: totalNumberOfSessions || "1",
+          });
+        }
+        const cgiS = findAnswerByConcept(
+          encounter,
+          "77f1a782-24af-40ba-bac1-b97d9a080f40-rfe-forms-cgiS"
+        );
+        customMapping.push({
+          dataElement: "c4TiPRUQ56A",
+          value: cgiS || "0",
+        });
+
+        const cgiI = findAnswerByConcept(
+          encounter,
+          "c64dfacd-2fb5-464d-83a9-ebb9eb8d3ab3-rfe-forms-cgiI"
+        );
+        customMapping.push({
+          dataElement: "iEdamWl0wzQ",
+          value: cgiI || "0",
+        });
         const lastScore = encounter.obs.find(
           (o) => o.concept.uuid === "90b3d09c-d296-44d2-8292-8e04377fe027"
         )?.value;
@@ -482,8 +575,8 @@ fn((state) => {
         occurredAt: encounter.encounterDatetime.replace("+0000", ""),
         programStage: form.programStage,
         dataValues: [...formDataValues, ...customMapping].filter(
-        (d) => d.value !== undefined && d.value !== null && d.value !== ""
-      ),
+          (d) => d.value !== undefined && d.value !== null && d.value !== ""
+        ),
       };
     })
     .filter(Boolean);
