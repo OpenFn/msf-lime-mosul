@@ -190,16 +190,16 @@ fn((state) => {
           const answer = obsAnswer;
           const value = answer
             ? processAnswer(
-                answer,
-                {
-                  conceptUuid,
-                  dataElement,
-                  type,
-                  questionId,
-                  formUuid: encounter.form.uuid,
-                },
-                { optsMap, optionSetKey: state.optionSetKey }
-              )
+              answer,
+              {
+                conceptUuid,
+                dataElement,
+                type,
+                questionId,
+                formUuid: encounter.form.uuid,
+              },
+              { optsMap, optionSetKey: state.optionSetKey }
+            )
             : processNoAnswer(encounter, conceptUuid, dataElement);
 
           if (value !== undefined && value !== null && value !== "") {
@@ -230,15 +230,22 @@ fn((state) => {
           value: !!doesThePatientPresentARiskOfHarmingOthers,
         });
 
-        const cgiSScoreHowMentallyIllIsThePatientAtThisTime =
-          findAnswerByConcept(
-            encounter,
-            "a1a75011-0fef-460a-b666-dda2d171f39b-rfe-forms-cgiSScoreHowMentallyIllIsThePatientAtThisTime"
-          );
+        const cgiSScoreHowMentallyIllIsThePatientAtThisTime = findObsByConcept(
+          encounter,
+          "a1a75011-0fef-460a-b666-dda2d171f39b-rfe-forms-cgiSScoreHowMentallyIllIsThePatientAtThisTime"
+        );
+
+        const cgiSOptCode = cgiSScoreHowMentallyIllIsThePatientAtThisTime
+          ? optsMap.find(
+            (o) =>
+              o["value.uuid - External ID"] ===
+              cgiSScoreHowMentallyIllIsThePatientAtThisTime?.value?.uuid
+          )?.["DHIS2 Option Code"]
+          : "0";
 
         customMapping.push({
           dataElement: "qacGXlyyQOS",
-          value: cgiSScoreHowMentallyIllIsThePatientAtThisTime || 0,
+          value: cgiSOptCode,
         });
 
         const referralDone = findAnswerByConcept(
@@ -250,14 +257,21 @@ fn((state) => {
           value: !!referralDone,
         });
 
-        const patientReferredTo = findAnswerByConcept(
+        const patientReferredTo = findObsByConcept(
           encounter,
           "8fb3bb7d-c935-4b57-8444-1b953470e109-rfe-forms-patientReferredTo"
         );
 
+        const patientReferredToOptCode = patientReferredTo
+          ? optsMap.find(
+            (o) =>
+              o["value.uuid - External ID"] === patientReferredTo?.value?.uuid
+          )?.["DHIS2 Option Code"]
+          : "other";
+
         customMapping.push({
           dataElement: "DlqJSA5VApl",
-          value: patientReferredTo || "other",
+          value: patientReferredToOptCode,
         });
 
         customMapping.push({
@@ -392,13 +406,21 @@ fn((state) => {
         customMapping.push(...mapping);
       }
       if (encounter.form.description.includes("F31-mhGAP Baseline v2")) {
-        const cgiS = findAnswerByConcept(
+        const cgiS = findObsByConcept(
           encounter,
           "a1a75011-0fef-460a-b666-dda2d171f39b-rfe-forms-cgiS"
         );
+
+        const cgiSOptCode = cgiS
+          ? optsMap.find(
+            (o) =>
+              o["value.uuid - External ID"] === cgiS?.value?.uuid
+          )?.["DHIS2 Option Code"]
+          : "0";
+
         customMapping.push({
           dataElement: "qacGXlyyQOS",
-          value: cgiS || "0",
+          value: cgiSOptCode,
         });
       }
       if (encounter.form.description.includes("F32-mhGAP Follow-up v2")) {
@@ -440,7 +462,7 @@ fn((state) => {
             (e) =>
               encounter.uuid !== e.uuid &&
               new Date(e.encounterDatetime) <
-                new Date(encounter.encounterDatetime) &&
+              new Date(encounter.encounterDatetime) &&
               e.patient.uuid === patientUuid &&
               ["F32-mhGAP Follow-up", "F31-mhGAP Baseline"].includes(
                 e.form.name
@@ -487,10 +509,10 @@ fn((state) => {
         encounter.form.description.includes("F33-MHPSS Closure v2") ||
         encounter.form.description.includes("F34-mhGAP Closure v2")
       ) {
-        const totalNumberOfSessions = findAnswerByConcept(
+        const totalNumberOfSessions = findObsByConcept(
           encounter,
           "1bf47398-7786-4f3e-8cae-b84a21f53eba-rfe-forms-totalNumberOfSessions"
-        );
+        )?.value;
         if (encounter.form.description.includes("F33-MHPSS Closure v2")) {
           customMapping.push({
             dataElement: "QJxbUPjoIoo",
@@ -503,22 +525,34 @@ fn((state) => {
             value: totalNumberOfSessions || "1",
           });
         }
-        const cgiS = findAnswerByConcept(
+        const cgiS = findObsByConcept(
           encounter,
           "77f1a782-24af-40ba-bac1-b97d9a080f40-rfe-forms-cgiS"
         );
+        const cgiSOptCode = cgiS
+          ? optsMap.find(
+            (o) =>
+              o["value.uuid - External ID"] === cgiS?.value?.uuid
+          )?.["DHIS2 Option Code"]
+          : "0";
         customMapping.push({
           dataElement: "c4TiPRUQ56A",
-          value: cgiS || "0",
+          value: cgiSOptCode,
         });
 
-        const cgiI = findAnswerByConcept(
+        const cgiI = findObsByConcept(
           encounter,
           "c64dfacd-2fb5-464d-83a9-ebb9eb8d3ab3-rfe-forms-cgiI"
         );
+        const cgiIOptCode = cgiI
+          ? optsMap.find(
+            (o) =>
+              o["value.uuid - External ID"] === cgiI?.value?.uuid
+          )?.["DHIS2 Option Code"]
+          : "0";
         customMapping.push({
           dataElement: "iEdamWl0wzQ",
-          value: cgiI || "0",
+          value: cgiIOptCode,
         });
         const lastScore = encounter.obs.find(
           (o) => o.concept.uuid === "90b3d09c-d296-44d2-8292-8e04377fe027"

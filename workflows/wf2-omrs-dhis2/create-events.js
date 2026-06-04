@@ -18,13 +18,6 @@ const remapToObjects = (columnsAndRows) => {
 create(
   "tracker",
   {
-    // events: (state) => {
-    //   console.log(
-    //     "Creating events for: ",
-    //     JSON.stringify(state.eventsMapping, null, 2)
-    //   );
-    //   return state.eventsMapping;
-    // },
     events: (state) => {
       const baseUrl = state.configuration.hostUrl;
 
