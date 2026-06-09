@@ -217,7 +217,7 @@ fn((state) => {
         );
         customMapping.push({
           dataElement: "EkZqB9eL0W5",
-          value: !!doesThePatientHaveACurrentSuicidalRisk,
+          value: doesThePatientHaveACurrentSuicidalRisk === "Yes" ? true : false,
         });
 
         const doesThePatientPresentARiskOfHarmingOthers = findAnswerByConcept(
@@ -227,7 +227,7 @@ fn((state) => {
 
         customMapping.push({
           dataElement: "TWuCY5r2wx7",
-          value: !!doesThePatientPresentARiskOfHarmingOthers,
+          value: doesThePatientPresentARiskOfHarmingOthers === "Yes" ? true : false,
         });
 
         const cgiSScoreHowMentallyIllIsThePatientAtThisTime = findObsByConcept(
@@ -254,7 +254,7 @@ fn((state) => {
         );
         customMapping.push({
           dataElement: "RiiH9A53rvG",
-          value: !!referralDone,
+          value: referralDone === "Yes" ? true : false,
         });
 
         const patientReferredTo = findObsByConcept(
