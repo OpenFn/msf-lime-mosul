@@ -462,23 +462,25 @@ workflows:
         adaptor: '@openfn/language-googlesheets@4.0.7'
         credential: mtuchi@openfn.org-mtuchi-gsheet
         body: |
-          const spreadsheetId = '1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg'
+          const spreadsheetId = "1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg";
 
-          each($.sheetsMapping, batchUpdateValues({
-            spreadsheetId,
-            range: $.data.range,
-            values: $.data.values
-          }))
+          each(
+            $.sheetsMapping,
+            batchUpdateValues({
+              spreadsheetId,
+              range: $.data.range,
+              values: $.data.values,
+            })
+          );
 
       Prepare-Mapping-Per-Sheet:
         name: Prepare Mapping Per Sheet
         adaptor: '@openfn/language-http@7.2.6'
         credential: mtuchi@openfn.org-mtuchi-gsheet
         body: |
-          
           const baseUrl = "https://sheets.googleapis.com/v4/spreadsheets";
           const gsheetId = "1Hnd2vMC7cK5OMksk5-4lv_OpqkXA1zSo1DrbtnopLtg";
-          const genSheets = (sourceFile) => {
+          export const genSheets = (sourceFile) => {
             const todayDate = new Date().toISOString().split("T")[0];
 
             const shortFile = sourceFile
@@ -772,29 +774,29 @@ workflows:
         adaptor: '@openfn/language-common@2.3.1'
         credential: null
         body: |
-          const isValidValue = value => value !== '' && value !== 'NA';
+          export const isValidValue = (value) => value !== "" && value !== "NA";
 
-          const mapArrayToObject = (item, keys) => {
+          export const mapArrayToObject = (item, keys) => {
             return item.reduce((acc, value, idx) => {
               acc[keys[idx]] = value;
               return acc;
             }, {});
           };
 
-          const safeKeyValuePairs = arr => {
+          export const safeKeyValuePairs = (arr) => {
             if (arr === null || arr === undefined) {
               return arr;
             }
-            const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));
+            const mappedArr = arr.slice(2).map((item) => mapArrayToObject(item, arr[1]));
             try {
               return mappedArr
                 .filter(
-                  o => isValidValue(o['External ID']) && isValidValue(o['DHIS2 DE UID'])
+                  (o) => isValidValue(o["External ID"]) && isValidValue(o["DHIS2 DE UID"])
                 )
                 .reduce((acc, value) => {
-                  const key = `${value['External ID']}::${value['DHIS2 type'].toLowerCase()}`;
-                  acc[value['DHIS2 DE UID']] = value['Question ID']
-                    ? `${key}::${value['Question ID']}`
+                  const key = `${value["External ID"]}::${value["DHIS2 type"].toLowerCase()}`;
+                  acc[value["DHIS2 DE UID"]] = value["Question ID"]
+                    ? `${key}::${value["Question ID"]}`
                     : key;
                   return acc;
                 }, {});
@@ -804,33 +806,33 @@ workflows:
             }
           };
 
-          const extractMultiQns = arr => {
+          export const extractMultiQns = (arr) => {
             if (arr === null || arr === undefined) {
               return arr;
             }
-            const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));
+            const mappedArr = arr.slice(2).map((item) => mapArrayToObject(item, arr[1]));
             try {
               const multiSelectQuestions = mappedArr
-                .filter(o => isValidValue(o['Question #']))
+                .filter((o) => isValidValue(o["Question #"]))
                 .reduce((acc, value) => {
-                  if (value['Multi-Select Answer External IDs']) {
-                    if (!acc[value['Question #']]) {
-                      acc[value['Question #']] = {
-                        extId: value['External ID'],
-                        qid: value['Question ID'],
+                  if (value["Multi-Select Answer External IDs"]) {
+                    if (!acc[value["Question #"]]) {
+                      acc[value["Question #"]] = {
+                        extId: value["External ID"],
+                        qid: value["Question ID"],
                         qns: [
                           {
-                            clde: value['CL DHIS2 DE UID'],
-                            type: value['DHIS2 type'],
-                            multiAns: value['Multi-Select Answer External IDs'],
+                            clde: value["CL DHIS2 DE UID"],
+                            type: value["DHIS2 type"],
+                            multiAns: value["Multi-Select Answer External IDs"],
                           },
                         ],
                       };
                     } else {
-                      acc[value['Question #']].qns.push({
-                        clde: value['CL DHIS2 DE UID'],
-                        type: value['DHIS2 type'],
-                        multiAns: value['Multi-Select Answer External IDs'],
+                      acc[value["Question #"]].qns.push({
+                        clde: value["CL DHIS2 DE UID"],
+                        type: value["DHIS2 type"],
+                        multiAns: value["Multi-Select Answer External IDs"],
                       });
                     }
                   }
@@ -845,22 +847,22 @@ workflows:
           };
 
           //New OptionSet Mappping
-          const questionKeyValuePairs = arr => {
+          export const questionKeyValuePairs = (arr) => {
             if (arr === null || arr === undefined) {
               return arr;
             }
-            const mappedArr = arr.slice(2).map(item => mapArrayToObject(item, arr[1]));
+            const mappedArr = arr.slice(2).map((item) => mapArrayToObject(item, arr[1]));
             try {
               return mappedArr
                 .filter(
-                  o =>
-                    isValidValue(o['External ID']) &&
-                    isValidValue(o['DHIS2 Option Set UID'])
+                  (o) =>
+                    isValidValue(o["External ID"]) &&
+                    isValidValue(o["DHIS2 Option Set UID"])
                 )
-                .map(value => ({
-                  [value['DHIS2 Option Set UID']]: value['Question ID']
-                    ? `${value['External ID']}-${value['Question ID']}`
-                    : value['External ID'],
+                .map((value) => ({
+                  [value["DHIS2 Option Set UID"]]: value["Question ID"]
+                    ? `${value["External ID"]}-${value["Question ID"]}`
+                    : value["External ID"],
                 }));
             } catch (error) {
               console.error(`Error processing ${arr}:`, error);
@@ -868,65 +870,65 @@ workflows:
             }
           };
 
-          fn(state => {
-            state.placeOflivingMap = state['Places of living']
+          fn((state) => {
+            state.placeOflivingMap = state["Places of living"]
               .slice(2)
-              .map(item => mapArrayToObject(item, state['Places of living'][1]))
+              .map((item) => mapArrayToObject(item, state["Places of living"][1]))
               .filter(
-                o =>
-                  (isValidValue(o['External ID']) &&
-                    isValidValue(o['DHIS2 DE full name'])) ||
-                  (isValidValue(o['value.display - Answers']) &&
-                    isValidValue(o['DHIS2 Option code']))
+                (o) =>
+                  (isValidValue(o["External ID"]) &&
+                    isValidValue(o["DHIS2 DE full name"])) ||
+                  (isValidValue(o["value.display - Answers"]) &&
+                    isValidValue(o["DHIS2 Option code"]))
               )
               .reduce((acc, value) => {
-                acc[value['Answers']] = value['DHIS2 Option code'];
+                acc[value["Answers"]] = value["DHIS2 Option code"];
                 return acc;
               }, {});
 
             return state;
           });
 
-          fn(state => {
+          fn((state) => {
             const { OptionSets, identifiers } = state;
             const keys = OptionSets[1];
 
             state.optsMap = OptionSets.slice(2)
-              .map(item => mapArrayToObject(item, keys))
+              .map((item) => mapArrayToObject(item, keys))
               .filter(
-                o =>
-                  (isValidValue(o['External ID']) &&
-                    isValidValue(o['DHIS2 DE full name'])) ||
-                  (isValidValue(o['value.display - Answers']) &&
-                    isValidValue(o['DHIS2 Option code']))
+                (o) =>
+                  (isValidValue(o["External ID"]) &&
+                    isValidValue(o["DHIS2 DE full name"])) ||
+                  (isValidValue(o["value.display - Answers"]) &&
+                    isValidValue(o["DHIS2 Option code"]))
               )
-              .map(o => {
+              .map((o) => {
                 return {
-                  'DHIS2 Option Set UID': o['DHIS2 Option Set UID'],
-                  'DHIS2 Option name': o['DHIS2 Option name'],
-                  'DHIS2 Option UID': o['DHIS2 Option UID'],
-                  'DHIS2 Option Code': o['DHIS2 Option code'],
-                  'value.display - Answers': o['Answers'],
-                  'value.uuid - External ID': o['External ID'].trim(),
-                  'DHIS2 DE UID': o['DHIS2 DE UID'],
+                  "DHIS2 Option Set UID": o["DHIS2 Option Set UID"],
+                  "DHIS2 Option name": o["DHIS2 Option name"],
+                  "DHIS2 Option UID": o["DHIS2 Option UID"],
+                  "DHIS2 Option Code": o["DHIS2 Option code"],
+                  "value.display - Answers": o["Answers"],
+                  "value.uuid - External ID": o["External ID"].trim(),
+                  "DHIS2 DE UID": o["DHIS2 DE UID"],
                 };
               });
 
             const [iheaders, ...irows] = identifiers;
             state.identifiers = irows
-              .map(row =>
+              .map((row) =>
                 row.reduce((obj, value, index) => {
-                  if (value != null && value !== '') {
+                  if (value != null && value !== "") {
                     obj[iheaders[index]] = value;
                   }
                   return obj;
                 }, {})
               )
-              .filter(obj => Object.keys(obj).length > 0);
+              .filter((obj) => Object.keys(obj).length > 0);
             return state;
           });
 
-          fn(state => {
+          fn((state) => {
             const {
               optsMap,
               syncedAt,
@@ -941,18 +943,18 @@ workflows:
             const fileDateModified = targetFile.lastModifiedDateTime;
 
             const formMaps = formMetadata.reduce((acc, form) => {
-              const formName = form['OMRS form sheet name'];
-              acc[form['OMRS form.uuid']] = {
+              const formName = form["OMRS form sheet name"];
+              acc[form["OMRS form.uuid"]] = {
                 formName,
-                syncType: form['Sync Type'],
-                orgUnit: form['DHIS2 orgUnit ID'],
-                programId: form['DHIS2 program ID'],
-                programStage: form['DHIS2 programStage ID'],
+                syncType: form["Sync Type"],
+                orgUnit: form["DHIS2 orgUnit ID"],
+                programId: form["DHIS2 program ID"],
+                programStage: form["DHIS2 programStage ID"],
                 dataValueMap: safeKeyValuePairs(state[formName]),
                 optionSetMap: questionKeyValuePairs(state[formName]),
-                workflow: form['Workflow'],
-                relationshipId: form['DHIS2 TEI Relationship Id'],
-                orgUnit: form['DHIS2 Org Unit ID'],
+                workflow: form["Workflow"],
+                relationshipId: form["DHIS2 TEI Relationship Id"],
+                orgUnit: form["DHIS2 Org Unit ID"],
                 multiSelectQns: extractMultiQns(state[formName]),
               };
 
@@ -961,7 +963,7 @@ workflows:
 
             const optionSetKey = Object.entries(formMaps).reduce(
               (acc, [formKey, formValue]) => {
-                formValue.optionSetMap.forEach(item => {
+                formValue.optionSetMap.forEach((item) => {
                   const [originalKey, originalValue] = Object.entries(item)[0];
                   acc[`${formKey}-${originalValue}`] = originalKey;
                 });
@@ -1039,21 +1041,6 @@ workflows:
         webhook_reply: before_start
         enabled: false
     edges:
-      Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
-        source_job: Prepare-Mapping-Per-Sheet
-        target_job: Add-Errors-to-GoogleSheet
-        condition_type: on_job_success
-        enabled: true
-      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
-        source_job: Warn-admin-of-errors
-        target_job: Prepare-Mapping-Per-Sheet
-        condition_type: on_job_success
-        enabled: true
-      webhook->Get-metadata-file-from-Sharepoint:
-        source_trigger: webhook
-        target_job: Get-metadata-file-from-Sharepoint
-        condition_type: always
-        enabled: true
       Get-metadata-file-from-Sharepoint->Map-metadata-file-to-option-set-Json-format:
         source_job: Get-metadata-file-from-Sharepoint
         target_job: Map-metadata-file-to-option-set-Json-format
@@ -1064,6 +1051,11 @@ workflows:
         target_job: Save-option-set-json-to-github
         condition_type: on_job_success
         enabled: false
+      Prepare-Mapping-Per-Sheet->Add-Errors-to-GoogleSheet:
+        source_job: Prepare-Mapping-Per-Sheet
+        target_job: Add-Errors-to-GoogleSheet
+        condition_type: on_job_success
+        enabled: true
       Throw-Errors->Save-option-set-json-to-collections-main:
         source_job: Throw-Errors
         target_job: Save-option-set-json-to-collections-main
@@ -1094,6 +1086,16 @@ workflows:
         target_job: Save-option-set-json-to-collections
         condition_type: always
         enabled: false
+      Warn-admin-of-errors->Prepare-Mapping-Per-Sheet:
+        source_job: Warn-admin-of-errors
+        target_job: Prepare-Mapping-Per-Sheet
+        condition_type: on_job_success
+        enabled: true
+      webhook->Get-metadata-file-from-Sharepoint:
+        source_trigger: webhook
+        target_job: Get-metadata-file-from-Sharepoint
+        condition_type: always
+        enabled: true
   wf1-dhis2-omrs-migration:
     name: wf1-dhis2-omrs-migration
     jobs:
@@ -1156,6 +1158,11 @@ workflows:
         target_job: Get-Teis-and-Locations
         condition_type: on_job_success
         enabled: true
+      Create-Patients->Update-Teis:
+        source_job: Create-Patients
+        target_job: Update-Teis
+        condition_type: on_job_success
+        enabled: true
       Get-Teis-and-Locations->Create-Patients:
         source_job: Get-Teis-and-Locations
         target_job: Create-Patients
@@ -1164,11 +1171,6 @@ workflows:
         condition_expression: |
           state.uniqueTeis.length > 0 && !state.errors
 
-        enabled: true
-      Create-Patients->Update-Teis:
-        source_job: Create-Patients
-        target_job: Update-Teis
-        condition_type: on_job_success
         enabled: true
       Get-Teis-and-Locations->Alert-Admin-of-Duplicate-TEIs:
         source_job: Get-Teis-and-Locations
